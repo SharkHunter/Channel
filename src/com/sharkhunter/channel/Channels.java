@@ -1,0 +1,187 @@
+package com.sharkhunter.channel;
+
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.FileReader;
+import java.net.MalformedURLException;
+import java.net.URL;
+import java.util.ArrayList;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+
+import net.pms.PMS;
+import net.pms.dlna.DLNAResource;
+import net.pms.dlna.virtual.VirtualFolder;
+import no.geosoft.cc.io.FileListener;
+import no.geosoft.cc.io.FileMonitor;
+
+public class Channels extends VirtualFolder implements FileListener {
+//public class Channels {
+    private File file;
+    private FileMonitor fileMonitor;
+    ArrayList<File> chFiles;
+    ArrayList<ChannelMacro> macros;
+
+    public Channels(File f,long poll) {
+    	super("Channels",null);
+    	this.file=f;
+    	chFiles=new ArrayList<File>();
+    	PMS.minimal("Start channel 0.16");
+    	PMS.get().getExtensions().set(0, new WEB());
+    	fileMonitor=null;
+    	if(poll>0)
+    		fileMonitor=new FileMonitor(poll);
+    	fileChanged(f);
+    	if(poll>0) {
+    		fileMonitor.addFile(f);
+    		fileMonitor.addListener(this);
+    	}
+    }
+    
+    private Channel find(String name) {
+    	for(DLNAResource f:children)
+    		if((f instanceof Channel)&&(f.getDisplayName().equals(name)))
+    				return (Channel) f;
+    	return null;
+    }
+    
+    private void readChannel(String data)  throws Exception {
+    	String str;
+    	String[] lines=data.split("\n");
+    	for(int i=0;i<lines.length;i++) {
+    	    str=lines[i].trim();
+    	    if(str.startsWith("macrodef ")) {
+    	    	ArrayList<String> mData=ChannelUtil.gatherBlock(lines, i+1);
+    	    	i+=mData.size();
+    	    	continue;
+    	    }
+    	    if(str.startsWith("channel ")) {
+    			String chName=str.substring(8,str.lastIndexOf('{')).trim();
+    			ArrayList<String> chData=ChannelUtil.gatherBlock(lines, i+1);
+    			i+=chData.size();
+    			Channel old=find(chName);
+    			if(old!=null) {
+    				old.parse(chData,macros);
+    			}
+    			else {
+    				Channel ch=new Channel(chName);
+    				if(ch.Ok) {
+    					ch.parse(chData,macros);
+    					addChild(ch);
+    				}	
+    				else {
+    					PMS.minimal("channel "+chName+" was not parsed ok");
+    				}
+    			}
+    		}
+    	}
+    }
+    
+    private void parseMacros(String data) {
+    	String str;
+    	String[] lines=data.split("\n");
+    	macros=new ArrayList<ChannelMacro>();
+    	for(int i=0;i<lines.length;i++) {
+    	    str=lines[i].trim();
+    	    if(str.startsWith("macrodef ")) {
+    	    	String mName=str.substring(9,str.lastIndexOf('{')).trim();
+    	    	ArrayList<String> mData=ChannelUtil.gatherBlock(lines, i+1);
+    	    	i+=mData.size();
+    	    	macros.add(new ChannelMacro(mName,mData));
+    	    }
+    	}
+    }
+    
+    public void parseChannels(File f)  throws Exception {
+    	BufferedReader in=new BufferedReader(new FileReader(f));
+    	String str;
+    	boolean macro=false;
+    	StringBuilder sb=new StringBuilder();
+    	String ver="unknown";    	
+    	while ((str = in.readLine()) != null) {
+    		str=str.trim();
+    	    if(str.startsWith("#"))
+    	    	continue;
+    	    if(str.length()==0)
+    	    	continue;
+    	    if(str.trim().startsWith("macrodef"))
+    	    	macro=true;
+    	    if(str.trim().startsWith("version")) {
+    	    	String[] v=str.split("=");
+    	    	if(v.length<2)
+    	    		continue;
+    	    	ver=v[1];
+    	    	continue; // don't append these
+    	    }	
+    	    sb.append(str);
+    	    sb.append("\n");
+    	}
+    	in.close();
+    	PMS.minimal("parsing channel file "+f.toString()+" version "+ver);
+    	if(macro)
+    		parseMacros(sb.toString());
+    	readChannel(sb.toString());
+    }
+    
+    private void handleFormat(File f) throws Exception {
+    	BufferedReader in=new BufferedReader(new FileReader(f));
+    	String str;
+    	WEB w=new WEB();
+    	while ((str = in.readLine()) != null) {
+    		str=str.trim();
+    	    if(str.startsWith("#"))
+    	    	continue;
+    	    if(str.length()==0)
+    	    	continue;
+    	    w.addExtra(str);
+    	}
+    	PMS.get().getExtensions().set(0, w);
+    }
+    
+    private void handleDirChange(File dir) throws Exception {
+    	File[] files=dir.listFiles();
+		for(int i=0;i<files.length;i++) {
+			File f=files[i];
+			if(f.getAbsolutePath().endsWith(".ch")) { // only bother about ch-files
+				if(!chFiles.contains(f)) { // new file
+					try {
+						parseChannels(f);
+						chFiles.add(f);
+						if(fileMonitor!=null)
+							fileMonitor.addFile(f);
+					} catch (Exception e) {
+						PMS.minimal("Error parsing file "+f.toString()+" ("+e.toString()+")");
+						//e.printStackTrace();
+					}	
+				}
+			}
+			else if(f.getAbsolutePath().endsWith(".form")) {
+				handleFormat(f);
+			}
+		}	
+    }
+
+	@Override
+	public void fileChanged(File f) {
+		if(!f.exists()) // file (or dir is gone) ignore
+			return;
+		if(f.isDirectory()) { // directory modified, new file or file gone?
+			try {
+				handleDirChange(f);
+			} catch (Exception e) {
+			}
+		}
+		else { // file change
+			try {
+				if(f.getAbsolutePath().endsWith(".form")) 
+					handleFormat(f);
+				else
+					parseChannels(f);
+			} catch (Exception e) {
+				PMS.minimal("Error parsing file "+f.toString()+" ("+e.toString()+")");
+				//e.printStackTrace();
+			}	
+		}
+	}
+}
