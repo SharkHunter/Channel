@@ -1,0 +1,308 @@
+    This document will try and describe how to construct channel files for the channel plugin
+    to PMS.
+    Bundled with the plugin there are some channels already but the .ch files are perhaps not that
+    human friendly to read so a quick guide to the structure of the files will be given here.
+
+    General note!
+    --------------
+
+    * The parser is extremely forgiving for unknown and misspelled keywords. At best it will inform
+      you that there is something wrong by logging it, but most of the time it will probably just
+      ignore the faulty word and continue.
+    * The files are line based. It is not possible to split long configurations on more lines then
+      one since the parser reads one line at a time.
+    * If a line starts (after removing leading whitespace chars like space and tab) is #
+      that line is removed. This is used for comments. NOTE! That you can only have complete lines
+      as comments. You can't have the # at the end or in the middle of a line, if a # is placed
+      anywhere else then first on the line it is considered to be part of the line.
+    * Empty lines are simply ignored
+
+    Textual conventions
+    --------------------
+
+    The following textual conventions are used in this document.
+    * <xxx> is an indication that some user defined text should be placed ther. The <> should not
+      be part of the string (unless you want them to be part of it).
+    * [xxx] is an indication that the text is optional, again the [] should be removed.
+    *[<xxx>] is thus an indication an optional user defined text.
+    * xxx|yyy means that either xxx or yyy is allowed, other values are ignored.
+    * Text without <> are keywords and must be written extactly as in this document.
+    * Keywords are not case sensitive (all other text is).
+    * The words keyword and tag will be used in this document to represent the same thing.
+
+    High level file structure
+    --------------------------
+
+    The channels that the plugin will display are placed in "channel files" (or .ch files).
+    The plugin is configured with a path where it will read (and parse) all .ch files it finds in
+    that directory. This allows you do separate the channels in to smaller files which are easier
+    to debug and read. There is however nothing that prevents you from have more than one channel
+    per .ch file.
+    The .ch file should follow the following struture:
+
+    [version=<ver tag>]
+    channel <channelname> {
+       <channel block>
+    }
+    macrodef <macroname> {
+       <macro block>
+    }
+
+    At the top level there are three (3) configuration elements (version,macrodef,channel). These
+    elements does not need to come in any specific order and there are no limit to how many times
+    they can be present within a file. However, a channel and a maro can only be defined one
+    time (that is the channelname and maroname can only be used once) and if it is defined agian
+    it will update the old definition.
+
+    Version tag
+    -------------
+    Each .ch file can contain a version tag. The version tag is a string that is used by the plugin
+    to be displayed in the PMS log when the .ch file is parsed. It is not used by the plugin in any
+    other way and should be used as a debug aid for the user to see that it is the correct version
+    of the file that has been loaded. A good practice is to set the version at the top of the file.
+
+    Channel definition
+    -------------------
+    A channel is the top most entity you can configure that will be seen on the XMB (under the
+    "Channels" folder). The channel definition structure:
+
+    channel <name> {
+       [format=audio|video]
+       [img=<url to image>]
+       <block def, see below>
+    }
+
+    The channel name MUST be unique. If the same channel is configured more than once the "last"
+    configuration will be the one that is the one that is used.
+
+    The channel has two (2) properties that can be set.
+    * format is the format of the data that this channel contains. Can be "audio" or "video",
+      the default value is video.
+    * The img tag is an URL to a nice image that represents the channel. This will be distributed
+      by the PMS as thumbnail for the channel.
+    * There must be at least on block definition (or macro usage) in the channel.
+
+    Macro definition
+    -----------------
+    Macros are configuration that you probably need to use more than once in your file and you don't
+    want to copy it to much. A maro is just there to make the .ch file become more readable. A macro
+    could be defined anywhere in the file and used anywhere in the file. The macros are however bound
+    to one .ch file. This means that as soon as on .ch file has been completely processed all macros
+    that were defined in it will be forgotten. Thus, if a mcro should be used for more then one channel
+    the channels and the macro must be placed in the same .ch file.
+    The macro definition structure:
+
+    macrodef <name> {
+       <block def, see below>
+    }
+
+    Block definition
+    -----------------
+    The block definition defines the folder structure for the channel. That is how the cahnnel
+    is divided in folders and where it finds the media etc. All blocks follow the same skeleton
+    structure that can be stated as:
+    block keyword {
+       block parameters
+       more blocks
+    }
+
+    The block parameters don't have to come first in the block but it is a good practice to place them
+    first. There is no order between the parameters.
+
+    There are three type of blocks defined:
+    folder,item and media.
+
+    Folder definition
+    ------------------
+    A folder is well a folder. It contains other folders and/or media. The folder definition:
+    folder {
+       [name=<name string>]
+       [matcher=<match expression>]
+       [url=<url to fetch page from>]
+       [type=atz|empty|normal]
+       [order=<see order def, below>]
+       [prop=<properties>]
+       [macro=<name of macro>]   
+       [folder {}]
+       [item {}]
+       [media {}]
+    }
+
+    The parameters for a folder are:
+    * name - a descriptive name of the folder. Not needed for normal folder since the name should
+      come from the maching.
+    * matcher - a regular expression matching out entries from the channel. See the matching section
+      below for details.
+    * order - the order of how things are matched. See the macthing section.
+    * url - the base url of the folder.
+    * type - type of folder. Defaults to normal.
+           * ATZ gives folders named A-Z and then sorts all matches on the page according to starting
+             letter.
+           * empty - the folder is just a placeholder for retriving the next url.
+           * normal - a normal folder.
+    * prop - special properties for the folder. See the properties section.
+    * macro - use the macro with the specified name. This means that the macro definition
+      in reality is pasted in place of the macro line.
+
+    Item definition
+    -----------------
+    Items are objects which holds media. Normally they are simple palceholders but they can
+    hold substantial data as well.
+    The item definition:
+    item {
+       [name=<name string>]
+       [matcher=<match expression>]
+       [url=<url to fetch page from>]
+       [order=<see order def, below>]
+       [prop=<properties>]
+       [macro=<name of macro>]   
+       [media {}]
+    }
+
+    NOTE! That an item can only hold media and not other items or folder.
+    The parameters of items have the same meaning as those of folders.
+
+    Media definition
+    ------------------
+    Media is the end result of the channel. This is the actual media stream that will be played.
+    The media definition
+    media {
+       [name=<name string>]
+       matcher=<match expression>
+       url=<url to fetch page from>
+       [order=<see order def, below>]
+       [prop=<properties>]
+       [macro=<name of macro>]   
+       [type=asx|normal]
+    }
+
+    The parameters of media has the same meaning as those of item and folder. The type parameter can
+    be set to asx to indicate that the media stream found is an asx file which needs some special
+    treatment by the plugin.
+
+    Matching
+    ---------
+    The whole purpose of the plugin is to present the web based channels (like SVTPlay) and allow
+    you browse the progrmas and finally play the media. This is done via some matching on the various
+    web pages that the play channel provides. This matching is done using regexps. If you need
+    to brush up your regexp skills go to google and do some searching.
+    The matcher parameter contains the regexp used to match out the relevant data for a particular
+    object (folder,item,media). The matching can produce three types of information to the plugin:
+    url,name and thumbnail. At a minimum a url must be produced, the name and the thumbnail picture
+    can be excluded. A name is normally also needed since it is hard to find the show you want
+    if all have no name. This production of data is used regexp "groups" (="()"). Which group in
+    a match expression that is the url,name or thumb is controlled by the order parameter.
+
+    The order is a comma separated list with the names name,url,thumb in the correct order and
+    combination. A keyword can occur more than once and if that is the case it will be concatenated
+    with the rest of the same sort.
+
+    The matched url is then concatenated with the url parameter to produce a url which corresponds
+    to the next page where new matches will be made.
+
+    Example:
+    matcher=<a href=\"([^\"]+)\">([^<]+)</a>
+    order=url,name
+    url=http://mysite.com/here
+
+    This is a very normal matcher. It matches expressions of form <a href="xxxx">yyyy</a>. It
+    produces two results the first (=xxxx) will be the url part and the second (=yyyy) is the
+    name. The matched url (=xxxx) will then be appended to the url parameter and the resulting url
+    (=http://mysite.com/here/xxxx) will be used for the next object as start page. A folder
+    (or item or media) will be visible on the XMB with the name yyyy.
+
+    If the last object in the order list ends with a "+" sign (for example name+) it means that all
+    the remaining matched groups are of that type.
+
+    Example:
+    matcher=<a href=\"([^\"]+)\">([^<]+)</a>\<\"([^\"]+)\"
+    order=url,name+
+    url=http://mysite.com/here
+
+    If the url parameter is left out the matched url part (=xxxx in the example) is considered to
+    be a full url.
+
+    Properties
+    -----------
+    Each object (=folder,item or media) can have some extra properties set to them. The properties
+    are added (just like order) as a comma separated list. Some properties have a value which
+    is then specified as <proerty name>=<property value>. The value part is left out for many
+    properties. The list of properties:
+
+    * url_separator
+      name_separator
+      thumb_separator:
+      These thre poerties all take a value (that is =<value>) and this controls what should be used
+      when concatenating multiple matched parts of theat type. For example name_separator=: means
+      that if we have two matched groups for name, say a and b, the resulting name will be a:b.
+     
+    * auto_media: The item equivalent of an empty folder. This means that the item will autamtically
+      fetch the next page which the should contain the media.
+     
+    * prepend_name: If a name parameter is given the value will be prepended to the matched name.
+    * append_name: If a name parameter is given the value will be appended to the matched name.
+    * ignore_name: If a name parameter is given it will be used in stead of the matched one. This
+      will also be the case when no name match is found.
+    * use_conf_thumb: If a thumb url is configured it will be used instead of a matched one.
+
+    Magic token
+    -------------
+    Some rtmp streams needs to be played by rtmpdump by the use of the -y option. Tó solve this issue
+    a special url_separator should be used. If the url_separator is !!!pms_ch_dash_y!!! it will
+    be replace by -y just before given to rtmpdump.
+
+    Sample file
+    -----------
+    1. version=0.1
+    2. channel SVTPlay {
+    3.   img=http://svtplay.se/img/brand/svt-play.png
+    4.   folder {
+    5.      name=A-Z
+    6.      type=ATZ
+    7.      url=http://svtplay.se/alfabetisk
+    8.      folder {
+    9.          matcher=<a href=\"(/t/.*)\">(.*)</a>
+    10.          order=url,name
+    11.          url=http://svtplay.se
+    12.           item {
+    13.            url=http://svtplay.se
+    14.              matcher=<a href=\"(/v/.*)\?.*\" title=\"(.*)\" .*?>[^<]*<img class=\"thumbnail\" src=\"([^\"]+)\"
+    15.              order=url,name,thumb
+    16.              prop=auto_media
+    17.            media {
+    18.                 matcher=url:(rtmp.*),bitrate:2400
+    19.            }
+    20.         }
+    21.      }
+    22.    }
+    23. }
+    The number on the left hand side should not be there and are just ther to make it simple to
+    walktrough the file in this explanation.
+    Line 1. A simple version line, the version is 0.1 here.
+    Line 2. We start defining a channel with the name SVTPlat.
+    Line 3. We set an img URL which shows some nice picture.
+    (Note that no format is set so it will be video by default)
+    Line 4. Start defineing a folder, this will be on the top level.
+    Line 5. The folder name is A-Z
+    Line 6. This is an A to Z folder and the plugin will insert the A-Z folders and sort
+    the matched dat in the correct folder.
+    Line 7. The URL where this folder should fetch it's pag from is set here.
+    Line 8-20. Defines a subfolder.
+    Line 9-10. We matches an url and a name. If this is found on the page:
+    <a href="/t/102532/a-ekonomi">A-ekonomi</a>
+    Then the matched url is /t/102532/a-ekonomi and the matched name is A-ekonomi.
+    Line 11. The url part for the match is set here. When combined with the matched url the
+    resulting URL will be http://svtplay.se/t/102532/a-ekonomi.
+    Line 13-20. Define an item.
+    Line 14. A matcher that produces an url a name and a thumbnail. The matched url will be of
+    form /v/xxxx and a resulting URL will be http://svtplay.se/v/xxxx.
+    Line 16. The proerty auto_media is used to indicate that this item is just placeholder were
+    the real media stream url is found.
+    Line 17-19. Defines a media.
+    Line 18. This will produce a full rtmp:// url. Since SVTPly has more then one rtmp-stream
+    per program we add some matching to only select on (the one with the best bitrate).
+    Line 19-23. Just end {
+
+    Hopefully you can now make your own .ch files (or modify the existing once). If you do there
+    are most likely other people that wants to view that channel as well so please publish your
+    channel files on the PMS forum. 
