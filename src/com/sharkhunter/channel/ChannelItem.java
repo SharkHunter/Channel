@@ -93,12 +93,18 @@ public class ChannelItem implements ChannelProps{
 	
 	public void match(DLNAResource res,String filter,String urlEnd,String backupName,
 			String pThumb) throws MalformedURLException {
-		URL urlobj=new URL(url+urlEnd);
-	    String page=ChannelUtil.fetchPage(urlobj);
+		String u=ChannelUtil.concatURL(url,urlEnd);
+		URL urlobj=new URL(ChannelUtil.pendData(u,prop,"url"));
+		parent.debug("item match url "+urlobj.toString());
+		String page=ChannelUtil.fetchPage(urlobj,parent.getAuth());
+	    parent.debug("page "+page);
+	    if(page==null||page.length()==0)
+	    	return;
 	    for(int i=0;i<mediaURL.size();i++) {
 	    	ChannelMedia m1=mediaURL.get(i);
 	    	ChannelMatcher m=m1.getMatcher();
 	    	m.startMatch(page);
+	    	parent.debug("matching using expr "+m.getRegexp().pattern());
 	    	while(m.match()) {
 	    		String mURL=m.getMatch("url",true);
 	    		String newName=m.getMatch("name",false,backupName);
@@ -108,6 +114,7 @@ public class ChannelItem implements ChannelProps{
 	    				thumb=pThumb;
 	    			else
 	    				thumb=parent.getThumb();
+	    		
 	    		m1.add(res, newName, mURL, thumb);
 	    	}
 	    }

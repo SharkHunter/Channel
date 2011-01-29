@@ -9,8 +9,10 @@ import net.pms.PMS;
 import net.pms.dlna.DLNAResource;
 
 public class ChannelFolder implements ChannelProps{
-	public static final int TYPE_ILLEGAL=0;
+	public static final int TYPE_NORMAL=0;
 	public static final int TYPE_ATZ=1;
+	public static final int TYPE_EMPTY=2;
+	public static final int TYPE_LOGIN=3;
 	
 	public boolean Ok;
 	
@@ -34,7 +36,7 @@ public class ChannelFolder implements ChannelProps{
 	
 	public ChannelFolder(ChannelFolder cf) {
 		Ok=true;
-		type=ChannelFolder.TYPE_ILLEGAL;
+		type=ChannelFolder.TYPE_NORMAL;
 		this.parent=cf.parent;
 		parentFolder=cf.parentFolder;
 		matcher=cf.matcher;
@@ -48,7 +50,7 @@ public class ChannelFolder implements ChannelProps{
 	
 	public ChannelFolder(ArrayList<String> data,Channel parent,ChannelFolder pf) {
 		Ok=false;
-		type=ChannelFolder.TYPE_ILLEGAL;
+		type=ChannelFolder.TYPE_NORMAL;
 		this.parent=parent;
 		parentFolder=pf;
 		matcher=null;
@@ -134,29 +136,38 @@ public class ChannelFolder implements ChannelProps{
 	private int parseType(String t) {
 		if(t.compareToIgnoreCase("atz")==0)
 			return ChannelFolder.TYPE_ATZ;
-		return ChannelFolder.TYPE_ILLEGAL;
+		if(t.compareToIgnoreCase("empty")==0)
+			return ChannelFolder.TYPE_EMPTY;
+		return ChannelFolder.TYPE_NORMAL;
 	}
 	
 	public void match(DLNAResource res) throws MalformedURLException {
-		match(res,null,"",null);
+		match(res,null,"",null,null);
 	}
 	
 	public void match(DLNAResource res,ChannelFilter filter,String urlEnd,
-			String pThumb) throws MalformedURLException {
-		if(matcher==null&&filter==null) { // static folder
+			String pThumb,String nName) throws MalformedURLException {
+		if(matcher==null&&filter==null&&type==ChannelFolder.TYPE_NORMAL) { // static folder
 			// static folders are not subject to filter
 			res.addChild(new ChannelPMSFolder(this,name));
 			return;
 		}
-		URL urlobj=new URL(url+urlEnd);
-		//PMS.debug("url "+urlobj.toString());
-	    String page=ChannelUtil.fetchPage(urlobj);
-	    //PMS.debug("page "+page);
-	    //PMS.debug("subfolders");
+		URL urlobj=new URL(ChannelUtil.concatURL(url,urlEnd));
+		parent.debug("folder match url "+urlobj.toString()+" type "+type);
+		String page=ChannelUtil.fetchPage(urlobj,parent.getAuth());
+	    parent.debug("page "+page);
+	    if(page==null||page.length()==0)
+	    	return;
+	   // PMS.debug("subfolders "+subfolders.size());
 	    for(int i=0;i<subfolders.size();i++) {
 	    	ChannelFolder cf=subfolders.get(i);
 	    	ChannelMatcher m=cf.matcher;
 	    	m.startMatch(page);
+	    	parent.debug("matching using expr "+m.getRegexp().pattern());
+	    	if(cf.type==ChannelFolder.TYPE_ATZ) {
+    			res.addChild(new ChannelATZ(cf,urlEnd));
+    			continue;
+    		}
 	    	while(m.match()) {
 	    		String someName=m.getMatch("name",false);
 	    		if(filter!=null&&!filter.filter(someName))
@@ -164,14 +175,23 @@ public class ChannelFolder implements ChannelProps{
 	    		String fUrl=m.getMatch("url",true);
 	    		String thumb=m.getMatch("thumb",false);
 	    		thumb=ChannelUtil.getThumb(thumb, pThumb, parent);
-	    		res.addChild(new ChannelPMSFolder(cf,someName,null,fUrl,thumb));
+	    		parent.debug("matching "+someName+" url "+fUrl+" thumb "+thumb);
+	    		if(someName==null||someName.length()==0)
+	    			someName=nName;
+	    		//PMS.debug("folder type "+cf.type);
+	    		//fUrl=ChannelUtil.appendData(fUrl,prop,"url");
+	    		if(cf.type==ChannelFolder.TYPE_EMPTY)
+	    			cf.match(res,null,fUrl,thumb,someName);
+	    		else
+	    			res.addChild(new ChannelPMSFolder(cf,someName,null,fUrl,thumb));
 	    	}
 	    }
-//	    PMS.debug("items");
+	   // PMS.debug("items "+items.size());
 	    for(int i=0;i<items.size();i++) {
 	    	ChannelItem item=items.get(i);
 	    	ChannelMatcher m=item.getMatcher();
 	    	m.startMatch(page);
+	    	parent.debug("item matching using expr "+m.getRegexp().pattern());
 	    	while(m.match()) {
 	    		String someName=m.getMatch("name",false);
 	    		//if(filter!=null&&!filter.filter(someName))
@@ -179,13 +199,17 @@ public class ChannelFolder implements ChannelProps{
 	    		String iUrl=m.getMatch("url",true);
 	    		String thumb=m.getMatch("thumb",false);
 	    		thumb=ChannelUtil.getThumb(thumb, pThumb, parent);
+	    		PMS.debug("found item "+someName+" url "+iUrl);
+	    		if(someName==null||someName.length()==0)
+	    			someName=nName;
+	    		//iUrl=ChannelUtil.appendData(iUrl,prop,"url");
 	    		if(item.autoMedia())
 	    			item.match(res,null,iUrl,someName,thumb);
 	    		else
 	    			res.addChild(new ChannelPMSItem(item,someName,null,iUrl,thumb));
 	    	}
 	    } 
-	//    PMS.debug("matching media "+medias.size());
+	    //PMS.debug("matching media "+medias.size());
 	    for(int i=0;i<medias.size();i++) {
 	    	ChannelMedia m1=medias.get(i);
 	    	ChannelMatcher m=m1.getMatcher();
@@ -197,7 +221,11 @@ public class ChannelFolder implements ChannelProps{
 	    		String mUrl=m.getMatch("url",true);
 	    		String thumb=m.getMatch("thumb",false);
 	    		thumb=ChannelUtil.getThumb(thumb, pThumb, parent);
+	    		parent.debug("media matching using "+m.getRegexp().pattern());
 	    		//PMS.debug("found media "+someName+" url "+mUrl);
+	    		if(someName==null||someName.length()==0)
+	    			someName=nName;
+	    		//mUrl=ChannelUtil.appendData(mUrl,prop,"url");
 	    		m1.add(res, someName, mUrl, thumb);
 	    	}
 	    } 

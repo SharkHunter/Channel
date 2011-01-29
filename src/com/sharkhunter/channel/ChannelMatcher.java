@@ -66,6 +66,8 @@ public class ChannelMatcher implements ChannelProps{
 		 if(properties==null)
 			 properties=this;
 		 for(int i=0;i<this.order.length;i++) {
+			 if(field==null||field.length()==0)
+				 break;
 			 //if(this.order[i].compareToIgnoreCase(field)==0) {
 			 if(this.order[i].startsWith(field)) {
 				 if((i+1)>this.matcher.groupCount()) { // to few matches

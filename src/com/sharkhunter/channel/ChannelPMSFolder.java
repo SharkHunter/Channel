@@ -20,8 +20,12 @@ public class ChannelPMSFolder extends VirtualFolder implements ChannelFilter{
 			this(cf,name,"","",cf.getThumb());
 		}
 		
+		public ChannelPMSFolder(ChannelFolder cf,char ch,String url) {
+			this(cf,String.valueOf(ch),String.valueOf(ch),url,cf.getThumb());
+		}
+		
 		public ChannelPMSFolder(ChannelFolder cf,String name,String filter,String url,String thumb) {
-			super(name,thumb);
+			super(name==null?"":name,thumb);
 			this.cf=cf;
 			this.filter=filter;
 			this.url=url;
@@ -29,7 +33,7 @@ public class ChannelPMSFolder extends VirtualFolder implements ChannelFilter{
 		
 		public void discoverChildren() {
 			try {
-				cf.match(this,this,url,thumbnailIcon);
+				cf.match(this,this,url,thumbnailIcon,name);
 			} catch (Exception e) {
 			}
 		}

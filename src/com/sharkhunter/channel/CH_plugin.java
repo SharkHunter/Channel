@@ -13,7 +13,7 @@ import java.util.regex.*;
 
 public class CH_plugin implements AdditionalFolderAtRoot {
 
-	private static final long DEFAULT_POLL_INTERVAL=30000;
+	private static final long DEFAULT_POLL_INTERVAL=20000;
 	private Channels chRoot;
 
 	public CH_plugin() {

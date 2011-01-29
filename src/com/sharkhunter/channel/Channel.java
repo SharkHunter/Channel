@@ -13,6 +13,7 @@ public class Channel extends VirtualFolder {
 
 	public static final int FORMAT_VIDEO=0;
 	public static final int FORMAT_AUDIO=1;
+	public static final int FORMAT_IMAGE=2;
 	
 	public boolean Ok;
 	private String name;
@@ -21,9 +22,11 @@ public class Channel extends VirtualFolder {
 	private ArrayList<ChannelFolder> folders;
 	private ArrayList<ChannelMacro> macros;
 	
+	private ChannelCred cred;
+	private ChannelLogin logObj;
+	
 	public Channel(String name) {
 		super(name,null);
-	//	PMS.debug("parse channel "+name+" data "+data);
 		Ok=false;
 		format=Channel.FORMAT_VIDEO;
 		folders=new ArrayList<ChannelFolder>();
@@ -35,9 +38,16 @@ public class Channel extends VirtualFolder {
 		children.clear();
 		childrenNumber=0;
 		discovered=false;
+		debug("parse channel "+name+" data "+data.toString());
 		this.macros=macros;
 		for(int i=0;i<data.size();i++) {
 			String line=data.get(i).trim();
+			if(line.contains("login {")) {
+				// Login data
+				ArrayList<String> log=ChannelUtil.gatherBlock(data, i+1);
+				i+=log.size();
+				logObj=new ChannelLogin(log,this);
+			}
 			if(line.contains("folder {")) {
 				ArrayList<String> folder=ChannelUtil.gatherBlock(data,i+1);
 				i+=folder.size();
@@ -60,6 +70,9 @@ public class Channel extends VirtualFolder {
 					format=Channel.FORMAT_VIDEO;
 				if(keyval[1].equalsIgnoreCase("audio"))
 					format=Channel.FORMAT_AUDIO;
+				if(keyval[1].equalsIgnoreCase("image"))
+					format=Channel.FORMAT_IMAGE;
+				
 			}
 			if(keyval[0].equalsIgnoreCase("img")) {
 				thumbnailIcon=keyval[1];
@@ -111,5 +124,36 @@ public class Channel extends VirtualFolder {
 		catch (Exception e) {
 			return super.getThumbnailInputStream();
 		}
+	}
+	
+	public void debug(String msg) {
+		if(Channels.debug)
+			PMS.debug("[Channel]: "+msg);
+	}
+	
+	public void addCred(ChannelCred c) {
+		cred=c;
+		if(logObj!=null)
+			logObj.reset();
+	}
+	
+	public String user() {
+		return cred.user;
+	}
+	
+	public String pwd() {
+		return cred.pwd;
+	}
+	
+	public String getAuth() {
+		if(logObj==null)
+			return "";
+		if(cred==null)
+			return "";
+		if(cred.user==null||cred.user.length()==0)
+			return "";
+		if(cred.pwd==null||cred.pwd.length()==0)
+			return "";
+		return logObj.getAuthStr(cred.user, cred.pwd);
 	}
 }

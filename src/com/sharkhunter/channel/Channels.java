@@ -20,14 +20,18 @@ public class Channels extends VirtualFolder implements FileListener {
 //public class Channels {
     private File file;
     private FileMonitor fileMonitor;
-    ArrayList<File> chFiles;
-    ArrayList<ChannelMacro> macros;
+    private ArrayList<File> chFiles;
+    private ArrayList<ChannelMacro> macros;
+    private ArrayList<ChannelCred> cred;
+    public static boolean debug=false;
+    
 
     public Channels(File f,long poll) {
     	super("Channels",null);
     	this.file=f;
     	chFiles=new ArrayList<File>();
-    	PMS.minimal("Start channel 0.16");
+    	cred=new ArrayList<ChannelCred>();
+    	PMS.minimal("Start channel 0.25");
     	PMS.get().getExtensions().set(0, new WEB());
     	fileMonitor=null;
     	if(poll>0)
@@ -37,6 +41,7 @@ public class Channels extends VirtualFolder implements FileListener {
     		fileMonitor.addFile(f);
     		fileMonitor.addListener(this);
     	}
+    	Channels.debug=false;
     }
     
     private Channel find(String name) {
@@ -122,6 +127,7 @@ public class Channels extends VirtualFolder implements FileListener {
     	if(macro)
     		parseMacros(sb.toString());
     	readChannel(sb.toString());
+    	addCred();
     }
     
     private void handleFormat(File f) throws Exception {
@@ -139,7 +145,62 @@ public class Channels extends VirtualFolder implements FileListener {
     	PMS.get().getExtensions().set(0, w);
     }
     
+    private void addCred() {
+    	for(int i=0;i<cred.size();i++) {
+    		ChannelCred cr=cred.get(i);
+    		Channel ch=find(cr.channelName);
+    		if(ch==null)
+    			continue;
+    		cr.ch=ch;
+    		ch.addCred(cr);
+    	}
+    		
+    }
+    
+    private void handleCred(File f)  {
+    	BufferedReader in;
+		try {
+			in = new BufferedReader(new FileReader(f));
+			String str;
+			while ((str = in.readLine()) != null) {
+				str=str.trim();
+				if(str.startsWith("#"))
+					continue;
+				if(str.length()==0)
+					continue;
+				String[] s=str.split("=",2);
+				if(s.length<2)
+					continue;
+				String[] s1=s[0].split("\\.");
+				if(s1.length<2)
+					continue;
+				if(!s1[0].equalsIgnoreCase("channel"))
+					continue;
+				String[] s2=s[1].split(",");
+				if(s2.length<2)
+					continue;
+				String chName=s1[1];
+				ChannelCred ch=null;
+				for(int i=0;i<cred.size();i++)
+					if(cred.get(i).channelName.equals(chName)) {
+						ch=cred.get(i);
+						break;
+					}
+				if(ch==null) {
+					ch=new ChannelCred(s2[0],s2[1],chName);
+					cred.add(ch);
+				}
+				ch.user=s2[0];
+				ch.pwd=s2[1];
+			}
+			addCred();
+		}
+    	catch (Exception e) {} 
+    }
+    
     private void handleDirChange(File dir) throws Exception {
+    	if(!dir.exists()) // file (or dir is gone) ignore
+			return;
     	File[] files=dir.listFiles();
 		for(int i=0;i<files.length;i++) {
 			File f=files[i];
@@ -159,13 +220,19 @@ public class Channels extends VirtualFolder implements FileListener {
 			else if(f.getAbsolutePath().endsWith(".form")) {
 				handleFormat(f);
 			}
+			else if(f.getAbsolutePath().endsWith(".cred"))
+				handleCred(f);
+			else if(f.getName().startsWith("ch_debug")) {
+				PMS.minimal("Channel debug file found "+f.exists());
+				if(fileMonitor!=null)
+					fileMonitor.addFile(f);
+				Channels.debug=f.exists();
+			}
 		}	
     }
 
 	@Override
 	public void fileChanged(File f) {
-		if(!f.exists()) // file (or dir is gone) ignore
-			return;
 		if(f.isDirectory()) { // directory modified, new file or file gone?
 			try {
 				handleDirChange(f);
@@ -176,8 +243,17 @@ public class Channels extends VirtualFolder implements FileListener {
 			try {
 				if(f.getAbsolutePath().endsWith(".form")) 
 					handleFormat(f);
+				else if(f.getAbsolutePath().endsWith(".cred"))
+					handleCred(f);
+				else if(f.getName().startsWith("ch_debug")) {
+					PMS.minimal("Channel debug file found "+f.exists());
+					if(fileMonitor!=null)
+						fileMonitor.addFile(f);
+					Channels.debug=f.exists();
+				}
 				else
-					parseChannels(f);
+					if(f.exists())
+						parseChannels(f);
 			} catch (Exception e) {
 				PMS.minimal("Error parsing file "+f.toString()+" ("+e.toString()+")");
 				//e.printStackTrace();
