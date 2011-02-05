@@ -13,6 +13,7 @@ public class ChannelFolder implements ChannelProps{
 	public static final int TYPE_ATZ=1;
 	public static final int TYPE_EMPTY=2;
 	public static final int TYPE_LOGIN=3;
+	public static final int TYPE_ATZ_LINK=4;
 	
 	public boolean Ok;
 	
@@ -133,11 +134,25 @@ public class ChannelFolder implements ChannelProps{
 		return name;
 	}
 	
+	public String getURL() {
+		return url;
+	}
+	
+	public boolean isATZ() {
+		return ((type==ChannelFolder.TYPE_ATZ)||(type==ChannelFolder.TYPE_ATZ_LINK));
+	}
+	
+	public String getProp(String p) {
+		return ChannelUtil.getPropertyValue(prop, p);
+	}
+	
 	private int parseType(String t) {
 		if(t.compareToIgnoreCase("atz")==0)
 			return ChannelFolder.TYPE_ATZ;
 		if(t.compareToIgnoreCase("empty")==0)
 			return ChannelFolder.TYPE_EMPTY;
+		if(t.compareToIgnoreCase("atzlink")==0)
+			return ChannelFolder.TYPE_ATZ_LINK;
 		return ChannelFolder.TYPE_NORMAL;
 	}
 	
@@ -147,27 +162,37 @@ public class ChannelFolder implements ChannelProps{
 	
 	public void match(DLNAResource res,ChannelFilter filter,String urlEnd,
 			String pThumb,String nName) throws MalformedURLException {
-		if(matcher==null&&filter==null&&type==ChannelFolder.TYPE_NORMAL) { // static folder
+		String page="";
+		if(filter==null&&matcher==null&&type==ChannelFolder.TYPE_NORMAL) { // static folder
 			// static folders are not subject to filter
+			parent.debug("static folder");
 			res.addChild(new ChannelPMSFolder(this,name));
 			return;
 		}
-		URL urlobj=new URL(ChannelUtil.concatURL(url,urlEnd));
-		parent.debug("folder match url "+urlobj.toString()+" type "+type);
-		String page=ChannelUtil.fetchPage(urlobj,parent.getAuth());
-	    parent.debug("page "+page);
-	    if(page==null||page.length()==0)
-	    	return;
-	   // PMS.debug("subfolders "+subfolders.size());
+		String realUrl=ChannelUtil.concatURL(url,urlEnd);
+		if(realUrl!=null&&realUrl.length()!=0) {
+			URL urlobj=new URL(realUrl);
+			parent.debug("folder match url "+urlobj.toString()+" type "+type);
+			page=ChannelUtil.fetchPage(urlobj,parent.getAuth());
+			parent.debug("page "+page);
+			if(page==null||page.length()==0)
+				return;
+		}
+		parent.debug("subfolders "+subfolders.size());
 	    for(int i=0;i<subfolders.size();i++) {
 	    	ChannelFolder cf=subfolders.get(i);
 	    	ChannelMatcher m=cf.matcher;
-	    	m.startMatch(page);
-	    	parent.debug("matching using expr "+m.getRegexp().pattern());
-	    	if(cf.type==ChannelFolder.TYPE_ATZ) {
+	    	if(cf.isATZ()) {
     			res.addChild(new ChannelATZ(cf,urlEnd));
     			continue;
     		}
+	    	if(m==null) {
+	    		parent.debug("nested static folder");
+	    		res.addChild(new ChannelPMSFolder(cf,cf.name));
+	    		continue;
+	    	}	
+	    	m.startMatch(page);
+	    	parent.debug("folder matching using expr "+m.getRegexp().pattern());
 	    	while(m.match()) {
 	    		String someName=m.getMatch("name",false);
 	    		if(filter!=null&&!filter.filter(someName))

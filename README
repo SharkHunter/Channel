@@ -21,12 +21,12 @@
     --------------------
 
     The following textual conventions are used in this document.
-    * <xxx> is an indication that some user defined text should be placed ther. The <> should not
+    * <xxx> is an indication that some user defined text should be placed there. The <> should not
       be part of the string (unless you want them to be part of it).
     * [xxx] is an indication that the text is optional, again the [] should be removed.
     *[<xxx>] is thus an indication an optional user defined text.
     * xxx|yyy means that either xxx or yyy is allowed, other values are ignored.
-    * Text without <> are keywords and must be written extactly as in this document.
+    * Text without <> are keywords and must be written exactly as in this document.
     * Keywords are not case sensitive (all other text is).
     * The words keyword and tag will be used in this document to represent the same thing.
 
@@ -38,7 +38,7 @@
     that directory. This allows you do separate the channels in to smaller files which are easier
     to debug and read. There is however nothing that prevents you from have more than one channel
     per .ch file.
-    The .ch file should follow the following struture:
+    The .ch file should follow the following structure:
 
     [version=<ver tag>]
     channel <channelname> {
@@ -50,8 +50,8 @@
 
     At the top level there are three (3) configuration elements (version,macrodef,channel). These
     elements does not need to come in any specific order and there are no limit to how many times
-    they can be present within a file. However, a channel and a maro can only be defined one
-    time (that is the channelname and maroname can only be used once) and if it is defined agian
+    they can be present within a file. However, a channel and a macro can only be defined one
+    time (that is the channelname and macroname can only be used once) and if it is defined again
     it will update the old definition.
 
     Version tag
@@ -85,10 +85,10 @@
     Macro definition
     -----------------
     Macros are configuration that you probably need to use more than once in your file and you don't
-    want to copy it to much. A maro is just there to make the .ch file become more readable. A macro
+    want to copy it to much. A macro is just there to make the .ch file become more readable. A macro
     could be defined anywhere in the file and used anywhere in the file. The macros are however bound
     to one .ch file. This means that as soon as on .ch file has been completely processed all macros
-    that were defined in it will be forgotten. Thus, if a mcro should be used for more then one channel
+    that were defined in it will be forgotten. Thus, if a macro should be used for more then one channel
     the channels and the macro must be placed in the same .ch file.
     The macro definition structure:
 
@@ -130,15 +130,20 @@
 
     The parameters for a folder are:
     * name - a descriptive name of the folder. Not needed for normal folder since the name should
-      come from the maching.
+      come from the matching.
     * matcher - a regular expression matching out entries from the channel. See the matching section
       below for details.
-    * order - the order of how things are matched. See the macthing section.
+    * order - the order of how things are matched. See the matching section.
     * url - the base url of the folder.
     * type - type of folder. Defaults to normal.
            * ATZ gives folders named A-Z and then sorts all matches on the page according to starting
              letter.
-           * empty - the folder is just a placeholder for retriving the next url.
+           * ATZLink similar to ATZ but with the difference that the A-Z objects are 
+             not found on a single page but already sorted. The plugin will append
+             the letters A-Z to the URL. For example if 
+             url=http://www.icefilms.info/tv/a-z then the plugin will search for data
+             under http://www.icefilms.info/tv/a-z/A,http://www.icefilms.info/tv/a-z/B etc.  
+           * empty - the folder is just a placeholder for retrieving the next url.
            * normal - a normal folder.
     * prop - special properties for the folder. See the properties section.
     * macro - use the macro with the specified name. This means that the macro definition
@@ -183,7 +188,7 @@
     Matching
     ---------
     The whole purpose of the plugin is to present the web based channels (like SVTPlay) and allow
-    you browse the progrmas and finally play the media. This is done via some matching on the various
+    you browse the programs and finally play the media. This is done via some matching on the various
     web pages that the play channel provides. This matching is done using regexps. If you need
     to brush up your regexp skills go to google and do some searching.
     The matcher parameter contains the regexp used to match out the relevant data for a particular
@@ -232,18 +237,29 @@
     * url_separator
       name_separator
       thumb_separator:
-      These thre poerties all take a value (that is =<value>) and this controls what should be used
+      These three properties all take a value (that is =<value>) and this controls what should be used
       when concatenating multiple matched parts of theat type. For example name_separator=: means
       that if we have two matched groups for name, say a and b, the resulting name will be a:b.
      
     * auto_media: The item equivalent of an empty folder. This means that the item will autamtically
       fetch the next page which the should contain the media.
      
-    * prepend_name: If a name parameter is given the value will be prepended to the matched name.
-    * append_name: If a name parameter is given the value will be appended to the matched name.
+    * prepend_url
+      prepend_name
+      prepend_thumb:
+      If a value is given the value will be prepended to the matched data (url,name or thumb).
+      
+    * append_url
+      append_name
+      append_thumb:
+      If a value is given the value will be appended to the matched data (url,name or thumb).
+      
     * ignore_name: If a name parameter is given it will be used in stead of the matched one. This
       will also be the case when no name match is found.
+      
     * use_conf_thumb: If a thumb url is configured it will be used instead of a matched one.
+    
+    * other_string: Used for ATZLink to set the "other" folder string. By default this is "#".
 
     Magic token
     -------------
@@ -301,7 +317,7 @@
     Line 17-19. Defines a media.
     Line 18. This will produce a full rtmp:// url. Since SVTPly has more then one rtmp-stream
     per program we add some matching to only select on (the one with the best bitrate).
-    Line 19-23. Just end {
+    Line 19-23. Just end }
 
     Hopefully you can now make your own .ch files (or modify the existing once). If you do there
     are most likely other people that wants to view that channel as well so please publish your

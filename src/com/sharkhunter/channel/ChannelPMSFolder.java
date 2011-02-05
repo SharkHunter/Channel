@@ -17,7 +17,7 @@ public class ChannelPMSFolder extends VirtualFolder implements ChannelFilter{
 		}
 		
 		public ChannelPMSFolder(ChannelFolder cf,String name) {
-			this(cf,name,"","",cf.getThumb());
+			this(cf,name,null,"",cf.getThumb());
 		}
 		
 		public ChannelPMSFolder(ChannelFolder cf,char ch,String url) {
@@ -46,7 +46,7 @@ public class ChannelPMSFolder extends VirtualFolder implements ChannelFilter{
 		}
 		
 		public boolean filter(String str) {
-			if(filter==null)
+			if(filter==null||filter.length()==0)
 				return true;
 			if(filter.equalsIgnoreCase("#")) {
 				char first=str.charAt(0);
