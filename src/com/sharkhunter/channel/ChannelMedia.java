@@ -102,11 +102,10 @@ public class ChannelMedia implements ChannelProps{
 				thumb=thumbURL;
 		}
 		if(name!=null&&name.length()!=0) {
-			String sep=ChannelUtil.getPropertyValue(prop, "name_separator");
-			nName=ChannelUtil.pendData(name, prop, "name", sep);
+			nName=ChannelUtil.concatField(name,nName,prop,"name");
 			if(nName==null)
 				nName=name;
-			else if(!ChannelUtil.getProperty(prop, "ignore_name"))
+			else if(ChannelUtil.getProperty(prop, "ignore_match"))
 				nName=name;
 		}
 		thumb=ChannelUtil.getThumb(thumb, thumbURL, parent);

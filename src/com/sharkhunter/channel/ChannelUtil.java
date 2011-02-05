@@ -183,6 +183,19 @@ public class ChannelUtil {
 		return pendData(src,props,field,null);
 	}
 	
+	public static String concatField(String conf,String matched,String[] props,String field) {
+		String cProp=getPropertyValue(props,"concat_"+field);
+		if(cProp==null)
+			return matched;
+		String sep=getPropertyValue(props,field+"_separator");
+		if(cProp.equalsIgnoreCase("front")) {
+			return append(conf,sep,matched);
+		}
+		if(cProp.equalsIgnoreCase("rear"))
+			return append(matched,sep,conf);
+		return matched;
+	}
+	
 	public static String concatURL(String a,String b) {
 		if(a==null||a.length()==0)
 			return b;
