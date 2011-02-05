@@ -31,7 +31,7 @@ public class Channels extends VirtualFolder implements FileListener {
     	this.file=f;
     	chFiles=new ArrayList<File>();
     	cred=new ArrayList<ChannelCred>();
-    	PMS.minimal("Start channel 0.26");
+    	PMS.minimal("Start channel 0.27");
     	PMS.get().getExtensions().set(0, new WEB());
     	fileMonitor=null;
     	if(poll>0)
@@ -112,6 +112,14 @@ public class Channels extends VirtualFolder implements FileListener {
     	    	continue;
     	    if(str.trim().startsWith("macrodef"))
     	    	macro=true;
+    	    if(str.trim().startsWith("debug")) {
+    	    	String[] v=str.split("=");
+    	    	if(v.length<2)
+    	    		continue;
+    	    	if(v[1].equalsIgnoreCase("true"))
+    	    		Channels.debug=true;
+    	    	continue;
+    	    }
     	    if(str.trim().startsWith("version")) {
     	    	String[] v=str.split("=");
     	    	if(v.length<2)

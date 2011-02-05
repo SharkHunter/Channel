@@ -107,7 +107,7 @@ public class Channel extends VirtualFolder {
 	public void discoverChildren() {
 		for(int i=0;i<folders.size();i++) {
 			ChannelFolder cf=folders.get(i);
-			if(cf.getType()==ChannelFolder.TYPE_ATZ) 
+			if(cf.isATZ()) 
 				addChild(new ChannelATZ(cf));
 			else
 				try {

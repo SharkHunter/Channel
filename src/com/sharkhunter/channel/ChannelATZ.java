@@ -20,9 +20,21 @@ public class ChannelATZ extends VirtualFolder {
 	}
 	
 	public void discoverChildren() {
-		for(char i='A';i<='Z';i++)
-			addChild(new ChannelPMSFolder(folder,i,url));
-		addChild(new ChannelPMSFolder(folder,'#',url));
+		for(char i='A';i<='Z';i++) {
+			if(folder.getType()==ChannelFolder.TYPE_ATZ)
+				addChild(new ChannelPMSFolder(folder,i,url));
+			else if(folder.getType()==ChannelFolder.TYPE_ATZ_LINK) {
+				addChild(new ChannelPMSFolder(folder,String.valueOf(i),null,
+						   "/"+String.valueOf(i),folder.getThumb()));
+			}
+		}
+		if(folder.getType()==ChannelFolder.TYPE_ATZ)
+			addChild(new ChannelPMSFolder(folder,'#',url));
+		else if(folder.getType()==ChannelFolder.TYPE_ATZ_LINK) {
+			String otherStr=folder.getProp("other_string");
+			otherStr=(otherStr==null?"/#":"/"+otherStr);
+			addChild(new ChannelPMSFolder(folder,"#",null,otherStr,folder.getThumb()));
+		}
 	}
 	
 	public InputStream getThumbnailInputStream() {
