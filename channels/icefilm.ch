@@ -7,8 +7,8 @@ folder {
            order=url
            type=empty
            media {
-           #<div class="down_butt_pad1" style="display:none;" id="downloadlink"><a href="http://www820.megaupload.com/files/e852a3a714538767347d5866d6ad9d7c/big_bang_theory.1x01.dvdrip_xvid-fov.H2020.dvd4arab.com.avi" class="down_butt1"></a>
-           matcher=<div class=\"down_butt_pad1\" style=\"display:none;\" id=\"downloadlink\"><a href="([^\"]+)" 
+           #<a href="http://www.megavideo.com/?d=429EF48Q" class="mvlink" target="_blank">View on Megavideo</a>
+           matcher=<a href="([^\"]+)\"\s+class=\"mvlink\"
           order=url
            }
       }
