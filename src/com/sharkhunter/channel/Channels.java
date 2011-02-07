@@ -31,7 +31,7 @@ public class Channels extends VirtualFolder implements FileListener {
     	this.file=f;
     	chFiles=new ArrayList<File>();
     	cred=new ArrayList<ChannelCred>();
-    	PMS.minimal("Start channel 0.27");
+    	PMS.minimal("Start channel 0.28");
     	PMS.get().getExtensions().set(0, new WEB());
     	fileMonitor=null;
     	if(poll>0)
