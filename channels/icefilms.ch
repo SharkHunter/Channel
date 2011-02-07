@@ -67,7 +67,7 @@ macrodef movieMacro {
 	}
 }
 
-channel IceFilm {
+channel IceFilms {
    img=http://img.icefilms.info/logo.png
    folder {
       name=TV Shows
