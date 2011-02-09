@@ -253,6 +253,9 @@
       append_name
       append_thumb:
       If a value is given the value will be appended to the matched data (url,name or thumb).
+	  
+	* concat_name: If the value is "rear" append the name to the matched name. If "front" prepend the name
+	  to the matched name.
       
     * ignore_name: If a name parameter is given it will be used in stead of the matched one. This
       will also be the case when no name match is found.
@@ -263,7 +266,7 @@
 
     Magic token
     -------------
-    Some rtmp streams needs to be played by rtmpdump by the use of the -y option. Tó solve this issue
+    Some rtmp streams needs to be played by rtmpdump by the use of the -y option. To solve this issue
     a special url_separator should be used. If the url_separator is !!!pms_ch_dash_y!!! it will
     be replace by -y just before given to rtmpdump.
 

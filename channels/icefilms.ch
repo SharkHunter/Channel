@@ -1,16 +1,34 @@
-version=0.14
+version=0.15
+## NOTE!!!
+## 
+## We match out both the megavideo play link and megaupload link
+## here. Both are streamable, but the megaupload is of course subject to
+## limits etc. Try for yourself which is best.
+## 
+## Megavideo link requiers that you have PMSEncoder >=1.4.0
+## and that you install the "get_flash_video" script +
+## the megavideo script from PMSEncoder
+##
 macrodef mediaMacro {
-folder {
+	folder {
            # last link
            # Proceed to: <a href="http://www.megaupload.com/?d=cfu23kvq&w=631&h=392"
            matcher=Proceed to: <a href=\"([^\"]+)\"
            order=url
            type=empty
            media {
-           #<a href="http://www.megavideo.com/?d=429EF48Q" class="mvlink" target="_blank">View on Megavideo</a>
-           matcher=<a href="([^\"]+)\"\s+class=\"mvlink\"
-          order=url
+			name=MegaVideo
+		    matcher=<a href=\"([^\"]+)\"\s+class=\"down_links_mv\"
+			order=url
+			prop=concat_name=rear,name_separator= ,
            }
+		   media {
+			#<div class="down_butt_pad1" style="display:none;" id="downloadlink"><a href="http://www820.megaupload.com/files/e852a3a714538767347d5866d6ad9d7c/big_bang_theory.1x01.dvdrip_xvid-fov.H2020.dvd4arab.com.avi" class="down_butt1"></a>
+			matcher=<div class=\"down_butt_pad1\" style=\"display:none;\" id=\"downloadlink\"><a href="([^\"]+)"
+			name=MegaUpload
+			order=url
+			prop=concat_name=rear,name_separator= ,
+           }   
       }
 }
 
