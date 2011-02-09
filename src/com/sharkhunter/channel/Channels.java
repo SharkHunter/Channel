@@ -31,8 +31,8 @@ public class Channels extends VirtualFolder implements FileListener {
     	this.file=f;
     	chFiles=new ArrayList<File>();
     	cred=new ArrayList<ChannelCred>();
-    	PMS.minimal("Start channel 0.28");
-    	PMS.get().getExtensions().set(0, new WEB());
+    	PMS.minimal("Start channel 0.29");
+    //	PMS.get().getExtensions().set(0, new WEB());
     	fileMonitor=null;
     	if(poll>0)
     		fileMonitor=new FileMonitor(poll);
@@ -41,7 +41,7 @@ public class Channels extends VirtualFolder implements FileListener {
     		fileMonitor.addFile(f);
     		fileMonitor.addListener(this);
     	}
-    	Channels.debug=false;
+    	Channels.debug=true;
     }
     
     private Channel find(String name) {
@@ -139,7 +139,7 @@ public class Channels extends VirtualFolder implements FileListener {
     }
     
     private void handleFormat(File f) throws Exception {
-    	BufferedReader in=new BufferedReader(new FileReader(f));
+    /*	BufferedReader in=new BufferedReader(new FileReader(f));
     	String str;
     	WEB w=new WEB();
     	while ((str = in.readLine()) != null) {
@@ -150,7 +150,7 @@ public class Channels extends VirtualFolder implements FileListener {
     	    	continue;
     	    w.addExtra(str);
     	}
-    	PMS.get().getExtensions().set(0, w);
+    	PMS.get().getExtensions().set(0, w);*/
     }
     
     private void addCred() {

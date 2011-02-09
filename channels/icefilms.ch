@@ -8,8 +8,8 @@ folder {
            type=empty
            media {
            #<a href="http://www.megavideo.com/?d=429EF48Q" class="mvlink" target="_blank">View on Megavideo</a>
-           matcher=<a href="([^\"]+)\"\s+class=\"mvlink\"
-          order=url
+			matcher=<a href="([^\"]+)\"\s+class=\"mvlink\"
+			order=url
            }
       }
 }
