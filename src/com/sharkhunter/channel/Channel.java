@@ -88,6 +88,11 @@ public class Channel extends VirtualFolder {
 		return ChannelUtil.findMacro(macros, macro);
 	}
 	
+	/*public void setDbg(ChannelDbg d) {
+		PMS.debug("set dbg "+d);
+		dbg=d;
+	}*/
+	
 	public int getFormat() {
 		return format;
 	}
@@ -128,7 +133,7 @@ public class Channel extends VirtualFolder {
 	
 	public void debug(String msg) {
 		if(Channels.debug)
-			PMS.debug("[Channel]: "+msg);
+			PMS.debug("[Channel] "+msg);
 	}
 	
 	public void addCred(ChannelCred c) {

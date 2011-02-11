@@ -27,7 +27,7 @@ public class CH_plugin implements AdditionalFolderAtRoot {
 			}
 			else 
 				path=confPath;
-			chRoot=new Channels(new File(path),getInterval());
+			chRoot=new Channels(path,getInterval());
 		}
 		catch (Exception e) {
 			PMS.debug("exp "+e)	;

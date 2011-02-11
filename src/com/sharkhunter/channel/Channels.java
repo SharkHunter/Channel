@@ -25,23 +25,26 @@ public class Channels extends VirtualFolder implements FileListener {
     private ArrayList<ChannelCred> cred;
     public static boolean debug=false;
     
+    public static ChannelDbg dbg;
 
-    public Channels(File f,long poll) {
+    public Channels(String path,long poll) {
     	super("Channels",null);
-    	this.file=f;
+    	this.file=new File(path);
     	chFiles=new ArrayList<File>();
     	cred=new ArrayList<ChannelCred>();
-    	PMS.minimal("Start channel 0.29");
+    	PMS.minimal("Start channel 0.30");
     //	PMS.get().getExtensions().set(0, new WEB());
     	fileMonitor=null;
     	if(poll>0)
     		fileMonitor=new FileMonitor(poll);
-    	fileChanged(f);
+    	fileChanged(file);
     	if(poll>0) {
-    		fileMonitor.addFile(f);
+    		fileMonitor.addFile(file);
     		fileMonitor.addListener(this);
     	}
+    	//Channels.dbg=new ChannelDbg(new File(path+File.separator+"channel.log"));
     	Channels.debug=true;
+    	//Channels.dbg.debug("Started");
     }
     
     private Channel find(String name) {
@@ -67,11 +70,13 @@ public class Channels extends VirtualFolder implements FileListener {
     			i+=chData.size();
     			Channel old=find(chName);
     			if(old!=null) {
+    			//	old.setDbg(this.dbg);
     				old.parse(chData,macros);
     			}
     			else {
     				Channel ch=new Channel(chName);
     				if(ch.Ok) {
+//    					ch.setDbg(this.dbg);
     					ch.parse(chData,macros);
     					addChild(ch);
     				}	

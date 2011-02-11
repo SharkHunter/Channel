@@ -14,6 +14,7 @@ public class ChannelFolder implements ChannelProps{
 	public static final int TYPE_EMPTY=2;
 	public static final int TYPE_LOGIN=3;
 	public static final int TYPE_ATZ_LINK=4;
+	public static final int TYPE_NAVIX=5;
 	
 	public boolean Ok;
 	
@@ -142,6 +143,10 @@ public class ChannelFolder implements ChannelProps{
 		return ((type==ChannelFolder.TYPE_ATZ)||(type==ChannelFolder.TYPE_ATZ_LINK));
 	}
 	
+	public boolean isNaviX() {
+		return (type==ChannelFolder.TYPE_NAVIX);
+	}
+	
 	public String getProp(String p) {
 		return ChannelUtil.getPropertyValue(prop, p);
 	}
@@ -153,6 +158,8 @@ public class ChannelFolder implements ChannelProps{
 			return ChannelFolder.TYPE_EMPTY;
 		if(t.compareToIgnoreCase("atzlink")==0)
 			return ChannelFolder.TYPE_ATZ_LINK;
+		if(t.compareToIgnoreCase("navix")==0)
+			return ChannelFolder.TYPE_NAVIX;
 		return ChannelFolder.TYPE_NORMAL;
 	}
 	
@@ -170,6 +177,10 @@ public class ChannelFolder implements ChannelProps{
 			return;
 		}
 		String realUrl=ChannelUtil.concatURL(url,urlEnd);
+		if(isNaviX()) { // i'm navix special handling
+			res.addChild(new ChannelNaviX(parent,name,getThumb(),realUrl));
+			return;
+		}
 		if(realUrl!=null&&realUrl.length()!=0) {
 			URL urlobj=new URL(realUrl);
 			parent.debug("folder match url "+urlobj.toString()+" type "+type);

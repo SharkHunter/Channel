@@ -67,7 +67,7 @@ public class ChannelUtil {
 		    StringBuilder page=new StringBuilder();
 		    String str;
 		    while ((str = in.readLine()) != null) { 
-		    	page.append("\n");
+		    //	page.append("\n");
 		    	page.append(str.trim());
 		    	page.append("\n");
 		    }
@@ -208,6 +208,12 @@ public class ChannelUtil {
 		/*if(!(aLast&&bFirst))
 			return a+"/"+b;*/
 		return a+b;
+	}
+	
+	public static boolean ignoreLine(String line) {
+		if(line==null||line.length()==0)
+			return true;
+		return (line.charAt(0)=='#');
 	}
 	
 }
