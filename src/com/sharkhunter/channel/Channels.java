@@ -24,15 +24,21 @@ public class Channels extends VirtualFolder implements FileListener {
     private ArrayList<ChannelMacro> macros;
     private ArrayList<ChannelCred> cred;
     public static boolean debug=false;
+    private ChannelDbg dbg;
+    private static Channels inst=null;
     
-    public static ChannelDbg dbg;
 
     public Channels(String path,long poll) {
     	super("Channels",null);
     	this.file=new File(path);
+    	inst=this;
     	chFiles=new ArrayList<File>();
     	cred=new ArrayList<ChannelCred>();
-    	PMS.minimal("Start channel 0.30");
+    	PMS.minimal("Start channel 0.35");
+    	dbg=new ChannelDbg(new File(path+File.separator+"channel.log"));
+    	dbg.start();
+    	Channels.debug=true;
+    	dbg.debug("Started");
     //	PMS.get().getExtensions().set(0, new WEB());
     	fileMonitor=null;
     	if(poll>0)
@@ -42,9 +48,10 @@ public class Channels extends VirtualFolder implements FileListener {
     		fileMonitor.addFile(file);
     		fileMonitor.addListener(this);
     	}
-    	//Channels.dbg=new ChannelDbg(new File(path+File.separator+"channel.log"));
-    	Channels.debug=true;
-    	//Channels.dbg.debug("Started");
+    }
+    
+    public static void debug(String msg) {
+    	inst.dbg.debug("[Channel] "+msg);
     }
     
     private Channel find(String name) {
@@ -70,13 +77,11 @@ public class Channels extends VirtualFolder implements FileListener {
     			i+=chData.size();
     			Channel old=find(chName);
     			if(old!=null) {
-    			//	old.setDbg(this.dbg);
     				old.parse(chData,macros);
     			}
     			else {
     				Channel ch=new Channel(chName);
     				if(ch.Ok) {
-//    					ch.setDbg(this.dbg);
     					ch.parse(chData,macros);
     					addChild(ch);
     				}	
@@ -111,10 +116,8 @@ public class Channels extends VirtualFolder implements FileListener {
     	String ver="unknown";    	
     	while ((str = in.readLine()) != null) {
     		str=str.trim();
-    	    if(str.startsWith("#"))
-    	    	continue;
-    	    if(str.length()==0)
-    	    	continue;
+    		if(ChannelUtil.ignoreLine(str))
+				continue;
     	    if(str.trim().startsWith("macrodef"))
     	    	macro=true;
     	    if(str.trim().startsWith("debug")) {
@@ -137,6 +140,7 @@ public class Channels extends VirtualFolder implements FileListener {
     	}
     	in.close();
     	PMS.minimal("parsing channel file "+f.toString()+" version "+ver);
+    	debug("parsing channel file "+f.toString()+" version "+ver);
     	if(macro)
     		parseMacros(sb.toString());
     	readChannel(sb.toString());
@@ -177,9 +181,7 @@ public class Channels extends VirtualFolder implements FileListener {
 			String str;
 			while ((str = in.readLine()) != null) {
 				str=str.trim();
-				if(str.startsWith("#"))
-					continue;
-				if(str.length()==0)
+				if(ChannelUtil.ignoreLine(str))
 					continue;
 				String[] s=str.split("=",2);
 				if(s.length<2)
@@ -240,6 +242,10 @@ public class Channels extends VirtualFolder implements FileListener {
 				if(fileMonitor!=null)
 					fileMonitor.addFile(f);
 				Channels.debug=f.exists();
+				if(Channels.debug)
+					inst.dbg.start();
+				else
+					inst.dbg.stop();
 			}
 		}	
     }
@@ -263,6 +269,10 @@ public class Channels extends VirtualFolder implements FileListener {
 					if(fileMonitor!=null)
 						fileMonitor.addFile(f);
 					Channels.debug=f.exists();
+					if(Channels.debug)
+						inst.dbg.start();
+					else
+						inst.dbg.stop();
 				}
 				else
 					if(f.exists())

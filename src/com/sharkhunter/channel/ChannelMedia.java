@@ -120,11 +120,7 @@ public class ChannelMedia implements ChannelProps{
 			res.addChild(new WebAudioStream(nName,url,thumb));
 		else if(parent.getFormat()==Channel.FORMAT_IMAGE) {
 			String auth=parent.getAuth();
-			if(auth==null||auth.length()==0)
-				res.addChild(new WebStream(nName,url,thumb,Format.IMAGE));
-			else {
-				res.addChild(new ChannelAuthStream(nName,url,thumb,auth));
-			}
+			res.addChild(new ChannelImageStream(nName,url,thumb,auth));
 		}
 	}
 	

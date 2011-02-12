@@ -1,14 +1,19 @@
 package com.sharkhunter.channel;
 
+import java.io.UnsupportedEncodingException;
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.net.URLDecoder;
+import java.net.URLEncoder;
 import java.util.regex.Pattern;
 
 import net.pms.dlna.WebAudioStream;
+import net.pms.dlna.WebStream;
 import net.pms.dlna.WebVideoStream;
 import net.pms.dlna.virtual.VirtualFolder;
+import net.pms.formats.Format;
 
-public class ChannelNaviX extends VirtualFolder implements ChannelProps{
+public class ChannelNaviX extends VirtualFolder {
 	private String url;
 	private Channel parent;
 	
@@ -17,6 +22,33 @@ public class ChannelNaviX extends VirtualFolder implements ChannelProps{
 		this.url=url;
 		parent=ch;
 	}
+	
+	private void addMedia(String name,String nextUrl,String thumb,String proc,String type,String pp) {
+		if(type!=null) {
+			if(pp!=null)
+				nextUrl=nextUrl+pp;
+			parent.debug("url "+nextUrl+" type "+type);
+			if(type.equalsIgnoreCase("playlist")) {
+				addChild(new ChannelNaviX(parent,name,thumb,nextUrl));
+			}
+			else if(type.equalsIgnoreCase("video")) {
+				String realUrl=ChannelNaviXProc.parse(parent,nextUrl,proc);
+				if(realUrl!=null&&realUrl.length()!=0) 
+					addChild(new WebVideoStream(name,realUrl,thumb));
+			}
+			else if(type.equalsIgnoreCase("audio")) {
+				String realUrl=ChannelNaviXProc.parse(parent,nextUrl,proc);
+				if(realUrl!=null&&realUrl.length()!=0) 
+					addChild(new WebAudioStream(name,realUrl,thumb));
+			}
+			else if(type.equalsIgnoreCase("image")) {
+				String realUrl=ChannelNaviXProc.parse(parent,nextUrl,proc);
+				if(realUrl!=null&&realUrl.length()!=0) 
+					addChild(new ChannelImageStream(name,realUrl,thumb,parent.getAuth()));
+			}
+		}
+	}
+	
 	public void discoverChildren() {
 		// The URL found in the cf points to a NaviX playlist
 		// (or similar) fetch and parse
@@ -38,25 +70,8 @@ public class ChannelNaviX extends VirtualFolder implements ChannelProps{
 		String playpath=null;
 		for(int i=0;i<lines.length;i++) {
 			String line=lines[i].trim();
-			if(line==null||line.length()==0) { // new block
-				if(type!=null) {
-					parent.debug("url "+nextUrl+" type "+type);
-					if(playpath!=null)
-						nextUrl=nextUrl+playpath;
-					if(type.equalsIgnoreCase("playlist")) {
-						addChild(new ChannelNaviX(parent,name,thumb,nextUrl));
-					}
-					else if(type.equalsIgnoreCase("video")) {
-						String realUrl=ChannelNaviXProc.parse(parent,nextUrl,proc);
-						if(realUrl!=null&&realUrl.length()!=0) 
-							addChild(new WebVideoStream(name,realUrl,thumb));
-					}
-					else if(type.equalsIgnoreCase("audio")) {
-						String realUrl=ChannelNaviXProc.parse(parent,nextUrl,proc);
-						if(realUrl!=null&&realUrl.length()!=0) 
-							addChild(new WebAudioStream(name,realUrl,thumb));
-					}
-				}
+			if(ChannelUtil.ignoreLine(line)) { // new block
+				addMedia(name,nextUrl,thumb,proc,type,playpath);
 				name=null;
 				nextUrl=null;
 				thumb=null;
@@ -65,8 +80,6 @@ public class ChannelNaviX extends VirtualFolder implements ChannelProps{
 				playpath=null;
 				continue;
 			}
-			if(line.startsWith("#"))
-				continue;
 			if(line.startsWith("URL="))
 				nextUrl=line.substring(4);
 			else if(line.startsWith("name="))
@@ -80,29 +93,7 @@ public class ChannelNaviX extends VirtualFolder implements ChannelProps{
 			else if(line.startsWith("playpath="))
 				playpath=line.substring(9);
 		}
-		if(type!=null) { // pick up last
-			if(playpath!=null)
-				nextUrl=nextUrl+playpath;
-			if(type.equalsIgnoreCase("playlist")) {
-				addChild(new ChannelNaviX(parent,name,thumb,nextUrl));
-			}
-			else if(type.equalsIgnoreCase("video")) {
-				String realUrl=ChannelNaviXProc.parse(parent,nextUrl,proc);
-				if(realUrl!=null&&realUrl.length()!=0) 
-					addChild(new WebVideoStream(name,realUrl,thumb));
-			}
-			else if(type.equalsIgnoreCase("audio")) {
-				String realUrl=ChannelNaviXProc.parse(parent,nextUrl,proc);
-				if(realUrl!=null&&realUrl.length()!=0) 
-					addChild(new WebAudioStream(name,realUrl,thumb));
-			}
-		}
+		// add last item
+		addMedia(name,nextUrl,thumb,proc,type,playpath);
 	}
-	
-	public String separator(String base) {
-		if(!base.equalsIgnoreCase("url"))
-			return null;
-		return "!!!!";
-	}
-
 }

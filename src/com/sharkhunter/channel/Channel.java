@@ -132,8 +132,7 @@ public class Channel extends VirtualFolder {
 	}
 	
 	public void debug(String msg) {
-		if(Channels.debug)
-			PMS.debug("[Channel] "+msg);
+		Channels.debug(msg);
 	}
 	
 	public void addCred(ChannelCred c) {

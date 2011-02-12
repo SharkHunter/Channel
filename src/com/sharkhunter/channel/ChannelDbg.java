@@ -9,11 +9,30 @@ import net.pms.PMS;
 
 public class ChannelDbg {
 	private BufferedWriter os;
+	private File f;
 	
 	public ChannelDbg(File f) {
+		this.f=f;
+		os=null;
+	}
+	
+	public void start() {
+		if(os!=null)
+			return;
 		try {
 			os=new BufferedWriter(new FileWriter(f,false));
 		} catch (Exception e) {
+			os=null;
+		}
+	}
+	
+	public void stop() {
+		if(os!=null) {
+			try {
+				os.flush();
+				os.close();
+			}
+			catch (IOException e) {}			
 			os=null;
 		}
 	}

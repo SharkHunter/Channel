@@ -226,6 +226,7 @@ public class ChannelNaviXProc {
 		String rUrl=vars.get("url");
 		rUrl=ChannelUtil.append(rUrl, "!!!pms_ch_dash_y!!!", vars.get("playpath"));
 		rUrl=ChannelUtil.append(rUrl, "!!!pms_ch_dash_w!!!", vars.get("swfplayer"));
+		parent.debug("navix return media url "+rUrl);
 		return rUrl;
 	}
 	
