@@ -17,7 +17,7 @@ To upgrade to a new version of the plugin, simply replace the old jar file in th
 
 ## Uninstalling <a name="Uninstall"></a>
 
-To uninstall PMSEncoder, remove the jar file from the `plugins` directory and restart PMS. Also remove any 
+To uninstall Channels, remove the jar file from the `plugins` directory and restart PMS. Also remove any 
 .ch files.
 
 ## Configuration <a name="Configuration"></a>

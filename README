@@ -145,6 +145,7 @@
              under http://www.icefilms.info/tv/a-z/A,http://www.icefilms.info/tv/a-z/B etc.  
            * empty - the folder is just a placeholder for retrieving the next url.
            * normal - a normal folder.
+		   * navix - a NaviX folder see NaviX on wiki
     * prop - special properties for the folder. See the properties section.
     * macro - use the macro with the specified name. This means that the macro definition
       in reality is pasted in place of the macro line.
