@@ -13,7 +13,7 @@ various online wb tv channels.
 
 ## Upgrading <a name="Upgrade"></a>
 
-To upgrade to a new version of the plugin, simply replace the old jar file in the `plugins` directory with the [new version](https://github.com/downloads/SharkHunter/GSPMS/gs_plugin.jar) and restart PMS.
+To upgrade to a new version of the plugin, simply replace the old jar file in the `plugins` directory with the [new version](https://github.com/downloads/SharkHunter/Channel/tv_plug.jar) and restart PMS.
 
 ## Uninstalling <a name="Uninstall"></a>
 
