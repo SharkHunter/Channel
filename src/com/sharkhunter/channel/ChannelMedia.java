@@ -81,8 +81,8 @@ public class ChannelMedia implements ChannelProps{
 	private String parseASX(String url) {
 		String page;
 		try {
-			page = ChannelUtil.fetchPage(new URL(url));
-		} catch (MalformedURLException e) {
+			page = ChannelUtil.fetchPage(new URL(url).openConnection());
+		} catch (Exception e) {
 			parent.debug("asx fetch failed "+e);
 			return url;
 		}

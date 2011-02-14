@@ -67,7 +67,7 @@ public class ChannelImageStream extends DLNAResource{
 			//ByteArrayOutputStream bytes = new ByteArrayOutputStream();
 			URLConnection conn = urlobj.openConnection();
 			conn.setRequestProperty("User-Agent","Mozilla/5.0 (Windows; U; Windows NT 6.1; sv-SE; rv:1.9.2.3) Gecko/20100409 Firefox/3.6.3");
-			if(auth!=null||auth.length()!=0)	
+			if(!ChannelUtil.empty(auth))	
 				conn.setRequestProperty("Authorization", auth);
 			InputStream in = conn.getInputStream();
 			return in;

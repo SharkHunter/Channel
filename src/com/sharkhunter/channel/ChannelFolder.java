@@ -1,5 +1,6 @@
 package com.sharkhunter.channel;
 
+import java.io.IOException;
 import java.io.InputStream;
 import java.net.MalformedURLException;
 import java.net.URL;
@@ -184,7 +185,11 @@ public class ChannelFolder implements ChannelProps{
 		if(realUrl!=null&&realUrl.length()!=0) {
 			URL urlobj=new URL(realUrl);
 			parent.debug("folder match url "+urlobj.toString()+" type "+type);
-			page=ChannelUtil.fetchPage(urlobj,parent.getAuth());
+			try {
+				page=ChannelUtil.fetchPage(urlobj.openConnection(),parent.getAuth(),null);
+			} catch (Exception e) {
+				page="";
+			}
 			parent.debug("page "+page);
 			if(page==null||page.length()==0)
 				return;
