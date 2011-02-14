@@ -299,9 +299,6 @@ public class ChannelNaviXProc {
 				continue;
 			}
 			
-			if(line.startsWith("play"))
-				return false;
-			
 			String[] vLine=line.split("=",2);
 			if(vLine.length==2) { // variable
 				String key=vLine[0].trim();
@@ -322,6 +319,9 @@ public class ChannelNaviXProc {
 				parent.debug("report found take another spin");
 				return true;
 			}
+			
+			if(line.startsWith("play"))
+				return false;
 			
 		}
 		// This is weird no play statement?? throw error
