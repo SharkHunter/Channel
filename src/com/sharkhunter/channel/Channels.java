@@ -4,6 +4,7 @@ import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
+import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.ArrayList;
@@ -34,7 +35,7 @@ public class Channels extends VirtualFolder implements FileListener {
     	inst=this;
     	chFiles=new ArrayList<File>();
     	cred=new ArrayList<ChannelCred>();
-    	PMS.minimal("Start channel 0.35");
+    	PMS.minimal("Start channel 0.37");
     	dbg=new ChannelDbg(new File(path+File.separator+"channel.log"));
     	dbg.start();
     	Channels.debug=true;

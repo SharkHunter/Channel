@@ -1,5 +1,6 @@
 package com.sharkhunter.channel;
 
+import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.net.MalformedURLException;
 import java.net.URL;
@@ -23,15 +24,31 @@ public class ChannelNaviX extends VirtualFolder {
 		parent=ch;
 	}
 	
+	private int getFormat(String type) {
+		if(type.equalsIgnoreCase("image"))
+			return Format.IMAGE;
+		if(type.equalsIgnoreCase("video"))
+			return Format.VIDEO;
+		if(type.equalsIgnoreCase("audio"))
+			return Format.AUDIO;
+		return -1;
+	}
+	
 	private void addMedia(String name,String nextUrl,String thumb,String proc,String type,String pp) {
 		if(type!=null) {
 			if(pp!=null)
 				nextUrl=nextUrl+pp;
-			parent.debug("url "+nextUrl+" type "+type);
+			parent.debug("url "+nextUrl+" type "+type+" processor "+proc);
 			if(type.equalsIgnoreCase("playlist")) {
 				addChild(new ChannelNaviX(parent,name,thumb,nextUrl));
 			}
-			else if(type.equalsIgnoreCase("video")) {
+			else {
+				int f=getFormat(type);
+				parent.debug("add media "+f+" name "+name+" url "+nextUrl);
+				if(f!=-1)
+					addChild(new ChannelMediaStream(parent,name,nextUrl,thumb,proc,f));
+			}
+			/*else if(type.equalsIgnoreCase("video")) {
 				String realUrl=ChannelNaviXProc.parse(parent,nextUrl,proc);
 				if(realUrl!=null&&realUrl.length()!=0) 
 					addChild(new WebVideoStream(name,realUrl,thumb));
@@ -45,7 +62,7 @@ public class ChannelNaviX extends VirtualFolder {
 				String realUrl=ChannelNaviXProc.parse(parent,nextUrl,proc);
 				if(realUrl!=null&&realUrl.length()!=0) 
 					addChild(new ChannelImageStream(name,realUrl,thumb,parent.getAuth()));
-			}
+			}*/
 		}
 	}
 	
@@ -59,7 +76,12 @@ public class ChannelNaviX extends VirtualFolder {
 			parent.debug("navix error "+e);
 			return;
 		}
-		String page=ChannelUtil.fetchPage(urlobj);
+		String page;
+		try {
+			page = ChannelUtil.fetchPage(urlobj.openConnection());
+		} catch (Exception e) {
+			page="";
+		}
 		parent.debug("navix page "+page);
 		String[] lines=page.split("\n");
 		String name=null;

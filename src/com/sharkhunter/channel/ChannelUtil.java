@@ -6,6 +6,7 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.net.URL;
 import java.net.URLConnection;
+import java.net.URLEncoder;
 import java.util.ArrayList;
 
 import javax.net.ssl.HttpsURLConnection;
@@ -13,8 +14,13 @@ import javax.net.ssl.HttpsURLConnection;
 import net.pms.PMS;
 
 public class ChannelUtil {
-
-	public static String postPage(URLConnection connection,String query) {    
+	
+	public static String postPage(URLConnection connection,String query) {
+		return postPage(connection,query,null);
+	}
+	
+	
+	public static String postPage(URLConnection connection,String query,String cookie) {    
 		connection.setDoOutput(true);   
 		connection.setDoInput(true);   
 		connection.setUseCaches(false);   
@@ -26,6 +32,8 @@ public class ChannelUtil {
 		connection.setRequestProperty("Content-Length", "" + query.length());  
 		
 		try {
+			if(!empty(cookie))
+				connection.setRequestProperty("Cookie",cookie);
 			connection.connect();
 			// open up the output stream of the connection   
 			DataOutputStream output = new DataOutputStream(connection.getOutputStream());   
@@ -50,18 +58,23 @@ public class ChannelUtil {
 		}
 	}
 	
-	public static String fetchPage(URL url) {
-		return fetchPage(url,"");
+	public static String fetchPage(URLConnection connection) {
+		return fetchPage(connection,"","");
 	}
 	
-	public static String fetchPage(URL url,String auth) {
+	public static String fetchPage(URLConnection connection,String auth,String cookie) {
 		try {
-			URLConnection connection=url.openConnection();
+//			URLConnection connection=url.openConnection();
 			connection.setRequestProperty("User-Agent","Mozilla/5.0 (Windows; U; Windows NT 6.1; sv-SE; rv:1.9.2.3) Gecko/20100409 Firefox/3.6.3");
-			if(auth!=null&&auth.length()>0)
+			if(!empty(auth))
 				connection.setRequestProperty("Authorization", auth);
+			if(!empty(cookie))
+				connection.setRequestProperty("Cookie",cookie);
+			
 			connection.setDoInput(true);
 			connection.setDoOutput(true);
+			
+			
 			
 		    BufferedReader in = new BufferedReader(new InputStreamReader(connection.getInputStream()));
 		    StringBuilder page=new StringBuilder();
@@ -78,6 +91,10 @@ public class ChannelUtil {
 			PMS.debug("fetch exception "+e.toString());
 		    return "";
 		}
+	}
+	
+	public static boolean empty(String s) {
+		return (s==null)||(s.length()==0);
 	}
 	
 	private static String findProperty(String[] props,String prop) {
@@ -164,9 +181,9 @@ public class ChannelUtil {
 	}
 	
 	public static String getThumb(String thumb,String pThumb,Channel ch) {
-		if(thumb!=null&&thumb.length()!=0)  // if the thumb we found is goo use it
+		if(!empty(thumb))  // if the thumb we found is good use it
 			return thumb;
-		if(pThumb!=null&&pThumb.length()!=0) // otherwise use parents thumb
+		if(!empty(pThumb)) // otherwise use parents thumb
 			return pThumb;
 		if(ch!=null) // last resort
 			return ch.getThumb();
@@ -197,9 +214,9 @@ public class ChannelUtil {
 	}
 	
 	public static String concatURL(String a,String b) {
-		if(a==null||a.length()==0)
+		if(empty(a))
 			return b;
-		if(b==null||b.length()==0)
+		if(empty(b))
 			return a;
 		boolean aLast=a.charAt(a.length()-1)=='/';
 		boolean bFirst=b.charAt(0)=='/';
@@ -211,7 +228,7 @@ public class ChannelUtil {
 	}
 	
 	public static boolean ignoreLine(String line) {
-		if(line==null||line.length()==0)
+		if(empty(line))
 			return true;
 		return (line.charAt(0)=='#');
 	}

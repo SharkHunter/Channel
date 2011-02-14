@@ -1,5 +1,6 @@
 package com.sharkhunter.channel;
 
+import java.io.IOException;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.ArrayList;
@@ -96,7 +97,12 @@ public class ChannelItem implements ChannelProps{
 		String u=ChannelUtil.concatURL(url,urlEnd);
 		URL urlobj=new URL(ChannelUtil.pendData(u,prop,"url"));
 		parent.debug("item match url "+urlobj.toString());
-		String page=ChannelUtil.fetchPage(urlobj,parent.getAuth());
+		String page;
+		try {
+			page = ChannelUtil.fetchPage(urlobj.openConnection(),parent.getAuth(),null);
+		} catch (Exception e) {
+			page="";
+		}
 	    parent.debug("page "+page);
 	    if(page==null||page.length()==0)
 	    	return;
