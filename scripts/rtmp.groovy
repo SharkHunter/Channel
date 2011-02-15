@@ -1,5 +1,5 @@
 script {
-    RTMPDUMP = 'C:\\rtmpdump.exe'
+    def RTMPDUMP = 'C:\\rtmpdump.exe'
 
     profile ('RTMP(E)') {
         pattern {

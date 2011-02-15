@@ -46,9 +46,7 @@ public class ChannelMediaStream extends DLNAResource {
 
 
     public InputStream getInputStream() {
-    	Channels.debug("about to parse navix "+processor+" url "+url);
     	realUrl=ChannelNaviXProc.parse(ch,url,processor);
-    	Channels.debug("result "+realUrl);
     	if(ChannelUtil.empty(realUrl))
     		return null;
     	try {

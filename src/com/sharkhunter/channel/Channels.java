@@ -18,7 +18,9 @@ import no.geosoft.cc.io.FileListener;
 import no.geosoft.cc.io.FileMonitor;
 
 public class Channels extends VirtualFolder implements FileListener {
-//public class Channels {
+
+	public static final int DeafultContLim=5;
+	
     private File file;
     private FileMonitor fileMonitor;
     private ArrayList<File> chFiles;
@@ -35,7 +37,7 @@ public class Channels extends VirtualFolder implements FileListener {
     	inst=this;
     	chFiles=new ArrayList<File>();
     	cred=new ArrayList<ChannelCred>();
-    	PMS.minimal("Start channel 0.37");
+    	PMS.minimal("Start channel 0.38");
     	dbg=new ChannelDbg(new File(path+File.separator+"channel.log"));
     	dbg.start();
     	Channels.debug=true;

@@ -27,6 +27,9 @@ public class ChannelNaviXProc {
 				case '\"':
 					sb.append("\\\"");
 					break;
+				case '\'':
+					sb.append("\\\'");
+					break;
 				/*case '\\':
 					sb.append("\\\\");
 					break;*/
@@ -320,17 +323,65 @@ public class ChannelNaviXProc {
 				return true;
 			}
 			
-			if(line.startsWith("play"))
+			if(line.trim().equals("play"))
 				return false;
 			
 		}
 		// This is weird no play statement?? throw error
 		parent.debug("no play found");
-		throw new Exception("NIPE error no play");
+		throw new Exception("NIPL error no play");
 	}
 	
 	private static boolean parseV1(Channel parent,String[] lines,int start,String url) throws Exception {
-		return parseV2(parent,lines,start,url);
+		String nextUrl=lines[start];
+		int modLen=lines.length-start;
+		if(nextUrl.contains("error")) {
+			parent.debug("navix v1 error");
+			throw new Exception("NaviX v1 parsse error");
+		}
+		if(modLen<2) {
+			vars.put("url", nextUrl);
+			return false;
+		}
+		String filt=lines[start+1];
+		String ref="";
+		String cookie="";
+		if(modLen>2)
+			ref=lines[start+2];
+		if(modLen>3)
+			cookie=lines[start+3];
+		URLConnection u=new URL(nextUrl).openConnection();
+		String sPage=ChannelUtil.fetchPage(u, null, cookie);
+		if(ChannelUtil.empty(sPage)) 
+			throw new Exception("Empty scrap page");
+		parent.debug("v1 scrap page "+sPage);
+		Pattern re=Pattern.compile(escapeChars(filt));
+		Matcher m=re.matcher(sPage);
+		if(m.find()) {
+			String res=url+"?";
+			String sep="";
+			String v="";
+			for(int j=1;j<=m.groupCount();j++) {
+				v=v+sep+"v"+String.valueOf(j)+"="+m.group(j);
+				sep="&";
+			}
+			URLConnection u1=new URL(res+v).openConnection();
+			String sPage2=ChannelUtil.fetchPage(u1);
+			parent.debug("res "+res+v);
+			if(ChannelUtil.empty(sPage2))
+				throw new Exception("Empty scrap page");
+			String[] l=sPage2.split("\n");
+			if(l[0].contains("error"))
+				throw new Exception("Empty scrap page");
+			vars.put("url", l[0]);
+			if(l.length>1) 
+				vars.put("swfplayer", l[1]);
+			if(l.length>2)
+				vars.put("playpath",l[2]);
+			if(l.length>3)
+				vars.put("pageurl", l[3]);	
+		}
+		return false;
 	}
 	
 	private static void expireNookies() {
@@ -402,10 +453,10 @@ public class ChannelNaviXProc {
 				if(lines[i].equalsIgnoreCase("v2"))
 					loop=parseV2(parent,lines,i+1,url);
 				else if(lines[i].equalsIgnoreCase("v1"))
-					loop=parseV1(parent,lines,i+1,url);
+					loop=parseV1(parent,lines,i+1,pUrl);
 				else {
-					parent.debug("weird version "+lines[i]+" guess v2");
-					loop=parseV2(parent,lines,i,url);
+					parent.debug("weird version "+lines[i]+" guess v1");
+					loop=parseV1(parent,lines,i,pUrl);
 				}
 				phase++;
 				parent.debug("loop "+loop+" phase "+phase);
