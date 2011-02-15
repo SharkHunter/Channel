@@ -1,27 +1,41 @@
 package com.sharkhunter.channel;
 
-import java.io.IOException;
-import java.io.UnsupportedEncodingException;
 import java.net.MalformedURLException;
 import java.net.URL;
-import java.net.URLDecoder;
-import java.net.URLEncoder;
-import java.util.regex.Pattern;
-
-import net.pms.dlna.WebAudioStream;
-import net.pms.dlna.WebStream;
-import net.pms.dlna.WebVideoStream;
 import net.pms.dlna.virtual.VirtualFolder;
 import net.pms.formats.Format;
 
 public class ChannelNaviX extends VirtualFolder {
 	private String url;
 	private Channel parent;
+	private String[] props;
+	private int continues;
+	private boolean contAll; 
 	
-	public ChannelNaviX(Channel ch,String name,String thumb,String url) {
-		super(name,thumb);
+	public ChannelNaviX(Channel ch,String name,String thumb,String url,String[] props) {
+		super(name,ChannelUtil.getThumb(thumb,null,ch));
 		this.url=url;
+		this.props=props;
+		contAll=false;
+		continues=calcCont();
+		if(continues==0)
+			contAll=true;
 		parent=ch;
+	}
+	
+	private int calcCont() {
+		String lim=ChannelUtil.getPropertyValue(props, "continue_limit");
+		int ret=Channels.DeafultContLim;
+		if(!ChannelUtil.empty(lim)) {
+			try {
+				ret=Integer.parseInt(lim);
+			}
+			catch (Exception e) { 
+			}
+		}
+		if(ret<0)
+			ret=Channels.DeafultContLim;
+		return ret;
 	}
 	
 	private int getFormat(String type) {
@@ -40,7 +54,18 @@ public class ChannelNaviX extends VirtualFolder {
 				nextUrl=nextUrl+pp;
 			parent.debug("url "+nextUrl+" type "+type+" processor "+proc);
 			if(type.equalsIgnoreCase("playlist")) {
-				addChild(new ChannelNaviX(parent,name,thumb,nextUrl));
+				String cn=ChannelUtil.getPropertyValue(props, "continue_name");
+				parent.debug("cont "+continues+" name "+name);
+				if(!ChannelUtil.empty(cn)) { // continue
+					if(name.matches(cn)) {
+						continues--;
+						if(contAll||continues>0) {
+							readPlx(nextUrl);
+							return;
+						}
+					}
+				}
+				addChild(new ChannelNaviX(parent,name,thumb,nextUrl,props));
 			}
 			else {
 				int f=getFormat(type);
@@ -48,30 +73,15 @@ public class ChannelNaviX extends VirtualFolder {
 				if(f!=-1)
 					addChild(new ChannelMediaStream(parent,name,nextUrl,thumb,proc,f));
 			}
-			/*else if(type.equalsIgnoreCase("video")) {
-				String realUrl=ChannelNaviXProc.parse(parent,nextUrl,proc);
-				if(realUrl!=null&&realUrl.length()!=0) 
-					addChild(new WebVideoStream(name,realUrl,thumb));
-			}
-			else if(type.equalsIgnoreCase("audio")) {
-				String realUrl=ChannelNaviXProc.parse(parent,nextUrl,proc);
-				if(realUrl!=null&&realUrl.length()!=0) 
-					addChild(new WebAudioStream(name,realUrl,thumb));
-			}
-			else if(type.equalsIgnoreCase("image")) {
-				String realUrl=ChannelNaviXProc.parse(parent,nextUrl,proc);
-				if(realUrl!=null&&realUrl.length()!=0) 
-					addChild(new ChannelImageStream(name,realUrl,thumb,parent.getAuth()));
-			}*/
 		}
 	}
 	
-	public void discoverChildren() {
+	private void readPlx(String str) {
 		// The URL found in the cf points to a NaviX playlist
 		// (or similar) fetch and parse
 		URL urlobj=null;
 		try {
-			urlobj = new URL(url);
+			urlobj = new URL(str);
 		} catch (MalformedURLException e) {
 			parent.debug("navix error "+e);
 			return;
@@ -118,4 +128,10 @@ public class ChannelNaviX extends VirtualFolder {
 		// add last item
 		addMedia(name,nextUrl,thumb,proc,type,playpath);
 	}
+	
+	public void discoverChildren() {
+		readPlx(url);
+	}
+		
+		
 }

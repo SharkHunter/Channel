@@ -179,7 +179,8 @@ public class ChannelFolder implements ChannelProps{
 		}
 		String realUrl=ChannelUtil.concatURL(url,urlEnd);
 		if(isNaviX()) { // i'm navix special handling
-			res.addChild(new ChannelNaviX(parent,name,getThumb(),realUrl));
+			res.addChild(new ChannelNaviX(parent,name,ChannelUtil.getThumb(null,pThumb, parent),
+										  realUrl,prop));
 			return;
 		}
 		if(realUrl!=null&&realUrl.length()!=0) {
