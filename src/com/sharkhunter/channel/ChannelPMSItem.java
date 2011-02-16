@@ -3,7 +3,6 @@ package com.sharkhunter.channel;
 import java.io.InputStream;
 import java.net.MalformedURLException;
 
-import net.pms.dlna.DLNAResource;
 import net.pms.dlna.virtual.VirtualFolder;
 
 public class ChannelPMSItem extends VirtualFolder implements ChannelFilter{
@@ -27,9 +26,6 @@ public class ChannelPMSItem extends VirtualFolder implements ChannelFilter{
 	}
 	
 	public boolean refreshChildren() { // Always update
-		/*for(DLNAResource f:children) 
-			children.remove(f);
-		discoverChildren();*/
 		return true;
 	}
 	

@@ -5,7 +5,7 @@ import java.net.URL;
 import net.pms.dlna.virtual.VirtualFolder;
 import net.pms.formats.Format;
 
-public class ChannelNaviX extends VirtualFolder {
+public class ChannelNaviX extends VirtualFolder implements ChannelScraper {
 	private String url;
 	private Channel parent;
 	private String[] props;
@@ -17,25 +17,10 @@ public class ChannelNaviX extends VirtualFolder {
 		this.url=url;
 		this.props=props;
 		contAll=false;
-		continues=calcCont();
+		continues=ChannelUtil.calcCont(props);
 		if(continues==0)
 			contAll=true;
 		parent=ch;
-	}
-	
-	private int calcCont() {
-		String lim=ChannelUtil.getPropertyValue(props, "continue_limit");
-		int ret=Channels.DeafultContLim;
-		if(!ChannelUtil.empty(lim)) {
-			try {
-				ret=Integer.parseInt(lim);
-			}
-			catch (Exception e) { 
-			}
-		}
-		if(ret<0)
-			ret=Channels.DeafultContLim;
-		return ret;
 	}
 	
 	private int getFormat(String type) {
@@ -55,11 +40,21 @@ public class ChannelNaviX extends VirtualFolder {
 			parent.debug("url "+nextUrl+" type "+type+" processor "+proc);
 			if(type.equalsIgnoreCase("playlist")) {
 				String cn=ChannelUtil.getPropertyValue(props, "continue_name");
+				String cu=ChannelUtil.getPropertyValue(props, "continue_url");
 				parent.debug("cont "+continues+" name "+name);
 				if(!ChannelUtil.empty(cn)) { // continue
 					if(name.matches(cn)) {
 						continues--;
-						if(contAll||continues>0) {
+						if((contAll||continues>0)&&(continues>Channels.ContSafetyVal)) {
+							readPlx(nextUrl);
+							return;
+						}
+					}
+				}
+				if(!ChannelUtil.empty(cu)) {
+					if(nextUrl.matches(cu)) {
+						continues--;
+						if((contAll||continues>0)&&(continues>Channels.ContSafetyVal)) {
 							readPlx(nextUrl);
 							return;
 						}
@@ -70,8 +65,10 @@ public class ChannelNaviX extends VirtualFolder {
 			else {
 				int f=getFormat(type);
 				parent.debug("add media "+f+" name "+name+" url "+nextUrl);
-				if(f!=-1)
-					addChild(new ChannelMediaStream(parent,name,nextUrl,thumb,proc,f));
+				if(f!=-1) {
+					addChild(new ChannelMediaStream(parent,name,nextUrl,thumb,proc,
+							f,ChannelUtil.getProperty(props,"auto_asx"),this));
+				}
 			}
 		}
 	}
@@ -131,6 +128,11 @@ public class ChannelNaviX extends VirtualFolder {
 	
 	public void discoverChildren() {
 		readPlx(url);
+	}
+
+	@Override
+	public String scrape(Channel ch, String url, String processorUrl) {
+		return ChannelNaviXProc.parse(ch,url,processorUrl);
 	}
 		
 		

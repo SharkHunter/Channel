@@ -2,15 +2,10 @@ package com.sharkhunter.channel;
 
 import java.io.BufferedReader;
 import java.io.DataOutputStream;
-import java.io.IOException;
 import java.io.InputStreamReader;
 import java.net.URL;
 import java.net.URLConnection;
-import java.net.URLEncoder;
 import java.util.ArrayList;
-
-import javax.net.ssl.HttpsURLConnection;
-
 import net.pms.PMS;
 
 public class ChannelUtil {
@@ -231,6 +226,43 @@ public class ChannelUtil {
 		if(empty(line))
 			return true;
 		return (line.charAt(0)=='#');
+	}
+	
+	public static String parseASX(String url) {
+		String page;
+		try {
+			page = ChannelUtil.fetchPage(new URL(url).openConnection());
+		} catch (Exception e) {
+			Channels.debug("asx fetch failed "+e);
+			return url;
+		}
+		Channels.debug("page "+page);
+		int first=page.indexOf("href=");
+		if(first==-1)
+			return url;
+		int last=page.indexOf('\"', first+6);
+		if(last==-1)
+			return url;
+		return page.substring(first+6,last);
+	}
+	
+	public static boolean isASX(String str) {
+		return str.endsWith(".asx");
+	}
+	
+	public static int calcCont(String[] props) {
+		String lim=ChannelUtil.getPropertyValue(props, "continue_limit");
+		int ret=Channels.DeafultContLim;
+		if(!ChannelUtil.empty(lim)) {
+			try {
+				ret=Integer.parseInt(lim);
+			}
+			catch (Exception e) { 
+			}
+		}
+		if(ret<0)
+			ret=Channels.DeafultContLim;
+		return ret;
 	}
 	
 }

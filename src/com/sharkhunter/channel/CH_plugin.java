@@ -1,15 +1,11 @@
 package com.sharkhunter.channel;
 import net.pms.PMS;
 import net.pms.dlna.DLNAResource;
-import net.pms.dlna.virtual.VirtualFolder; 
 import net.pms.external.AdditionalFolderAtRoot;
 
 import javax.swing.*;
 
 import java.io.*;
-import java.util.ArrayList;
-import java.util.regex.*;
-
 
 public class CH_plugin implements AdditionalFolderAtRoot {
 

@@ -2,15 +2,8 @@ package com.sharkhunter.channel;
 
 import java.io.BufferedReader;
 import java.io.File;
-import java.io.FileNotFoundException;
 import java.io.FileReader;
-import java.net.HttpURLConnection;
-import java.net.MalformedURLException;
-import java.net.URL;
 import java.util.ArrayList;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
-
 import net.pms.PMS;
 import net.pms.dlna.DLNAResource;
 import net.pms.dlna.virtual.VirtualFolder;
@@ -20,6 +13,7 @@ import no.geosoft.cc.io.FileMonitor;
 public class Channels extends VirtualFolder implements FileListener {
 
 	public static final int DeafultContLim=5;
+	public static final int ContSafetyVal=-10000;
 	
     private File file;
     private FileMonitor fileMonitor;
@@ -37,7 +31,7 @@ public class Channels extends VirtualFolder implements FileListener {
     	inst=this;
     	chFiles=new ArrayList<File>();
     	cred=new ArrayList<ChannelCred>();
-    	PMS.minimal("Start channel 0.38");
+    	PMS.minimal("Start channel 0.39");
     	dbg=new ChannelDbg(new File(path+File.separator+"channel.log"));
     	dbg.start();
     	Channels.debug=true;
@@ -150,20 +144,6 @@ public class Channels extends VirtualFolder implements FileListener {
     	addCred();
     }
     
-    private void handleFormat(File f) throws Exception {
-    /*	BufferedReader in=new BufferedReader(new FileReader(f));
-    	String str;
-    	WEB w=new WEB();
-    	while ((str = in.readLine()) != null) {
-    		str=str.trim();
-    	    if(str.startsWith("#"))
-    	    	continue;
-    	    if(str.length()==0)
-    	    	continue;
-    	    w.addExtra(str);
-    	}
-    	PMS.get().getExtensions().set(0, w);*/
-    }
     
     private void addCred() {
     	for(int i=0;i<cred.size();i++) {
@@ -235,9 +215,6 @@ public class Channels extends VirtualFolder implements FileListener {
 					}	
 				}
 			}
-			else if(f.getAbsolutePath().endsWith(".form")) {
-				handleFormat(f);
-			}
 			else if(f.getAbsolutePath().endsWith(".cred"))
 				handleCred(f);
 			else if(f.getName().startsWith("ch_debug")) {
@@ -263,9 +240,7 @@ public class Channels extends VirtualFolder implements FileListener {
 		}
 		else { // file change
 			try {
-				if(f.getAbsolutePath().endsWith(".form")) 
-					handleFormat(f);
-				else if(f.getAbsolutePath().endsWith(".cred"))
+				if(f.getAbsolutePath().endsWith(".cred"))
 					handleCred(f);
 				else if(f.getName().startsWith("ch_debug")) {
 					PMS.minimal("Channel debug file found "+f.exists());

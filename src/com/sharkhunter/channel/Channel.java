@@ -5,15 +5,11 @@ import java.net.MalformedURLException;
 import java.util.ArrayList;
 
 import net.pms.PMS;
-import net.pms.dlna.DLNAResource;
 import net.pms.dlna.virtual.VirtualFolder;
+import net.pms.formats.Format;
 import net.pms.network.HTTPResource;
 
 public class Channel extends VirtualFolder {
-
-	public static final int FORMAT_VIDEO=0;
-	public static final int FORMAT_AUDIO=1;
-	public static final int FORMAT_IMAGE=2;
 	
 	public boolean Ok;
 	private String name;
@@ -28,7 +24,7 @@ public class Channel extends VirtualFolder {
 	public Channel(String name) {
 		super(name,null);
 		Ok=false;
-		format=Channel.FORMAT_VIDEO;
+		format=Format.VIDEO;
 		folders=new ArrayList<ChannelFolder>();
 		Ok=true;
 	}
@@ -67,11 +63,11 @@ public class Channel extends VirtualFolder {
 			}
 			if(keyval[0].equalsIgnoreCase("format")) {
 				if(keyval[1].equalsIgnoreCase("video"))
-					format=Channel.FORMAT_VIDEO;
+					format=Format.VIDEO;
 				if(keyval[1].equalsIgnoreCase("audio"))
-					format=Channel.FORMAT_AUDIO;
+					format=Format.AUDIO;
 				if(keyval[1].equalsIgnoreCase("image"))
-					format=Channel.FORMAT_IMAGE;
+					format=Format.IMAGE;
 				
 			}
 			if(keyval[0].equalsIgnoreCase("img")) {
@@ -87,11 +83,6 @@ public class Channel extends VirtualFolder {
 	public ChannelMacro getMacro(String macro) {
 		return ChannelUtil.findMacro(macros, macro);
 	}
-	
-	/*public void setDbg(ChannelDbg d) {
-		PMS.debug("set dbg "+d);
-		dbg=d;
-	}*/
 	
 	public int getFormat() {
 		return format;
@@ -154,9 +145,9 @@ public class Channel extends VirtualFolder {
 			return "";
 		if(cred==null)
 			return "";
-		if(cred.user==null||cred.user.length()==0)
+		if(ChannelUtil.empty(cred.user))
 			return "";
-		if(cred.pwd==null||cred.pwd.length()==0)
+		if(ChannelUtil.empty(cred.pwd))
 			return "";
 		return logObj.getAuthStr(cred.user, cred.pwd);
 	}

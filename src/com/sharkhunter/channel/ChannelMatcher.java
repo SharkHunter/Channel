@@ -3,8 +3,6 @@ package com.sharkhunter.channel;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import net.pms.PMS;
-
 public class ChannelMatcher implements ChannelProps{
 	 private Pattern regexp;
 	 private String order[];

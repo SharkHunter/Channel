@@ -1,17 +1,9 @@
 package com.sharkhunter.channel;
 
-import java.net.MalformedURLException;
-import java.net.URL;
 import java.util.ArrayList;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 import net.pms.PMS;
 import net.pms.dlna.DLNAResource;
-import net.pms.dlna.WebAudioStream;
-import net.pms.dlna.WebStream;
-import net.pms.dlna.WebVideoStream;
-import net.pms.formats.Format;
 
 public class ChannelMedia implements ChannelProps{
 	public static final int TYPE_NORMAL=0;
@@ -78,25 +70,7 @@ public class ChannelMedia implements ChannelProps{
 		return matcher;
 	}
 	
-	private String parseASX(String url) {
-		String page;
-		try {
-			page = ChannelUtil.fetchPage(new URL(url).openConnection());
-		} catch (Exception e) {
-			parent.debug("asx fetch failed "+e);
-			return url;
-		}
-		parent.debug("page "+page);
-		int first=page.indexOf("href=");
-		if(first==-1)
-			return url;
-		int last=page.indexOf('\"', first+6);
-		if(last==-1)
-			return url;
-		return page.substring(first+6,last);
-	}
-	
-	public void add(DLNAResource res,String nName,String url,String thumb) {
+	public void add(DLNAResource res,String nName,String url,String thumb,boolean autoASX) {
 		if(thumbURL!=null&&thumbURL.length()!=0) {
 			if(ChannelUtil.getProperty(prop, "use_conf_thumb"))
 				thumb=thumbURL;
@@ -111,17 +85,11 @@ public class ChannelMedia implements ChannelProps{
 		thumb=ChannelUtil.getThumb(thumb, thumbURL, parent);
 		parent.debug("found media "+nName+" thumb "+thumb+" url "+url);
 		// asx is weird and one would expect mencoder to support it no
-		if(type==ChannelMedia.TYPE_ASX)  
-			url=parseASX(url);
+		boolean asx=autoASX||(type==ChannelMedia.TYPE_ASX)||
+							 (ChannelUtil.getProperty(prop, "auto_asx"));
 		url=ChannelUtil.pendData(url,prop,"url");
-		if(parent.getFormat()==Channel.FORMAT_VIDEO)
-			res.addChild(new WebVideoStream(nName,url,thumb));
-		else if(parent.getFormat()==Channel.FORMAT_AUDIO)
-			res.addChild(new WebAudioStream(nName,url,thumb));
-		else if(parent.getFormat()==Channel.FORMAT_IMAGE) {
-			String auth=parent.getAuth();
-			res.addChild(new ChannelImageStream(nName,url,thumb,auth));
-		}
+		res.addChild(new ChannelMediaStream(parent,nName,url,thumb,null,parent.getFormat(),
+											asx,null));
 	}
 	
 	public String separator(String base) {

@@ -1,14 +1,11 @@
 package com.sharkhunter.channel;
 
-import java.io.IOException;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.ArrayList;
 
 import net.pms.PMS;
 import net.pms.dlna.DLNAResource;
-import net.pms.dlna.WebAudioStream;
-import net.pms.dlna.WebVideoStream;
 
 public class ChannelItem implements ChannelProps{
 	
@@ -120,8 +117,7 @@ public class ChannelItem implements ChannelProps{
 	    				thumb=pThumb;
 	    			else
 	    				thumb=parent.getThumb();
-	    		
-	    		m1.add(res, newName, mURL, thumb);
+	    		m1.add(res, newName, mURL, thumb,ChannelUtil.getProperty(prop, "auto_asx"));
 	    	}
 	    }
 	}

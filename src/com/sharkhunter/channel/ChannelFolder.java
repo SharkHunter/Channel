@@ -1,7 +1,5 @@
 package com.sharkhunter.channel;
 
-import java.io.IOException;
-import java.io.InputStream;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.ArrayList;
@@ -33,6 +31,9 @@ public class ChannelFolder implements ChannelProps{
 	private ArrayList<ChannelItem> items;
 	private ArrayList<ChannelMedia> medias; 
 	
+	private int continues;
+	private boolean contAll;
+	
 	public ChannelFolder(ArrayList<String> data,Channel parent) {
 		this(data,parent,null);
 	}
@@ -49,6 +50,8 @@ public class ChannelFolder implements ChannelProps{
 		url=cf.url;
 		prop=cf.prop;
 		medias=cf.medias;
+		continues=ChannelUtil.calcCont(prop);
+		contAll=cf.contAll;
 	}
 	
 	public ChannelFolder(ArrayList<String> data,Channel parent,ChannelFolder pf) {
@@ -60,7 +63,12 @@ public class ChannelFolder implements ChannelProps{
 		subfolders=new ArrayList<ChannelFolder>();
 		items=new ArrayList<ChannelItem>();
 		medias=new ArrayList<ChannelMedia>();
+		contAll=false;
+		continues=Channels.DeafultContLim;
 		parse(data);
+		continues=ChannelUtil.calcCont(prop);
+		if(continues<0)
+			contAll=true;
 		Ok=true;
 	}
 	
@@ -220,8 +228,27 @@ public class ChannelFolder implements ChannelProps{
 	    		parent.debug("matching "+someName+" url "+fUrl+" thumb "+thumb);
 	    		if(someName==null||someName.length()==0)
 	    			someName=nName;
-	    		//PMS.debug("folder type "+cf.type);
-	    		//fUrl=ChannelUtil.appendData(fUrl,prop,"url");
+	    		String cn=ChannelUtil.getPropertyValue(prop, "continue_name");
+				String cu=ChannelUtil.getPropertyValue(prop, "continue_url");
+				parent.debug("cont "+continues+" name "+nName);
+				if(!ChannelUtil.empty(cn)) { // continue
+					if(someName.matches(cn)) {
+						continues--;
+						if((contAll||continues>0)&&(continues>Channels.ContSafetyVal)) {
+							cf.match(res,null,fUrl,thumb,someName);
+							return;
+						}
+					}
+				}
+				if(!ChannelUtil.empty(cu)) {
+					if(fUrl.matches(cu)) {
+						continues--;
+						if((contAll||continues>0)&&(continues>Channels.ContSafetyVal)) {
+							cf.match(res,null,fUrl,thumb,someName);
+							return;
+						}
+					}
+				}
 	    		if(cf.type==ChannelFolder.TYPE_EMPTY)
 	    			cf.match(res,null,fUrl,thumb,someName);
 	    		else
@@ -264,11 +291,9 @@ public class ChannelFolder implements ChannelProps{
 	    		String thumb=m.getMatch("thumb",false);
 	    		thumb=ChannelUtil.getThumb(thumb, pThumb, parent);
 	    		parent.debug("media matching using "+m.getRegexp().pattern());
-	    		//PMS.debug("found media "+someName+" url "+mUrl);
 	    		if(someName==null||someName.length()==0)
 	    			someName=nName;
-	    		//mUrl=ChannelUtil.appendData(mUrl,prop,"url");
-	    		m1.add(res, someName, mUrl, thumb);
+	    		m1.add(res, someName, mUrl, thumb,ChannelUtil.getProperty(prop, "auto_asx"));
 	    	}
 	    } 
 	}

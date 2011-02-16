@@ -1,6 +1,5 @@
 package com.sharkhunter.channel;
 
-import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
@@ -302,6 +301,18 @@ public class ChannelNaviXProc {
 				continue;
 			}
 			
+			if(line.startsWith("escape ")) {
+				String var=line.substring(9).trim();
+				String res;
+				try {
+					res = URLEncoder.encode(vars.get(var),"UTF-8");
+				} catch (UnsupportedEncodingException e) {
+					continue;
+				}
+				vars.put(var, res);
+				continue;
+			}
+			
 			String[] vLine=line.split("=",2);
 			if(vLine.length==2) { // variable
 				String key=vLine[0].trim();
@@ -385,7 +396,7 @@ public class ChannelNaviXProc {
 	}
 	
 	private static void expireNookies() {
-		long now=System.currentTimeMillis();
+		//long now=System.currentTimeMillis();
 	}
 	
 	public static String parse(Channel parent,String url,String pUrl) {

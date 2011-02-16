@@ -8,7 +8,6 @@ import java.net.URLConnection;
 import net.pms.configuration.RendererConfiguration;
 import net.pms.dlna.DLNAMediaInfo;
 import net.pms.dlna.DLNAResource;
-import net.pms.dlna.WebStream;
 
 public class ChannelMediaStream extends DLNAResource {
 
@@ -19,9 +18,12 @@ public class ChannelMediaStream extends DLNAResource {
 	private int format;
 	private Channel ch;
 	private String realUrl;
+	private boolean autoASX;
+	private ChannelScraper scraper;
 	
 	public ChannelMediaStream(Channel ch,String name,String nextUrl,
-							  String thumb,String proc,int type) {
+							  String thumb,String proc,int type,boolean asx,
+							  ChannelScraper scraper) {
 		super(type);
 		url=nextUrl;
 		this.name=name;
@@ -30,29 +32,42 @@ public class ChannelMediaStream extends DLNAResource {
 		this.format=type;
 		this.ch=ch;
 		realUrl=null;
+		autoASX=asx;
+		this.scraper=scraper;
 	}
 	
     public InputStream getThumbnailInputStream() throws IOException {
-    	if (thumb != null)
-    		return downloadAndSend(thumb, true);
-        else
-        	return super.getThumbnailInputStream();
+    	if (thumb != null) {
+    		try {
+    			return downloadAndSend(thumb, true);
+    		}
+    		catch (Exception e) {
+    		}
+    	}
+		return super.getThumbnailInputStream();
     }
     
     public InputStream getInputStream(long low, long high, double timeseek, RendererConfiguration mediarenderer) throws IOException {
-    	realUrl=ChannelNaviXProc.parse(ch,url,processor);
+    	if(scraper!=null)
+    		realUrl=scraper.scrape(ch,url,processor);
+    	else
+    		realUrl=url;
+    	if(autoASX&&ChannelUtil.isASX(realUrl))
+    		realUrl=ChannelUtil.parseASX(realUrl);
     	return super.getInputStream(low,high,timeseek,mediarenderer);
     }
 
 
     public InputStream getInputStream() {
-    	realUrl=ChannelNaviXProc.parse(ch,url,processor);
+    	if(scraper!=null)
+    		realUrl=scraper.scrape(ch,url,processor);
+    	else
+    		realUrl=url;
     	if(ChannelUtil.empty(realUrl))
     		return null;
     	try {
 			URL urlobj = new URL(realUrl);
 			Channels.debug("Retrieving " + urlobj.toString());
-			//ByteArrayOutputStream bytes = new ByteArrayOutputStream();
 			URLConnection conn = urlobj.openConnection();
 			conn.setRequestProperty("User-Agent","Mozilla/5.0 (Windows; U; Windows NT 6.1; sv-SE; rv:1.9.2.3) Gecko/20100409 Firefox/3.6.3");
 			if(!ChannelUtil.empty(ch.getAuth()))	
