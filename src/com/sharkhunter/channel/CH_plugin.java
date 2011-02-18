@@ -23,7 +23,18 @@ public class CH_plugin implements AdditionalFolderAtRoot {
 			}
 			else 
 				path=confPath;
+			String save=(String)PMS.getConfiguration().getCustomProperty("channels.save");
 			chRoot=new Channels(path,getInterval());
+			if(save!=null) {
+				String ts=(String)PMS.getConfiguration().getCustomProperty("channels.save_ts");
+				String savePath=save;
+				if(ChannelUtil.empty(save.trim()))
+					savePath=path+File.separator+"saved";
+				chRoot.setSave(savePath,ts);
+				File f=new File(savePath);
+				if(!(f.exists()&&f.isDirectory()))
+					f.mkdir();
+			}
 		}
 		catch (Exception e) {
 			PMS.debug("exp "+e)	;
