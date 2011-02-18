@@ -191,7 +191,7 @@ public class ChannelFolder implements ChannelProps{
 										  realUrl,prop));
 			return;
 		}
-		if(realUrl!=null&&realUrl.length()!=0) {
+		if(!ChannelUtil.empty(realUrl)) {
 			URL urlobj=new URL(realUrl);
 			parent.debug("folder match url "+urlobj.toString()+" type "+type);
 			try {
@@ -200,7 +200,7 @@ public class ChannelFolder implements ChannelProps{
 				page="";
 			}
 			parent.debug("page "+page);
-			if(page==null||page.length()==0)
+			if(ChannelUtil.empty(page))
 				return;
 		}
 		parent.debug("subfolders "+subfolders.size());
@@ -226,7 +226,7 @@ public class ChannelFolder implements ChannelProps{
 	    		String thumb=m.getMatch("thumb",false);
 	    		thumb=ChannelUtil.getThumb(thumb, pThumb, parent);
 	    		parent.debug("matching "+someName+" url "+fUrl+" thumb "+thumb);
-	    		if(someName==null||someName.length()==0)
+	    		if(ChannelUtil.empty(someName))
 	    			someName=nName;
 	    		String cn=ChannelUtil.getPropertyValue(prop, "continue_name");
 				String cu=ChannelUtil.getPropertyValue(prop, "continue_url");
@@ -269,7 +269,7 @@ public class ChannelFolder implements ChannelProps{
 	    		String thumb=m.getMatch("thumb",false);
 	    		thumb=ChannelUtil.getThumb(thumb, pThumb, parent);
 	    		PMS.debug("found item "+someName+" url "+iUrl);
-	    		if(someName==null||someName.length()==0)
+	    		if(ChannelUtil.empty(someName))
 	    			someName=nName;
 	    		//iUrl=ChannelUtil.appendData(iUrl,prop,"url");
 	    		if(item.autoMedia())
@@ -291,7 +291,7 @@ public class ChannelFolder implements ChannelProps{
 	    		String thumb=m.getMatch("thumb",false);
 	    		thumb=ChannelUtil.getThumb(thumb, pThumb, parent);
 	    		parent.debug("media matching using "+m.getRegexp().pattern());
-	    		if(someName==null||someName.length()==0)
+	    		if(ChannelUtil.empty(someName))
 	    			someName=nName;
 	    		m1.add(res, someName, mUrl, thumb,ChannelUtil.getProperty(prop, "auto_asx"));
 	    	}

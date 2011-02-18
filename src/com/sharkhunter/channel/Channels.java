@@ -13,7 +13,7 @@ import no.geosoft.cc.io.FileMonitor;
 public class Channels extends VirtualFolder implements FileListener {
 
 	public static final int DeafultContLim=5;
-	public static final int ContSafetyVal=-10000;
+	public static final int ContSafetyVal=-100;
 	
     private File file;
     private FileMonitor fileMonitor;
@@ -23,6 +23,8 @@ public class Channels extends VirtualFolder implements FileListener {
     public static boolean debug=false;
     private ChannelDbg dbg;
     private static Channels inst=null;
+    private String savePath;
+    private boolean appendTS;
     
 
     public Channels(String path,long poll) {
@@ -31,7 +33,9 @@ public class Channels extends VirtualFolder implements FileListener {
     	inst=this;
     	chFiles=new ArrayList<File>();
     	cred=new ArrayList<ChannelCred>();
-    	PMS.minimal("Start channel 0.39");
+    	savePath="";
+    	appendTS=false;
+    	PMS.minimal("Start channel 0.40");
     	dbg=new ChannelDbg(new File(path+File.separator+"channel.log"));
     	dbg.start();
     	Channels.debug=true;
@@ -261,4 +265,27 @@ public class Channels extends VirtualFolder implements FileListener {
 			}	
 		}
 	}
+	
+	////////////////////////////////////
+	// Save handling
+	////////////////////////////////////
+	
+	public void setSave(String sPath,String ts) {
+		savePath=sPath;
+		appendTS=(ChannelUtil.empty(ts)?false:true);
+		PMS.debug("[Channel]: using save path "+sPath);
+		debug("using save path "+sPath);
+	}
+	
+	public static boolean save() {
+		return !ChannelUtil.empty(inst.savePath);
+	}
+	
+	public static String fileName(String name) {
+		String ts="";
+		if(inst.appendTS) 
+			ts="_"+String.valueOf(System.currentTimeMillis());
+		return inst.savePath+File.separator+name+ts;
+	}
+	
 }

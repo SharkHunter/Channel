@@ -65,7 +65,14 @@ public class ChannelNaviX extends VirtualFolder implements ChannelScraper {
 			else {
 				int f=getFormat(type);
 				parent.debug("add media "+f+" name "+name+" url "+nextUrl);
-				if(f!=-1) {
+				if(f==-1) 
+					return;
+				if(Channels.save()) {
+					ChannelPMSSaveFolder sf=new ChannelPMSSaveFolder(parent,name,nextUrl,thumb,proc,
+							ChannelUtil.getProperty(props,"auto_asx"),f,this);
+					addChild(sf);
+				}
+				else {
 					addChild(new ChannelMediaStream(parent,name,nextUrl,thumb,proc,
 							f,ChannelUtil.getProperty(props,"auto_asx"),this));
 				}

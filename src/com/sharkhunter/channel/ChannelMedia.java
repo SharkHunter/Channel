@@ -71,11 +71,11 @@ public class ChannelMedia implements ChannelProps{
 	}
 	
 	public void add(DLNAResource res,String nName,String url,String thumb,boolean autoASX) {
-		if(thumbURL!=null&&thumbURL.length()!=0) {
+		if(!ChannelUtil.empty(thumbURL)) {
 			if(ChannelUtil.getProperty(prop, "use_conf_thumb"))
 				thumb=thumbURL;
 		}
-		if(name!=null&&name.length()!=0) {
+		if(!ChannelUtil.empty(name)) {
 			nName=ChannelUtil.concatField(name,nName,prop,"name");
 			if(nName==null)
 				nName=name;
@@ -88,8 +88,15 @@ public class ChannelMedia implements ChannelProps{
 		boolean asx=autoASX||(type==ChannelMedia.TYPE_ASX)||
 							 (ChannelUtil.getProperty(prop, "auto_asx"));
 		url=ChannelUtil.pendData(url,prop,"url");
-		res.addChild(new ChannelMediaStream(parent,nName,url,thumb,null,parent.getFormat(),
-											asx,null));
+		if(Channels.save())  { // Add save version
+			ChannelPMSSaveFolder sf=new ChannelPMSSaveFolder(parent,nName,url,thumb,null,asx,
+					                parent.getFormat(),null);
+			res.addChild(sf);
+		}
+		else {
+			res.addChild(new ChannelMediaStream(parent,nName,url,thumb,null,parent.getFormat(),
+					asx,null));
+		}
 	}
 	
 	public String separator(String base) {

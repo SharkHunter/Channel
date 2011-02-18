@@ -1,13 +1,20 @@
 package com.sharkhunter.channel;
 
+import java.io.BufferedInputStream;
+import java.io.BufferedOutputStream;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.OutputStream;
+import java.io.PipedInputStream;
+import java.io.PipedOutputStream;
 import java.net.URL;
 import java.net.URLConnection;
 
 import net.pms.configuration.RendererConfiguration;
 import net.pms.dlna.DLNAMediaInfo;
 import net.pms.dlna.DLNAResource;
+import net.pms.formats.Format;
 
 public class ChannelMediaStream extends DLNAResource {
 
@@ -20,10 +27,17 @@ public class ChannelMediaStream extends DLNAResource {
 	private String realUrl;
 	private boolean autoASX;
 	private ChannelScraper scraper;
+	private String saveName; 
 	
 	public ChannelMediaStream(Channel ch,String name,String nextUrl,
 							  String thumb,String proc,int type,boolean asx,
 							  ChannelScraper scraper) {
+		this(ch,name,nextUrl,thumb,proc,type,asx,scraper,null);
+		
+	}
+	public ChannelMediaStream(Channel ch,String name,String nextUrl,
+							  String thumb,String proc,int type,boolean asx,
+							  ChannelScraper scraper,String saveName) {
 		super(type);
 		url=nextUrl;
 		this.name=name;
@@ -34,6 +48,7 @@ public class ChannelMediaStream extends DLNAResource {
 		realUrl=null;
 		autoASX=asx;
 		this.scraper=scraper;
+		this.saveName=saveName;
 	}
 	
     public InputStream getThumbnailInputStream() throws IOException {
@@ -54,7 +69,14 @@ public class ChannelMediaStream extends DLNAResource {
     		realUrl=url;
     	if(autoASX&&ChannelUtil.isASX(realUrl))
     		realUrl=ChannelUtil.parseASX(realUrl);
-    	return super.getInputStream(low,high,timeseek,mediarenderer);
+    	if(ChannelUtil.empty(realUrl))
+    		return null;
+    	InputStream is=super.getInputStream(low,high,timeseek,mediarenderer);
+    	if(saveName!=null) {
+    		return startSave(is);
+    	}
+    	else
+    	    return is;
     }
 
 
@@ -72,13 +94,30 @@ public class ChannelMediaStream extends DLNAResource {
 			conn.setRequestProperty("User-Agent","Mozilla/5.0 (Windows; U; Windows NT 6.1; sv-SE; rv:1.9.2.3) Gecko/20100409 Firefox/3.6.3");
 			if(!ChannelUtil.empty(ch.getAuth()))	
 				conn.setRequestProperty("Authorization", ch.getAuth());
-			InputStream in = conn.getInputStream();
-			return in;
+			InputStream is = conn.getInputStream();
+			if(saveName!=null) {
+				return startSave(is);
+			}
+			else
+				return is;
 		}
 		catch (Exception e) {
 			Channels.debug("error reading "+e);
 			return null;
 		}
+    }
+    
+    private InputStream startSave(InputStream is) throws IOException {
+    	String fName=Channels.fileName(saveName);
+		BufferedOutputStream fos=new BufferedOutputStream(new FileOutputStream(fName));
+ 	   	PipedOutputStream pos=(new PipedOutputStream());
+ 	   	PipedInputStream pis=new PipedInputStream(pos);
+		OutputStream[] oss=new OutputStream[2];
+		oss[0]=fos;
+		oss[1]=pos;
+		Thread cs=new Thread(new ChannelSaver(is,oss));
+		cs.start(); 
+		return new BufferedInputStream(pis);
     }
 
     public long length() {
