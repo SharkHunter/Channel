@@ -466,8 +466,11 @@ public class ChannelNaviXProc {
 				else if(lines[i].equalsIgnoreCase("v1"))
 					loop=parseV1(parent,lines,i+1,pUrl);
 				else {
-					parent.debug("weird version "+lines[i]+" guess v1");
-					loop=parseV1(parent,lines,i,pUrl);
+					parent.debug("weird version "+lines[i]+" guess "+(phase>0?"v2":"v1"));
+					if(phase>0)
+						loop=parseV2(parent,lines,i,pUrl);
+					else
+						loop=parseV1(parent,lines,i,pUrl);
 				}
 				phase++;
 				parent.debug("loop "+loop+" phase "+phase);

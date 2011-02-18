@@ -247,7 +247,7 @@ public class ChannelUtil {
 	}
 	
 	public static boolean isASX(String str) {
-		return str.endsWith(".asx");
+		return (str!=null&&str.endsWith(".asx"));
 	}
 	
 	public static int calcCont(String[] props) {
