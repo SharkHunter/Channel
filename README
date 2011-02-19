@@ -47,12 +47,16 @@
     macrodef <macroname> {
        <macro block>
     }
+    scriptdef <scriptname> {
+       <script block>
+    }
 
-    At the top level there are three (3) configuration elements (version,macrodef,channel). These
-    elements does not need to come in any specific order and there are no limit to how many times
-    they can be present within a file. However, a channel and a macro can only be defined one
+    At the top level there are four (4) configuration elements (version,macrodef,scriptdef,channel). 
+    These elements does not need to come in any specific order and there are no limit to how many 
+  	times they can be present within a file. However, a channel and a macro can only be defined one
     time (that is the channelname and macroname can only be used once) and if it is defined again
-    it will update the old definition.
+    it will update the old definition. A script can only be defiened once and it is redefined the second
+    definition will be ignored.
 
     Version tag
     -------------
@@ -95,10 +99,25 @@
     macrodef <name> {
        <block def, see below>
     }
+    
+	Script definition
+	------------------
+	
+	Script is used when you need to have more advanced parsing of the pages to find the media stream.
+	Scripts are globally defined and not bound to a specific .ch file. This gives you the possibility
+	to have your scripts in separate file(s). As soon as a script with a name has been defined that 
+	name is occupied and if you use the same name in another script definition that definition will
+	be ignored. 
+	The script block is a NIPL src with some limitations.
+	The script definition structure:
+	
+	scriptdef <name> {
+		<NIPL src, see below>
+	}
 
     Block definition
     -----------------
-    The block definition defines the folder structure for the channel. That is how the cahnnel
+    The block definition defines the folder structure for the channel. That is how the channel
     is divided in folders and where it finds the media etc. All blocks follow the same skeleton
     structure that can be stated as:
     block keyword {
@@ -180,11 +199,14 @@
        [prop=<properties>]
        [macro=<name of macro>]   
        [type=asx|normal]
+       [script=<script name>]
     }
 
     The parameters of media has the same meaning as those of item and folder. The type parameter can
     be set to asx to indicate that the media stream found is an asx file which needs some special
-    treatment by the plugin.
+    treatment by the plugin. 
+    * script - uses the script to retrive the actual media url. Only one script can be configured
+    per media.
 
     Matching
     ---------
@@ -264,6 +286,15 @@
     * use_conf_thumb: If a thumb url is configured it will be used instead of a matched one.
     
     * other_string: Used for ATZLink to set the "other" folder string. By default this is "#".
+    
+    NIPL src
+    ---------
+    
+    The NIPL src of the script block follows http://navix.turner3d.net/proc_docs/ with the following 
+    exceptions:
+    * report and report_val are not used. It is possible to add a report statement to the script
+      but it will be used the same way as a play.
+    * Only v2 scripts are allowed.
 
     Magic token
     -------------
