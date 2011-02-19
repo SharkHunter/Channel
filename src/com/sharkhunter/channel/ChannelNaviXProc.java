@@ -90,9 +90,10 @@ public class ChannelNaviXProc {
 		parent.debug("parse v2 ");
 		vars.put("s_url", url);
 		for(int i=start;i<lines.length;i++) {
-			String line=lines[i].trim();
+			String line=lines[i];
 			if(ChannelUtil.ignoreLine(line))
 				continue;
+			line=line.trim();
 			parent.debug("navix proc line "+line);
 			if(if_true)
 				if(line.startsWith("else")||line.startsWith("elseif")) {
@@ -486,5 +487,21 @@ public class ChannelNaviXProc {
 		rUrl=ChannelUtil.append(rUrl, "!!!pms_ch_dash_w!!!", vars.get("swfplayer"));
 		parent.debug("navix return media url "+rUrl);
 		return rUrl;
+	}
+	
+	public static String lite(Channel parent,String url,String[] lines) {
+		try {
+			if(parseV2(parent,lines,0,url))
+				parent.debug("found report statement in NIPL lite script. Hopefully script worked anyway.");
+			String rUrl=vars.get("url");
+			rUrl=ChannelUtil.append(rUrl, "!!!pms_ch_dash_y!!!", vars.get("playpath"));
+			rUrl=ChannelUtil.append(rUrl, "!!!pms_ch_dash_w!!!", vars.get("swfplayer"));
+			parent.debug("navix lite return media url "+rUrl);
+			return rUrl;
+		}
+		catch (Exception e) {
+			parent.debug("error during NIPL lite parse "+e);
+			return null;
+		}
 	}
 }

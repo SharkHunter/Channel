@@ -4,6 +4,8 @@ import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
 import java.util.ArrayList;
+import java.util.HashMap;
+
 import net.pms.PMS;
 import net.pms.dlna.DLNAResource;
 import net.pms.dlna.virtual.VirtualFolder;
@@ -20,6 +22,7 @@ public class Channels extends VirtualFolder implements FileListener {
     private ArrayList<File> chFiles;
     private ArrayList<ChannelMacro> macros;
     private ArrayList<ChannelCred> cred;
+    private HashMap<String,ChannelMacro> scripts;
     public static boolean debug=false;
     private ChannelDbg dbg;
     private static Channels inst=null;
@@ -33,9 +36,10 @@ public class Channels extends VirtualFolder implements FileListener {
     	inst=this;
     	chFiles=new ArrayList<File>();
     	cred=new ArrayList<ChannelCred>();
+    	scripts=new HashMap<String,ChannelMacro>();
     	savePath="";
     	appendTS=false;
-    	PMS.minimal("Start channel 0.40");
+    	PMS.minimal("Start channel 0.41");
     	dbg=new ChannelDbg(new File(path+File.separator+"channel.log"));
     	dbg.start();
     	Channels.debug=true;
@@ -94,7 +98,7 @@ public class Channels extends VirtualFolder implements FileListener {
     	}
     }
     
-    private void parseMacros(String data) {
+    private void parseMacroScript(String data) {
     	String str;
     	String[] lines=data.split("\n");
     	macros=new ArrayList<ChannelMacro>();
@@ -105,6 +109,18 @@ public class Channels extends VirtualFolder implements FileListener {
     	    	ArrayList<String> mData=ChannelUtil.gatherBlock(lines, i+1);
     	    	i+=mData.size();
     	    	macros.add(new ChannelMacro(mName,mData));
+    	    	continue;
+    	    }
+    	    if(str.startsWith("scriptdef ")) {
+    	    	String sName=str.substring(10,str.lastIndexOf('{')).trim();
+    	    	ArrayList<String> sData=ChannelUtil.gatherBlock(lines, i+1);
+    	    	i+=sData.size();
+    	    	if(scripts.get(sName)!=null) {
+    	    		debug("Duplicate definition of script "+sName+" found. Ignore this one.");
+    	    		continue;
+    	    	}
+    	    	scripts.put(sName, new ChannelMacro(sName,sData));
+    	    	continue;
     	    }
     	}
     }
@@ -113,6 +129,7 @@ public class Channels extends VirtualFolder implements FileListener {
     	BufferedReader in=new BufferedReader(new FileReader(f));
     	String str;
     	boolean macro=false;
+    	boolean script=false;
     	StringBuilder sb=new StringBuilder();
     	String ver="unknown";    	
     	while ((str = in.readLine()) != null) {
@@ -121,6 +138,8 @@ public class Channels extends VirtualFolder implements FileListener {
 				continue;
     	    if(str.trim().startsWith("macrodef"))
     	    	macro=true;
+    	    if(str.trim().startsWith("scriptdef"))
+    	    	script=true;
     	    if(str.trim().startsWith("debug")) {
     	    	String[] v=str.split("=");
     	    	if(v.length<2)
@@ -142,8 +161,8 @@ public class Channels extends VirtualFolder implements FileListener {
     	in.close();
     	PMS.minimal("parsing channel file "+f.toString()+" version "+ver);
     	debug("parsing channel file "+f.toString()+" version "+ver);
-    	if(macro)
-    		parseMacros(sb.toString());
+    	if(macro||script)
+    		parseMacroScript(sb.toString());
     	readChannel(sb.toString());
     	addCred();
     }
@@ -286,6 +305,18 @@ public class Channels extends VirtualFolder implements FileListener {
 		if(inst.appendTS) 
 			ts="_"+String.valueOf(System.currentTimeMillis());
 		return inst.savePath+File.separator+name+ts;
+	}
+	
+	////////////////////////////////////////////
+	// Script functions
+	////////////////////////////////////////////
+	
+	public static ArrayList<String> getScript(String name) {
+		ChannelMacro m=inst.scripts.get(name);
+		if(m!=null) { // found a script return data
+			return m.getMacro();
+		}
+		return null;
 	}
 	
 }

@@ -5,7 +5,7 @@ import java.util.ArrayList;
 import net.pms.PMS;
 import net.pms.dlna.DLNAResource;
 
-public class ChannelMedia implements ChannelProps{
+public class ChannelMedia implements ChannelProps,ChannelScraper {
 	public static final int TYPE_NORMAL=0;
 	public static final int TYPE_ASX=1;
 	
@@ -15,6 +15,7 @@ public class ChannelMedia implements ChannelProps{
 	private Channel parent;
 	private String[] prop;
 	private String thumbURL;
+	private String script;
 	private int type;
 	
 	public ChannelMedia(ArrayList<String> data,Channel parent) {
@@ -22,6 +23,7 @@ public class ChannelMedia implements ChannelProps{
 		matcher=null;
 		this.parent=parent;
 		type=ChannelMedia.TYPE_NORMAL;
+		script=null;
 		parse(data);
 		Ok=true;
 	}
@@ -52,6 +54,9 @@ public class ChannelMedia implements ChannelProps{
 					matcher=new ChannelMatcher(null,keyval[1],this);
 				else
 					matcher.setOrder(keyval[1]);
+			}
+			if(keyval[0].equalsIgnoreCase("script")) {
+				script=keyval[1];
 			}
 			if(keyval[0].equalsIgnoreCase("name"))
 				name=keyval[1];
@@ -86,20 +91,36 @@ public class ChannelMedia implements ChannelProps{
 		parent.debug("found media "+nName+" thumb "+thumb+" url "+url);
 		// asx is weird and one would expect mencoder to support it no
 		boolean asx=autoASX||(type==ChannelMedia.TYPE_ASX)||
-							 (ChannelUtil.getProperty(prop, "auto_asx"));
-		url=ChannelUtil.pendData(url,prop,"url");
+							 (ChannelUtil.getProperty(prop, "auto_asx"));	
 		if(Channels.save())  { // Add save version
-			ChannelPMSSaveFolder sf=new ChannelPMSSaveFolder(parent,nName,url,thumb,null,asx,
-					                parent.getFormat(),null);
+			ChannelPMSSaveFolder sf=new ChannelPMSSaveFolder(parent,nName,url,thumb,script,asx,
+					                parent.getFormat(),this);
 			res.addChild(sf);
 		}
 		else {
-			res.addChild(new ChannelMediaStream(parent,nName,url,thumb,null,parent.getFormat(),
-					asx,null));
+			res.addChild(new ChannelMediaStream(parent,nName,url,thumb,script,parent.getFormat(),
+					asx,this));
 		}
 	}
 	
 	public String separator(String base) {
 		return ChannelUtil.getPropertyValue(prop, base+"_separator");
+	}
+
+	@Override
+	public String scrape(Channel ch, String url, String scriptName) {
+		if(ChannelUtil.empty(scriptName)) // no script just return what we got
+			return ChannelUtil.pendData(url,prop,"url");
+		ArrayList<String> sData=Channels.getScript(scriptName);
+		if(sData==null) { // weird no script found, log and bail out
+			ch.debug("no script "+scriptName+" defined");
+			return ChannelUtil.pendData(url,prop,"url");
+		}
+		String realUrl=ChannelNaviXProc.lite(ch,url,(String [])sData.toArray());
+		if(ChannelUtil.empty(realUrl)) {
+			ch.debug("Bad script result");
+			return null;
+		}
+		return ChannelUtil.pendData(realUrl, prop, "url");
 	}
 }
