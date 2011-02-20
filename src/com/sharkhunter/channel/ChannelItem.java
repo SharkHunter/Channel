@@ -118,6 +118,8 @@ public class ChannelItem implements ChannelProps{
 	    			else
 	    				thumb=parent.getThumb();
 	    		m1.add(res, newName, mURL, thumb,ChannelUtil.getProperty(prop, "auto_asx"));
+	    		if(m1.onlyFirst())
+	    			break;
 	    	}
 	    }
 	}
@@ -126,4 +128,7 @@ public class ChannelItem implements ChannelProps{
 		return ChannelUtil.getPropertyValue(prop, base+"_separator");
 	}
 	
+	public boolean onlyFirst() {
+		return ChannelUtil.getProperty(prop, "only_first");
+	}
 }

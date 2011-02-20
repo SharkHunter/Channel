@@ -75,6 +75,10 @@ public class ChannelMedia implements ChannelProps,ChannelScraper {
 		return matcher;
 	}
 	
+	public boolean onlyFirst() {
+		return ChannelUtil.getProperty(prop, "only_first");
+	}
+	
 	public void add(DLNAResource res,String nName,String url,String thumb,boolean autoASX) {
 		if(!ChannelUtil.empty(thumbURL)) {
 			if(ChannelUtil.getProperty(prop, "use_conf_thumb"))

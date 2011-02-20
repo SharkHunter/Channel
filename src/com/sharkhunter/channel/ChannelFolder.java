@@ -14,6 +14,7 @@ public class ChannelFolder implements ChannelProps{
 	public static final int TYPE_LOGIN=3;
 	public static final int TYPE_ATZ_LINK=4;
 	public static final int TYPE_NAVIX=5;
+	public static final int TYPE_RECURSE=6;
 	
 	public boolean Ok;
 	
@@ -169,7 +170,32 @@ public class ChannelFolder implements ChannelProps{
 			return ChannelFolder.TYPE_ATZ_LINK;
 		if(t.compareToIgnoreCase("navix")==0)
 			return ChannelFolder.TYPE_NAVIX;
+		if(t.compareToIgnoreCase("recurse")==0)
+			return ChannelFolder.TYPE_RECURSE;
 		return ChannelFolder.TYPE_NORMAL;
+	}
+	
+	private boolean doContinue(String name,String realUrl) {
+		String cn=ChannelUtil.getPropertyValue(prop, "continue_name");
+		String cu=ChannelUtil.getPropertyValue(prop, "continue_url");
+		parent.debug("cont "+continues+" name "+name);
+		if(!ChannelUtil.empty(cn)) { // continue
+			if(name.matches(cn)) {
+				continues--;
+				if((contAll||continues>0)&&(continues>Channels.ContSafetyVal)) {
+					return true;
+				}
+			}
+		}
+		if(!ChannelUtil.empty(cu)) {
+			if(realUrl.matches(cu)) {
+				continues--;
+				if((contAll||continues>0)&&(continues>Channels.ContSafetyVal)) {
+					return true;
+				}
+			}
+		}
+		return false;
 	}
 	
 	public void match(DLNAResource res) throws MalformedURLException {
@@ -185,7 +211,7 @@ public class ChannelFolder implements ChannelProps{
 			res.addChild(new ChannelPMSFolder(this,name));
 			return;
 		}
-		String realUrl=ChannelUtil.concatURL(url,urlEnd);
+		String realUrl=ChannelUtil.concatURL(url,urlEnd);			
 		if(isNaviX()) { // i'm navix special handling
 			res.addChild(new ChannelNaviX(parent,name,ChannelUtil.getThumb(null,pThumb, parent),
 										  realUrl,prop));
@@ -203,9 +229,65 @@ public class ChannelFolder implements ChannelProps{
 			if(ChannelUtil.empty(page))
 				return;
 		}
-		parent.debug("subfolders "+subfolders.size());
-	    for(int i=0;i<subfolders.size();i++) {
-	    	ChannelFolder cf=subfolders.get(i);
+		ArrayList<ChannelMedia> med=medias;
+		ArrayList<ChannelItem> ite=items;
+		ArrayList<ChannelFolder> fol=subfolders;
+		if(type==ChannelFolder.TYPE_RECURSE) {
+			med=parentFolder.medias;
+			ite=parentFolder.items;
+			fol=parentFolder.subfolders;
+		}
+		// 1st Media
+		 //PMS.debug("matching media "+medias.size());
+	    for(int i=0;i<med.size();i++) {
+	    	ChannelMedia m1=med.get(i);
+	    	ChannelMatcher m=m1.getMatcher();
+	    	m.startMatch(page);
+	    	while(m.match()) {
+	    		String someName=m.getMatch("name",false);
+	    		//if(filter!=null&&!filter.filter(someName))
+	    			//continue;
+	    		String mUrl=m.getMatch("url",true);
+	    		String thumb=m.getMatch("thumb",false);
+	    		thumb=ChannelUtil.getThumb(thumb, pThumb, parent);
+	    		parent.debug("media matching using "+m.getRegexp().pattern());
+	    		if(ChannelUtil.empty(someName))
+	    			someName=nName;
+	    		m1.add(res, someName, mUrl, thumb,ChannelUtil.getProperty(prop, "auto_asx"));
+	    		if(m1.onlyFirst())
+	    			break;
+	    	}
+	    } 
+	    // 2nd items
+		// PMS.debug("items "+items.size());
+	    for(int i=0;i<ite.size();i++) {
+	    	ChannelItem item=ite.get(i);
+	    	ChannelMatcher m=item.getMatcher();
+	    	m.startMatch(page);
+	    	parent.debug("item matching using expr "+m.getRegexp().pattern());
+	    	while(m.match()) {
+	    		String someName=m.getMatch("name",false);
+	    		//if(filter!=null&&!filter.filter(someName))
+	    			//continue;
+	    		String iUrl=m.getMatch("url",true);
+	    		String thumb=m.getMatch("thumb",false);
+	    		thumb=ChannelUtil.getThumb(thumb, pThumb, parent);
+	    		PMS.debug("found item "+someName+" url "+iUrl);
+	    		if(ChannelUtil.empty(someName))
+	    			someName=nName;
+	    		//iUrl=ChannelUtil.appendData(iUrl,prop,"url");
+	    		if(item.autoMedia())
+	    			item.match(res,null,iUrl,someName,thumb);
+	    		else
+	    			res.addChild(new ChannelPMSItem(item,someName,null,iUrl,thumb));
+	    		if(item.onlyFirst())
+	    			break;
+	    	}
+	    } 
+	    // last but not least folders
+		parent.debug("subfolders "+fol.size());
+	    for(int i=0;i<fol.size();i++) {
+	    	ChannelFolder cf=fol.get(i);
 	    	ChannelMatcher m=cf.matcher;
 	    	if(cf.isATZ()) {
     			res.addChild(new ChannelATZ(cf,urlEnd));
@@ -227,75 +309,24 @@ public class ChannelFolder implements ChannelProps{
 	    		thumb=ChannelUtil.getThumb(thumb, pThumb, parent);
 	    		parent.debug("matching "+someName+" url "+fUrl+" thumb "+thumb);
 	    		if(ChannelUtil.empty(someName))
-	    			someName=nName;
-	    		String cn=ChannelUtil.getPropertyValue(prop, "continue_name");
-				String cu=ChannelUtil.getPropertyValue(prop, "continue_url");
-				parent.debug("cont "+continues+" name "+nName);
-				if(!ChannelUtil.empty(cn)) { // continue
-					if(someName.matches(cn)) {
-						continues--;
-						if((contAll||continues>0)&&(continues>Channels.ContSafetyVal)) {
-							cf.match(res,null,fUrl,thumb,someName);
-							return;
-						}
-					}
-				}
-				if(!ChannelUtil.empty(cu)) {
-					if(fUrl.matches(cu)) {
-						continues--;
-						if((contAll||continues>0)&&(continues>Channels.ContSafetyVal)) {
-							cf.match(res,null,fUrl,thumb,someName);
-							return;
-						}
-					}
-				}
+	    				someName=nName;//(!ChannelUtil.empty(cf.name)?cf.name:nName);
+	    		parent.debug("cf.name "+cf.name+" ignore "+ChannelUtil.getProperty(cf.prop, "ignore_match"));
+	    		if(ChannelUtil.getProperty(cf.prop, "ignore_match"))
+	    				someName=cf.name;
+	    		if(ChannelUtil.getProperty(cf.prop, "prepend_parenturl"))
+	    			fUrl=ChannelUtil.concatURL(realUrl,fUrl);
+	    		if(doContinue(someName,fUrl)) {
+	    			cf.match(res,null,fUrl,thumb,someName);
+	    			return;
+	    		}
 	    		if(cf.type==ChannelFolder.TYPE_EMPTY)
 	    			cf.match(res,null,fUrl,thumb,someName);
 	    		else
 	    			res.addChild(new ChannelPMSFolder(cf,someName,null,fUrl,thumb));
+	    		if(cf.onlyFirst())
+	    			break;
 	    	}
 	    }
-	   // PMS.debug("items "+items.size());
-	    for(int i=0;i<items.size();i++) {
-	    	ChannelItem item=items.get(i);
-	    	ChannelMatcher m=item.getMatcher();
-	    	m.startMatch(page);
-	    	parent.debug("item matching using expr "+m.getRegexp().pattern());
-	    	while(m.match()) {
-	    		String someName=m.getMatch("name",false);
-	    		//if(filter!=null&&!filter.filter(someName))
-	    			//continue;
-	    		String iUrl=m.getMatch("url",true);
-	    		String thumb=m.getMatch("thumb",false);
-	    		thumb=ChannelUtil.getThumb(thumb, pThumb, parent);
-	    		PMS.debug("found item "+someName+" url "+iUrl);
-	    		if(ChannelUtil.empty(someName))
-	    			someName=nName;
-	    		//iUrl=ChannelUtil.appendData(iUrl,prop,"url");
-	    		if(item.autoMedia())
-	    			item.match(res,null,iUrl,someName,thumb);
-	    		else
-	    			res.addChild(new ChannelPMSItem(item,someName,null,iUrl,thumb));
-	    	}
-	    } 
-	    //PMS.debug("matching media "+medias.size());
-	    for(int i=0;i<medias.size();i++) {
-	    	ChannelMedia m1=medias.get(i);
-	    	ChannelMatcher m=m1.getMatcher();
-	    	m.startMatch(page);
-	    	while(m.match()) {
-	    		String someName=m.getMatch("name",false);
-	    		//if(filter!=null&&!filter.filter(someName))
-	    			//continue;
-	    		String mUrl=m.getMatch("url",true);
-	    		String thumb=m.getMatch("thumb",false);
-	    		thumb=ChannelUtil.getThumb(thumb, pThumb, parent);
-	    		parent.debug("media matching using "+m.getRegexp().pattern());
-	    		if(ChannelUtil.empty(someName))
-	    			someName=nName;
-	    		m1.add(res, someName, mUrl, thumb,ChannelUtil.getProperty(prop, "auto_asx"));
-	    	}
-	    } 
 	}
 	
 	public String getThumb() { // relic method just return parents thumb
@@ -306,6 +337,10 @@ public class ChannelFolder implements ChannelProps{
 	
 	public String separator(String base) {
 		return ChannelUtil.getPropertyValue(prop, base+"_separator");
+	}
+	
+	public boolean onlyFirst() {
+		return ChannelUtil.getProperty(prop, "only_first");
 	}
 			
 }

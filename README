@@ -138,7 +138,7 @@
        [name=<name string>]
        [matcher=<match expression>]
        [url=<url to fetch page from>]
-       [type=atz|empty|normal]
+       [type=atz|atzlink|empty|navix|recurse|normal]
        [order=<see order def, below>]
        [prop=<properties>]
        [macro=<name of macro>]   
@@ -163,6 +163,8 @@
              url=http://www.icefilms.info/tv/a-z then the plugin will search for data
              under http://www.icefilms.info/tv/a-z/A,http://www.icefilms.info/tv/a-z/B etc.  
            * empty - the folder is just a placeholder for retrieving the next url.
+           * recurse - A recursive folder which uses the parent folders matches again.
+                       This is the way to parse pages that are splitted.
            * normal - a normal folder.
 		   * navix - a NaviX folder see NaviX on wiki
     * prop - special properties for the folder. See the properties section.
@@ -287,6 +289,20 @@
     
     * other_string: Used for ATZLink to set the "other" folder string. By default this is "#".
     
+    * continue_url
+      continue_name:
+	  A regular expression that if it matches the object (name or url) instructs the plugin to 
+	  automatically "opens" the folder that should have been displayed.
+	  
+    * continue_limit:
+      The number of folders that can be opened by the continue_name or continue_url.
+      
+    * only_first:
+      Stop matching after the first match has been found on a page.
+      
+    * prepend_parenturl:
+      Prepends the URL of the parent to the match.       
+    
     NIPL src
     ---------
     
@@ -330,7 +346,7 @@
     The number on the left hand side should not be there and are just ther to make it simple to
     walktrough the file in this explanation.
     Line 1. A simple version line, the version is 0.1 here.
-    Line 2. We start defining a channel with the name SVTPlat.
+    Line 2. We start defining a channel with the name SVTPlay.
     Line 3. We set an img URL which shows some nice picture.
     (Note that no format is set so it will be video by default)
     Line 4. Start defineing a folder, this will be on the top level.

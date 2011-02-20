@@ -109,4 +109,8 @@ public class ChannelMatcher implements ChannelProps{
 	 public String separator(String base) { // used if no props are configured...
 		 return null;
 	 }   	  
+	 
+	 public boolean onlyFirst() {
+		 return false;
+	 }
 }
