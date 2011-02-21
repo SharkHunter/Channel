@@ -39,7 +39,7 @@ public class Channels extends VirtualFolder implements FileListener {
     	scripts=new HashMap<String,ChannelMacro>();
     	savePath="";
     	appendTS=false;
-    	PMS.minimal("Start channel 0.43");
+    	PMS.minimal("Start channel 0.44");
     	dbg=new ChannelDbg(new File(path+File.separator+"channel.log"));
     	dbg.start();
     	Channels.debug=true;
