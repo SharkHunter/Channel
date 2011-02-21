@@ -39,7 +39,7 @@ public class Channels extends VirtualFolder implements FileListener {
     	scripts=new HashMap<String,ChannelMacro>();
     	savePath="";
     	appendTS=false;
-    	PMS.minimal("Start channel 0.42");
+    	PMS.minimal("Start channel 0.43");
     	dbg=new ChannelDbg(new File(path+File.separator+"channel.log"));
     	dbg.start();
     	Channels.debug=true;
@@ -289,6 +289,10 @@ public class Channels extends VirtualFolder implements FileListener {
 	// Save handling
 	////////////////////////////////////
 	
+	public void setSave(String sPath) {
+		setSave(sPath,null);
+	}
+	
 	public void setSave(String sPath,String ts) {
 		savePath=sPath;
 		appendTS=(ChannelUtil.empty(ts)?false:true);
@@ -305,6 +309,23 @@ public class Channels extends VirtualFolder implements FileListener {
 		if(inst.appendTS) 
 			ts="_"+String.valueOf(System.currentTimeMillis());
 		return inst.savePath+File.separator+name+ts;
+	}
+	
+	///////////////////////////////////////////
+	// Path handling
+	///////////////////////////////////////////
+	
+	public String getSavePath() {
+		return inst.savePath;
+	}
+	
+	public String getPath() {
+		return inst.file.getAbsolutePath();
+	}
+	
+	public void setPath(String path) {
+		debug("Set chanelpath to "+path);
+		file=new File(path);
 	}
 	
 	////////////////////////////////////////////
