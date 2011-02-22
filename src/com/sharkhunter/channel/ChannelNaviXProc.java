@@ -7,6 +7,7 @@ import java.net.URL;
 import java.net.URLConnection;
 import java.net.URLDecoder;
 import java.net.URLEncoder;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -489,6 +490,10 @@ public class ChannelNaviXProc {
 		return rUrl;
 	}
 	
+	public static String lite(Channel parent,String url,ArrayList<String> lines) {
+		String[] arr=lines.toArray(new String[lines.size()]);
+		return lite(parent,url,arr);
+	}
 	public static String lite(Channel parent,String url,String[] lines) {
 		try {
 			if(parseV2(parent,lines,0,url))

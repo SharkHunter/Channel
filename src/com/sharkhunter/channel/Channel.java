@@ -24,6 +24,7 @@ public class Channel extends VirtualFolder {
 	public Channel(String name) {
 		super(name,null);
 		Ok=false;
+		this.name=name;
 		format=Format.VIDEO;
 		folders=new ArrayList<ChannelFolder>();
 		Ok=true;

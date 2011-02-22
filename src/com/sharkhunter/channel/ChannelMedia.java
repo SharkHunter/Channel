@@ -56,6 +56,7 @@ public class ChannelMedia implements ChannelProps,ChannelScraper {
 					matcher.setOrder(keyval[1]);
 			}
 			if(keyval[0].equalsIgnoreCase("script")) {
+				parent.debug("assign script "+keyval[1]);
 				script=keyval[1];
 			}
 			if(keyval[0].equalsIgnoreCase("name"))
@@ -120,11 +121,11 @@ public class ChannelMedia implements ChannelProps,ChannelScraper {
 			ch.debug("no script "+scriptName+" defined");
 			return ChannelUtil.pendData(url,prop,"url");
 		}
-		String realUrl=ChannelNaviXProc.lite(ch,url,(String [])sData.toArray());
+		String realUrl=ChannelNaviXProc.lite(ch,url,sData);
 		if(ChannelUtil.empty(realUrl)) {
 			ch.debug("Bad script result");
 			return null;
 		}
-		return ChannelUtil.pendData(realUrl, prop, "url");
+		return ChannelUtil.pendData(realUrl, prop, "url");		
 	}
 }
