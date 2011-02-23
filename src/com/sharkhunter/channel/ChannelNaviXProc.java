@@ -128,12 +128,18 @@ public class ChannelNaviXProc {
 				u=new URL(sUrl).openConnection();
 				String method=vars.get("s_method");
 				String sPage;
+				HashMap<String,String> hdr=new HashMap<String,String>();
+				for(String key : vars.keySet()) {
+					if(!key.startsWith("s_headers."))
+						continue;
+					hdr.put(key.substring(10), vars.get(key));
+				}
 				if(method!=null&&method.equalsIgnoreCase("post")) {
-					String q=vars.get("s_postdata");
-					sPage=ChannelUtil.postPage(u,(q==null?"":q),vars.get("s_cookie"));
+					String q=vars.get("s_postdata");					
+					sPage=ChannelUtil.postPage(u,(q==null?"":q),vars.get("s_cookie"),hdr);
 				}
 				else {
-					sPage=ChannelUtil.fetchPage(u,"",vars.get("s_cookie"));
+					sPage=ChannelUtil.fetchPage(u,"",vars.get("s_cookie"),hdr);
 				}
 				if(ChannelUtil.empty(sPage)) {
 					parent.debug("bad page from proc");
@@ -145,7 +151,6 @@ public class ChannelNaviXProc {
 				// get headers and cookies
 				String hName="";
 				for (int j=1; (hName = u.getHeaderFieldKey(j))!=null; j++) {
-					parent.debug("hdr "+hName);
 				 	if (hName.equals("Set-Cookie")) {                  
 				 		String[] fields = u.getHeaderField(j).split(";\\s*");
 				 		String cookie=fields[0];
@@ -364,7 +369,7 @@ public class ChannelNaviXProc {
 		if(modLen>3)
 			cookie=lines[start+3];
 		URLConnection u=new URL(nextUrl).openConnection();
-		String sPage=ChannelUtil.fetchPage(u, null, cookie);
+		String sPage=ChannelUtil.fetchPage(u, null, cookie,null);
 		if(ChannelUtil.empty(sPage)) 
 			throw new Exception("Empty scrap page");
 		parent.debug("v1 scrap page "+sPage);
@@ -483,9 +488,7 @@ public class ChannelNaviXProc {
 			}
 		}
 		// We made it construct result
-		String rUrl=vars.get("url");
-		rUrl=ChannelUtil.append(rUrl, "!!!pms_ch_dash_y!!!", vars.get("playpath"));
-		rUrl=ChannelUtil.append(rUrl, "!!!pms_ch_dash_w!!!", vars.get("swfplayer"));
+		String rUrl=createResult();
 		parent.debug("navix return media url "+rUrl);
 		return rUrl;
 	}
@@ -498,9 +501,7 @@ public class ChannelNaviXProc {
 		try {
 			if(parseV2(parent,lines,0,url))
 				parent.debug("found report statement in NIPL lite script. Hopefully script worked anyway.");
-			String rUrl=vars.get("url");
-			rUrl=ChannelUtil.append(rUrl, "!!!pms_ch_dash_y!!!", vars.get("playpath"));
-			rUrl=ChannelUtil.append(rUrl, "!!!pms_ch_dash_w!!!", vars.get("swfplayer"));
+			String rUrl=createResult();
 			parent.debug("navix lite return media url "+rUrl);
 			return rUrl;
 		}
@@ -508,5 +509,12 @@ public class ChannelNaviXProc {
 			parent.debug("error during NIPL lite parse "+e);
 			return null;
 		}
+	}
+	
+	private static String createResult() {
+		String rUrl=vars.get("url");
+		rUrl=ChannelUtil.append(rUrl, "!!!pms_ch_dash_y!!!", vars.get("playpath"));
+		rUrl=ChannelUtil.append(rUrl, "!!!pms_ch_dash_w!!!", vars.get("swfplayer"));
+		return rUrl;
 	}
 }

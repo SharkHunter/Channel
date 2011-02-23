@@ -109,6 +109,7 @@ public class ChannelMediaStream extends DLNAResource {
     
     private InputStream startSave(InputStream is) throws IOException {
     	String fName=Channels.fileName(saveName);
+    	fName=ChannelUtil.guessExt(fName,realUrl);
 		BufferedOutputStream fos=new BufferedOutputStream(new FileOutputStream(fName));
  	   	PipedOutputStream pos=(new PipedOutputStream());
  	   	PipedInputStream pis=new PipedInputStream(pos);

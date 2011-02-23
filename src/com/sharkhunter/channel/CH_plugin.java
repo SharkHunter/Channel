@@ -6,14 +6,15 @@ import net.pms.external.AdditionalFolderAtRoot;
 import javax.swing.*;
 
 import java.awt.BorderLayout;
-import java.awt.FileDialog;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.ItemEvent;
+import java.awt.event.ItemListener;
 import java.io.*;
 
-public class CH_plugin implements AdditionalFolderAtRoot, ActionListener {
+public class CH_plugin implements AdditionalFolderAtRoot, ActionListener, ItemListener {
 
 	private static final long DEFAULT_POLL_INTERVAL=20000;
 	private Channels chRoot;
@@ -111,10 +112,12 @@ public class CH_plugin implements AdditionalFolderAtRoot, ActionListener {
 		JLabel l2=new JLabel("Save Path: ");
 		JLabel l3=new JLabel("RTMPDump path: ");
 		JLabel l4=new JLabel("Scripts path: ");
+		JCheckBox dbg=new JCheckBox("Enable debug",Channels.debugStatus());
 		chPath=new JTextField(cfg.getPath(),20);
 		saPath=new JTextField(cfg.getSavePath(),20);
 		rtmp=new JTextField(cfg.getRtmpPath(),20);
 		script=new JTextField(cfg.getScriptPath(),20);
+		
 		
 		// Add some actions
 		cBrowse.setActionCommand("cpath");
@@ -127,6 +130,7 @@ public class CH_plugin implements AdditionalFolderAtRoot, ActionListener {
 		scBrowse.addActionListener(this);
 		channels.setActionCommand("channels");
 		channels.addActionListener(this);
+		dbg.addItemListener(this);
 		
 		GridBagConstraints c = new GridBagConstraints();
 		// 1st the channels path
@@ -153,7 +157,11 @@ public class CH_plugin implements AdditionalFolderAtRoot, ActionListener {
 		c.gridx++;
 		c.weightx=1.0;
 		pathPanel.add(sBrowse,c);
-		
+		// Debug
+		c.gridx = 0;
+		c.gridy = 2;
+		c.weightx=1.0;
+		pathPanel.add(dbg,c);
 		
 		// 3rd the rtmp path
 		c.gridx = 0;
@@ -229,6 +237,15 @@ public class CH_plugin implements AdditionalFolderAtRoot, ActionListener {
 			chRoot.fileChanged(new File(cfg.getPath()));
 		}
 		
+	}
+
+	@Override
+	public void itemStateChanged(ItemEvent e) {
+		if (e.getStateChange() == ItemEvent.DESELECTED) // dbg off
+			Channels.debug(false);
+		if(e.getStateChange() == ItemEvent.SELECTED)  // dbg on
+			Channels.debug(true);
+		cfg.commit();
 	}
 	
 }

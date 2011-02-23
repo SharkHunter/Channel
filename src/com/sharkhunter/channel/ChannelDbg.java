@@ -28,6 +28,7 @@ public class ChannelDbg {
 			return;
 		try {
 			os=new BufferedWriter(new FileWriter(f,false));
+			debug("Started");
 		} catch (Exception e) {
 			os=null;
 		}
@@ -44,8 +45,12 @@ public class ChannelDbg {
 		}
 	}
 	
+	public boolean status() {
+		return (os!=null);
+	}
+	
 	public void debug(String str) {
-		if(!Channels.debug)
+		if(os==null)
 			return;
 		try {
 			String s=sdfHour.format(new Date(System.currentTimeMillis()))+" "+str;

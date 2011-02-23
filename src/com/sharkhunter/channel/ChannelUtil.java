@@ -6,16 +6,19 @@ import java.io.InputStreamReader;
 import java.net.URL;
 import java.net.URLConnection;
 import java.util.ArrayList;
+import java.util.HashMap;
+
 import net.pms.PMS;
 
 public class ChannelUtil {
 	
 	public static String postPage(URLConnection connection,String query) {
-		return postPage(connection,query,null);
+		return postPage(connection,query,null,null);
 	}
 	
 	
-	public static String postPage(URLConnection connection,String query,String cookie) {    
+	public static String postPage(URLConnection connection,String query,String cookie,
+								  HashMap<String,String> hdr) {    
 		connection.setDoOutput(true);   
 		connection.setDoInput(true);   
 		connection.setUseCaches(false);   
@@ -29,6 +32,12 @@ public class ChannelUtil {
 		try {
 			if(!empty(cookie))
 				connection.setRequestProperty("Cookie",cookie);
+			
+			if(hdr!=null&&hdr.size()!=0) {
+				for(String key : hdr.keySet()) 
+					connection.setRequestProperty(key,hdr.get(key));
+			}
+			
 			connection.connect();
 			// open up the output stream of the connection   
 			DataOutputStream output = new DataOutputStream(connection.getOutputStream());   
@@ -54,10 +63,14 @@ public class ChannelUtil {
 	}
 	
 	public static String fetchPage(URLConnection connection) {
-		return fetchPage(connection,"","");
+		return fetchPage(connection,"","",null);
 	}
 	
 	public static String fetchPage(URLConnection connection,String auth,String cookie) {
+		return fetchPage(connection,auth,cookie,null);
+	}
+	
+	public static String fetchPage(URLConnection connection,String auth,String cookie,HashMap<String,String> hdr) {
 		try {
 //			URLConnection connection=url.openConnection();
 			connection.setRequestProperty("User-Agent","Mozilla/5.0 (Windows; U; Windows NT 6.1; sv-SE; rv:1.9.2.3) Gecko/20100409 Firefox/3.6.3");
@@ -65,11 +78,12 @@ public class ChannelUtil {
 				connection.setRequestProperty("Authorization", auth);
 			if(!empty(cookie))
 				connection.setRequestProperty("Cookie",cookie);
-			
+			if(hdr!=null&&hdr.size()!=0) {
+				for(String key : hdr.keySet()) 
+					connection.setRequestProperty(key,hdr.get(key));
+			}
 			connection.setDoInput(true);
 			connection.setDoOutput(true);
-			
-			
 			
 		    BufferedReader in = new BufferedReader(new InputStreamReader(connection.getInputStream()));
 		    StringBuilder page=new StringBuilder();
@@ -263,6 +277,25 @@ public class ChannelUtil {
 		if(ret<0)
 			ret=Channels.DeafultContLim;
 		return ret;
+	}
+	
+	public static String extension(String fileName) {
+		int pos=fileName.lastIndexOf('.');
+		if(pos>0&&pos<fileName.length()-1)
+			return fileName.substring(pos);
+		return null;
+	}
+	
+	public static String guessExt(String fileName,String url) {
+		if(!empty(extension(fileName)))
+			return fileName;
+		if(!empty(url)) {
+			String ext=extension(url);
+			if(!empty(url))
+				return fileName+ext;
+		}
+		// No extension, give up
+		return fileName;
 	}
 	
 }

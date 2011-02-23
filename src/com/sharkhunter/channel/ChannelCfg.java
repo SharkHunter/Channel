@@ -68,7 +68,14 @@ public class ChannelCfg {
 	public void init() {
 		chPath=top.getPath();
 		saPath=top.getSavePath();
-		scriptPath=(String) PMS.getConfiguration().getCustomProperty("pmsencoder.script.directory");			
+		scriptPath=(String) PMS.getConfiguration().getCustomProperty("pmsencoder.script.directory");
+		rtmpPath=(String) PMS.getConfiguration().getCustomProperty("rtmpdump.path");
+		String dbg=(String)PMS.getConfiguration().getCustomProperty("channels.debug");
+		if(!ChannelUtil.empty(dbg))
+			if(dbg.equalsIgnoreCase("true"))
+				Channels.debug(true);
+			else
+				Channels.debug(false);
 	}
 	
 	public void commit() {
@@ -81,7 +88,11 @@ public class ChannelCfg {
 			updateRTMPScript();
 			PMS.getConfiguration().setCustomProperty("channels.path",chPath);
 			PMS.getConfiguration().setCustomProperty("channels.save",saPath);
-			PMS.getConfiguration().setCustomProperty("pmsencoder.script.directory",scriptPath);
+			if(!ChannelUtil.empty(scriptPath))
+				PMS.getConfiguration().setCustomProperty("pmsencoder.script.directory",scriptPath);
+			if(!ChannelUtil.empty(rtmpPath))
+				PMS.getConfiguration().setCustomProperty("rtmpdump.path",rtmpPath);
+			PMS.getConfiguration().setCustomProperty("channels.debug",String.valueOf(Channels.debugStatus()));
 			PMS.getConfiguration().save();
 		} catch (Exception e) {
 		}
@@ -141,7 +152,6 @@ public class ChannelCfg {
 	private static final String chZip="http://cloud.github.com/downloads/SharkHunter/Channel/channels.zip"; 
 	
 	public void fetchChannels() {
-		String zName=chPath+File.separator+"tmp.zip";
 		try {			
 			validatePMSEncoder();
 			URL u=new URL(chZip);
@@ -150,18 +160,9 @@ public class ChannelCfg {
 			connection.setDoInput(true);
 			connection.setDoOutput(true);
 			InputStream in=connection.getInputStream();
-			BufferedOutputStream fos=new BufferedOutputStream(new FileOutputStream(zName));
-			int b;
-			while((b=in.read())!=-1) 
-				fos.write(b);
-
-			fos.flush();
-			fos.close();
-			in.close();
 			
 			//Channels.debug("extract zip ");
-			FileInputStream fis = new FileInputStream(zName);
-	         ZipInputStream zis = new ZipInputStream(new BufferedInputStream(fis));
+	         ZipInputStream zis = new ZipInputStream(new BufferedInputStream(in));
 	         ZipEntry entry;
 	         while((entry = zis.getNextEntry()) != null) {
 	            //Channels.debug("Extracting: " +entry);
@@ -182,10 +183,10 @@ public class ChannelCfg {
 	            dest.close();
 	         }
 	         zis.close();
+	         in.close();
 	         updateRTMPScript();
 	      } catch(Exception e) {
 	    	  Channels.debug("error fetching channels "+e);
 	      }
-	      new File(zName).delete();
 	}
 }

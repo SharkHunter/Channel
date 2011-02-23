@@ -23,7 +23,6 @@ public class Channels extends VirtualFolder implements FileListener {
     private ArrayList<ChannelMacro> macros;
     private ArrayList<ChannelCred> cred;
     private HashMap<String,ChannelMacro> scripts;
-    public static boolean debug=false;
     private ChannelDbg dbg;
     private static Channels inst=null;
     private String savePath;
@@ -39,12 +38,8 @@ public class Channels extends VirtualFolder implements FileListener {
     	scripts=new HashMap<String,ChannelMacro>();
     	savePath="";
     	appendTS=false;
-    	PMS.minimal("Start channel 0.45");
+    	PMS.minimal("Start channel 0.46");
     	dbg=new ChannelDbg(new File(path+File.separator+"channel.log"));
-    	dbg.start();
-    	Channels.debug=true;
-    	dbg.debug("Started");
-    //	PMS.get().getExtensions().set(0, new WEB());
     	fileMonitor=null;
     	if(poll>0)
     		fileMonitor=new FileMonitor(poll);
@@ -57,6 +52,17 @@ public class Channels extends VirtualFolder implements FileListener {
     
     public static void debug(String msg) {
     	inst.dbg.debug("[Channel] "+msg);
+    }
+    
+    public static void debug(boolean start) {
+    	if(start)
+    		inst.dbg.start();
+    	else
+    		inst.dbg.stop();
+    }
+    
+    public static boolean debugStatus() {
+    	return inst.dbg.status();
     }
     
     private Channel find(String name) {
@@ -140,14 +146,6 @@ public class Channels extends VirtualFolder implements FileListener {
     	    	macro=true;
     	    if(str.trim().startsWith("scriptdef"))
     	    	script=true;
-    	    if(str.trim().startsWith("debug")) {
-    	    	String[] v=str.split("=");
-    	    	if(v.length<2)
-    	    		continue;
-    	    	if(v[1].equalsIgnoreCase("true"))
-    	    		Channels.debug=true;
-    	    	continue;
-    	    }
     	    if(str.trim().startsWith("version")) {
     	    	String[] v=str.split("=");
     	    	if(v.length<2)
@@ -240,16 +238,6 @@ public class Channels extends VirtualFolder implements FileListener {
 			}
 			else if(f.getAbsolutePath().endsWith(".cred"))
 				handleCred(f);
-			else if(f.getName().startsWith("ch_debug")) {
-				PMS.minimal("Channel debug file found "+f.exists());
-				if(fileMonitor!=null)
-					fileMonitor.addFile(f);
-				Channels.debug=f.exists();
-				if(Channels.debug)
-					inst.dbg.start();
-				else
-					inst.dbg.stop();
-			}
 		}	
     }
 
@@ -265,16 +253,6 @@ public class Channels extends VirtualFolder implements FileListener {
 			try {
 				if(f.getAbsolutePath().endsWith(".cred"))
 					handleCred(f);
-				else if(f.getName().startsWith("ch_debug")) {
-					PMS.minimal("Channel debug file found "+f.exists());
-					if(fileMonitor!=null)
-						fileMonitor.addFile(f);
-					Channels.debug=f.exists();
-					if(Channels.debug)
-						inst.dbg.start();
-					else
-						inst.dbg.stop();
-				}
 				else
 					if(f.exists())
 						parseChannels(f);
@@ -306,9 +284,11 @@ public class Channels extends VirtualFolder implements FileListener {
 	
 	public static String fileName(String name) {
 		String ts="";
+		String ext=ChannelUtil.extension(name);
 		if(inst.appendTS) 
 			ts="_"+String.valueOf(System.currentTimeMillis());
-		return inst.savePath+File.separator+name+ts;
+		// if we got an extension we move it to the end of the filename
+		return inst.savePath+File.separator+name+ts+(ChannelUtil.empty(ext)?"":ext);
 	}
 	
 	///////////////////////////////////////////
