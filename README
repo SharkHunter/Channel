@@ -202,6 +202,7 @@
        [macro=<name of macro>]   
        [type=asx|normal]
        [script=<script name>]
+       [nscript=<script url>]
     }
 
     The parameters of media has the same meaning as those of item and folder. The type parameter can
@@ -209,6 +210,8 @@
     treatment by the plugin. 
     * script - uses the script to retrive the actual media url. Only one script can be configured
     per media.
+    * nscript - uses the remote script (which should be an NIPL processor) to retrive the actual 
+    media url.
 
     Matching
     ---------
