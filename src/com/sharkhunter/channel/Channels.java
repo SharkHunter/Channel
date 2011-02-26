@@ -147,7 +147,7 @@ public class Channels extends VirtualFolder implements FileListener {
     	    if(str.trim().startsWith("scriptdef"))
     	    	script=true;
     	    if(str.trim().startsWith("version")) {
-    	    	String[] v=str.split("=");
+    	    	String[] v=str.split("\\s*=\\s*");
     	    	if(v.length<2)
     	    		continue;
     	    	ver=v[1];
@@ -187,7 +187,7 @@ public class Channels extends VirtualFolder implements FileListener {
 				str=str.trim();
 				if(ChannelUtil.ignoreLine(str))
 					continue;
-				String[] s=str.split("=",2);
+				String[] s=str.split("\\s*=\\s*",2);
 				if(s.length<2)
 					continue;
 				String[] s1=s[0].split("\\.");

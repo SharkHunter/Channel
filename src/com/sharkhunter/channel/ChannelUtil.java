@@ -120,7 +120,7 @@ public class ChannelUtil {
 		String s=findProperty(props,prop);
 		if(s==null)
 			return null;
-		String[] ss=s.split("=",2);
+		String[] ss=s.split("\\s*=\\s*",2);
 		if(ss.length<2)
 			return null;
 		return ss[1];

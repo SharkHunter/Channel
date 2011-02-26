@@ -31,7 +31,7 @@ public class ChannelLogin {
 			String line=data.get(i).trim();
 			if(line==null)
 				continue;
-			String[] keyval=line.split("=",2);
+			String[] keyval=line.split("\\s*=\\s*",2);
 			if(keyval.length<2)
 				continue;
 			if(keyval[0].equalsIgnoreCase("user"))

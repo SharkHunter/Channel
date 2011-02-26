@@ -52,7 +52,7 @@ public class Channel extends VirtualFolder {
 				if(f.Ok)
 					folders.add(f);
 			}
-			String[] keyval=line.split("=",2);
+			String[] keyval=line.split("\\s*=\\s*",2);
 			if(keyval.length<2)
 				continue;
 			if(keyval[0].equalsIgnoreCase("macro")) {
