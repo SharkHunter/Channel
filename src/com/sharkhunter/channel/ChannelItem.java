@@ -46,7 +46,7 @@ public class ChannelItem implements ChannelProps{
 					mediaURL.add(m1);
 				continue;
 			}
-			String[] keyval=line.split("=",2);
+			String[] keyval=line.split("\\s*=\\s*",2);
 			if(keyval.length<2) // ignore weird lines
 				continue;
 			if(keyval[0].equalsIgnoreCase("macro")) {
