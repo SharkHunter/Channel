@@ -71,6 +71,11 @@ public class ChannelCfg {
 		scriptPath=(String) PMS.getConfiguration().getCustomProperty("pmsencoder.script.directory");
 		rtmpPath=(String) PMS.getConfiguration().getCustomProperty("rtmpdump.path");
 		String dbg=(String)PMS.getConfiguration().getCustomProperty("channels.debug");
+		String rtmpMode=(String)PMS.getConfiguration().getCustomProperty("channels.rtmp");
+		if(rtmpMode.trim().equalsIgnoreCase("1"))
+			Channels.rtmpMethod(Channels.RTMP_MAGIC_TOKEN);
+		if(rtmpMode.trim().equalsIgnoreCase("2"))
+			Channels.rtmpMethod(Channels.RTMP_DUMP);
 		if(!ChannelUtil.empty(dbg))
 			if(dbg.equalsIgnoreCase("true"))
 				Channels.debug(true);

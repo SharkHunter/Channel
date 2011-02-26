@@ -319,6 +319,7 @@ public class ChannelUtil {
 	
 	public static String createMediaUrl(HashMap<String,String> vars) {
 		String rUrl;
+		Channels.debug("rtmpdump method "+Channels.rtmpMethod());
 		switch(Channels.rtmpMethod()) {
 			case Channels.RTMP_MAGIC_TOKEN:
 				rUrl=vars.get("url");
