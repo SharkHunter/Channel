@@ -3,8 +3,11 @@ package com.sharkhunter.channel;
 import java.io.BufferedReader;
 import java.io.DataOutputStream;
 import java.io.InputStreamReader;
+import java.io.UnsupportedEncodingException;
 import java.net.URL;
 import java.net.URLConnection;
+import java.net.URLDecoder;
+import java.net.URLEncoder;
 import java.util.ArrayList;
 import java.util.HashMap;
 
@@ -298,4 +301,46 @@ public class ChannelUtil {
 		return fileName;
 	}
 	
+	public static String unescape(String str) {
+		try {
+			return URLDecoder.decode(str,"UTF-8");
+		} catch (Exception e) {
+		}
+		return str;
+	}
+	
+	public static String escape(String str) {
+		try {
+			return URLEncoder.encode(str,"UTF-8");
+		} catch (Exception e) {
+		}
+		return str;
+	}
+	
+	public static String createMediaUrl(HashMap<String,String> vars) {
+		String rUrl;
+		switch(Channels.rtmpMethod()) {
+			case Channels.RTMP_MAGIC_TOKEN:
+				rUrl=vars.get("url");
+				rUrl=ChannelUtil.append(rUrl, "!!!pms_ch_dash_y!!!", vars.get("playpath"));
+				rUrl=ChannelUtil.append(rUrl, "!!!pms_ch_dash_w!!!", vars.get("swfplayer"));
+				break;
+			
+			case Channels.RTMP_DUMP:
+				Channels.debug("rtmpdump method");
+				rUrl="rtmpdump://channel?url="+escape(vars.get("url"));
+				Channels.debug("rulr "+rUrl);
+				rUrl=ChannelUtil.append(rUrl, "&-y=", escape(vars.get("playpath")));
+				rUrl=ChannelUtil.append(rUrl, "&-W=", escape(vars.get("swfVfy")));
+				rUrl=ChannelUtil.append(rUrl, "&-s=", escape(vars.get("swfplayer")));
+				rUrl=ChannelUtil.append(rUrl, "&-a=", escape(vars.get("app")));
+				rUrl=ChannelUtil.append(rUrl, "&-p=", escape(vars.get("pageurl")));
+				break;
+				
+			default:
+				rUrl=vars.get("url");
+				break;
+		}
+		return rUrl;
+	}	
 }

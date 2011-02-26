@@ -16,7 +16,7 @@ public class ChannelNaviXProc {
 	
 	private static HashMap<String,String> vars=new HashMap<String,String>();
 	private static HashMap<String,String> rvars=new HashMap<String,String>();
-	private static HashMap<String,String> nookies=new HashMap<String,String>();
+	public static HashMap<String,String> nookies=new HashMap<String,String>();
 	private static long lastExpire=0;
 	
 	private static String escapeChars(String str) {
@@ -266,7 +266,8 @@ public class ChannelNaviXProc {
 			
 			if(line.startsWith("concat ")) {
 				String[] ops=line.substring(7).split(" ",2);
-				String res=vars.get(ops[0].trim())+fixVar(ops[1],vars.get(ops[1]));
+				String res=ChannelUtil.append(vars.get(ops[0].trim()),"",
+											  fixVar(ops[1],vars.get(ops[1])));
 				vars.put(ops[0].trim(), res);
 				parent.debug("concat "+ops[0]+" res "+res);
 				continue;
@@ -298,12 +299,7 @@ public class ChannelNaviXProc {
 			
 			if(line.startsWith("unescape ")) {
 				String var=line.substring(9).trim();
-				String res;
-				try {
-					res = URLDecoder.decode(vars.get(var),"UTF-8");
-				} catch (UnsupportedEncodingException e) {
-					continue;
-				}
+				String res=ChannelUtil.unescape(vars.get(var));
 				vars.put(var, res);
 				continue;
 			}
@@ -326,12 +322,17 @@ public class ChannelNaviXProc {
 				String val=vLine[1].trim();
 				if(key.startsWith("report_val ")) {
 					key=key.substring(11);
-					rvars.put(key, fixVar(val,rvars.get(val)));
-					parent.debug("rvar ass "+key+"="+fixVar(val,rvars.get(val)));
+					rvars.put(key, fixVar(val,vars.get(val)));
+					parent.debug("rvar ass "+key+"="+fixVar(val,vars.get(val)));
 				}
 				else {
-					vars.put(key, fixVar(val,vars.get(val)));
-					parent.debug("var ass "+key+"="+fixVar(val,vars.get(val)));
+					String realVal=fixVar(val,vars.get(val));
+					if(key.startsWith("nookies.")) {						
+						nookies.put(key.substring(8), realVal);
+						ChannelNaviXNookie.store(key.substring(8),realVal,vars.get("nookie_expires"));
+					}
+					vars.put(key, realVal);
+					parent.debug("var ass "+key+"="+realVal);
 				}
 				continue;
 			}
@@ -401,11 +402,7 @@ public class ChannelNaviXProc {
 		}
 		return false;
 	}
-	
-	private static void expireNookies() {
-		//long now=System.currentTimeMillis();
-	}
-	
+
 	public static String parse(Channel parent,String url,String pUrl) {
 		if(pUrl==null) // no processor, just return what we got
 			return url;
@@ -422,8 +419,11 @@ public class ChannelNaviXProc {
 		rvars.clear();
 		vars.clear();
 		// copy nookies to vars
-		expireNookies();
 		for(String key : nookies.keySet()) {
+			if(ChannelNaviXNookie.expired(key)) {
+				nookies.remove(key);
+				continue;
+			}
 			vars.put("nookies."+key, nookies.get(key));
 		}
 		
@@ -488,7 +488,8 @@ public class ChannelNaviXProc {
 			}
 		}
 		// We made it construct result
-		String rUrl=createResult();
+		parent.debug("createMediaurl");
+		String rUrl=ChannelUtil.createMediaUrl(vars);
 		parent.debug("navix return media url "+rUrl);
 		return rUrl;
 	}
@@ -499,9 +500,10 @@ public class ChannelNaviXProc {
 	}
 	public static String lite(Channel parent,String url,String[] lines) {
 		try {
+			vars.clear();
 			if(parseV2(parent,lines,0,url))
 				parent.debug("found report statement in NIPL lite script. Hopefully script worked anyway.");
-			String rUrl=createResult();
+			String rUrl=ChannelUtil.createMediaUrl(vars);
 			parent.debug("navix lite return media url "+rUrl);
 			return rUrl;
 		}
@@ -509,12 +511,5 @@ public class ChannelNaviXProc {
 			parent.debug("error during NIPL lite parse "+e);
 			return null;
 		}
-	}
-	
-	private static String createResult() {
-		String rUrl=vars.get("url");
-		rUrl=ChannelUtil.append(rUrl, "!!!pms_ch_dash_y!!!", vars.get("playpath"));
-		rUrl=ChannelUtil.append(rUrl, "!!!pms_ch_dash_w!!!", vars.get("swfplayer"));
-		return rUrl;
 	}
 }

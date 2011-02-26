@@ -39,6 +39,7 @@ public class ChannelDbg {
 			try {
 				os.flush();
 				os.close();
+				debug("Stopped");
 			}
 			catch (IOException e) {}			
 			os=null;

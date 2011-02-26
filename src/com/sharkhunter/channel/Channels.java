@@ -14,6 +14,11 @@ import no.geosoft.cc.io.FileMonitor;
 
 public class Channels extends VirtualFolder implements FileListener {
 
+	// Constants for RTMP string constructions
+	public static final int RTMP_MAGIC_TOKEN=1;
+	public static final int RTMP_DUMP=2;
+	public int rtmp;
+	
 	public static final int DeafultContLim=5;
 	public static final int ContSafetyVal=-100;
 	
@@ -38,7 +43,9 @@ public class Channels extends VirtualFolder implements FileListener {
     	scripts=new HashMap<String,ChannelMacro>();
     	savePath="";
     	appendTS=false;
-    	PMS.minimal("Start channel 0.46");
+    	rtmp=Channels.RTMP_MAGIC_TOKEN;
+    	//rtmp=Channels.RTMP_DUMP;
+    	PMS.minimal("Start channel 0.47");
     	dbg=new ChannelDbg(new File(path+File.separator+"channel.log"));
     	fileMonitor=null;
     	if(poll>0)
@@ -320,4 +327,15 @@ public class Channels extends VirtualFolder implements FileListener {
 		return null;
 	}
 	
+	/////////////////////////////////
+	// RtmpMethod change
+	/////////////////////////////////
+	
+	public static void rtmpMethod(int newVal) {
+		inst.rtmp=newVal;
+	}
+	
+	public static int rtmpMethod() {
+		return inst.rtmp;
+	}
 }

@@ -83,7 +83,10 @@ public class ChannelCfg {
 		top.setPath(chPath);
 		ensureCreated(saPath);
 		ensureCreated(chPath);
+		String dPath=chPath+File.separator+"data";
+		ensureCreated(dPath);
 		try {
+			ChannelNaviXNookie.init(new File(dPath+File.separator+"nookie"));
 			validatePMSEncoder();
 			updateRTMPScript();
 			PMS.getConfiguration().setCustomProperty("channels.path",chPath);

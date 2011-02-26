@@ -1,6 +1,7 @@
 package com.sharkhunter.channel;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 
 import net.pms.PMS;
 import net.pms.dlna.DLNAResource;
@@ -9,6 +10,9 @@ public class ChannelMedia implements ChannelProps,ChannelScraper {
 	public static final int TYPE_NORMAL=0;
 	public static final int TYPE_ASX=1;
 	
+	public static final int SCRIPT_LOCAL=0;
+	public static final int SCRIPT_NET=1;
+	
 	public boolean Ok;
 	private ChannelMatcher matcher;
 	private String name;
@@ -16,7 +20,9 @@ public class ChannelMedia implements ChannelProps,ChannelScraper {
 	private String[] prop;
 	private String thumbURL;
 	private String script;
+	private int scriptType;
 	private int type;
+	private HashMap<String,String> params;
 	
 	public ChannelMedia(ArrayList<String> data,Channel parent) {
 		Ok=false;
@@ -24,6 +30,8 @@ public class ChannelMedia implements ChannelProps,ChannelScraper {
 		this.parent=parent;
 		type=ChannelMedia.TYPE_NORMAL;
 		script=null;
+		scriptType=ChannelMedia.SCRIPT_LOCAL;
+		params=new HashMap<String,String>();
 		parse(data);
 		Ok=true;
 	}
@@ -58,6 +66,12 @@ public class ChannelMedia implements ChannelProps,ChannelScraper {
 			if(keyval[0].equalsIgnoreCase("script")) {
 				parent.debug("assign script "+keyval[1]);
 				script=keyval[1];
+				scriptType=ChannelMedia.SCRIPT_LOCAL;
+			}
+			if(keyval[0].equalsIgnoreCase("nscript")) {
+				parent.debug("assign net script "+keyval[1]);
+				script=keyval[1];
+				scriptType=ChannelMedia.SCRIPT_NET;
 			}
 			if(keyval[0].equalsIgnoreCase("name"))
 				name=keyval[1];
@@ -68,6 +82,11 @@ public class ChannelMedia implements ChannelProps,ChannelScraper {
 			if(keyval[0].equalsIgnoreCase("type")) {
 				if(keyval[1].trim().equalsIgnoreCase("asx"))
 					type=ChannelMedia.TYPE_ASX;
+			}
+			if(keyval[0].equalsIgnoreCase("put")) {
+				String[] stash=keyval[1].split("=",2);
+				if(stash.length>1)
+					params.put(stash[0],stash[1]);
 			}
 		}
 	}
@@ -93,6 +112,8 @@ public class ChannelMedia implements ChannelProps,ChannelScraper {
 				nName=name;
 		}
 		thumb=ChannelUtil.getThumb(thumb, thumbURL, parent);
+		if(ChannelUtil.getProperty(prop, "unescape_url"))
+			url=ChannelUtil.unescape(url);
 		parent.debug("found media "+nName+" thumb "+thumb+" url "+url);
 		// asx is weird and one would expect mencoder to support it no
 		boolean asx=autoASX||(type==ChannelMedia.TYPE_ASX)||
@@ -116,16 +137,22 @@ public class ChannelMedia implements ChannelProps,ChannelScraper {
 	public String scrape(Channel ch, String url, String scriptName) {
 		if(ChannelUtil.empty(scriptName)) // no script just return what we got
 			return ChannelUtil.pendData(url,prop,"url");
+		String realUrl;
+		ch.debug("media scrape type "+scriptType+" name "+scriptName);
+		if(scriptType==ChannelMedia.SCRIPT_NET) 
+			return ChannelNaviXProc.parse(ch,url,scriptName);
 		ArrayList<String> sData=Channels.getScript(scriptName);
 		if(sData==null) { // weird no script found, log and bail out
 			ch.debug("no script "+scriptName+" defined");
 			return ChannelUtil.pendData(url,prop,"url");
 		}
-		String realUrl=ChannelNaviXProc.lite(ch,url,sData);
+		realUrl=ChannelNaviXProc.lite(ch,url,sData);
 		if(ChannelUtil.empty(realUrl)) {
 			ch.debug("Bad script result");
 			return null;
 		}
-		return ChannelUtil.pendData(realUrl, prop, "url");		
+		realUrl=ChannelUtil.pendData(realUrl, prop, "url");
+		params.put("url", realUrl);
+		return ChannelUtil.createMediaUrl(params);
 	}
 }

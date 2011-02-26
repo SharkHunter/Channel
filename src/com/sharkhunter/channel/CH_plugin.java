@@ -43,6 +43,9 @@ public class CH_plugin implements AdditionalFolderAtRoot, ActionListener, ItemLi
 				cfg.ensureCreated(savePath);
 			}
 			cfg.init();
+			String dPath=confPath+File.separator+"data";
+			cfg.ensureCreated(dPath);
+			ChannelNaviXNookie.init(new File(dPath+File.separator+"nookie"));
 		}
 		catch (Exception e) {
 			PMS.debug("exp "+e)	;
