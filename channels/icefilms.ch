@@ -21,7 +21,7 @@ macrodef mediaMacro {
 		    matcher=<a href=\"([^\"]+)\"\s+class=\"down_links_mv\"
 			order=url
 			prop=concat_name=rear,name_separator= ,
-			nscript=http://navix.turner3d.net/proc/megavideo
+			#nscript=http://navix.turner3d.net/proc/megavideo
            }
 		   media {
 			#<div class="down_butt_pad1" style="display:none;" id="downloadlink"><a href="http://www820.megaupload.com/files/e852a3a714538767347d5866d6ad9d7c/big_bang_theory.1x01.dvdrip_xvid-fov.H2020.dvd4arab.com.avi" class="down_butt1"></a>

@@ -318,18 +318,18 @@ public class ChannelUtil {
 	}
 	
 	public static String createMediaUrl(HashMap<String,String> vars) {
-		String rUrl;
-		Channels.debug("rtmpdump method "+Channels.rtmpMethod());
+		String rUrl=vars.get("url");
+		if(!rUrl.startsWith("rtmp://"))
+			return rUrl;
 		switch(Channels.rtmpMethod()) {
 			case Channels.RTMP_MAGIC_TOKEN:
-				rUrl=vars.get("url");
 				rUrl=ChannelUtil.append(rUrl, "!!!pms_ch_dash_y!!!", vars.get("playpath"));
 				rUrl=ChannelUtil.append(rUrl, "!!!pms_ch_dash_w!!!", vars.get("swfplayer"));
 				break;
 			
 			case Channels.RTMP_DUMP:
 				Channels.debug("rtmpdump method");
-				rUrl="rtmpdump://channel?url="+escape(vars.get("url"));
+				rUrl="rtmpdump://channel?url="+escape(rUrl);
 				Channels.debug("rulr "+rUrl);
 				rUrl=ChannelUtil.append(rUrl, "&-y=", escape(vars.get("playpath")));
 				rUrl=ChannelUtil.append(rUrl, "&-W=", escape(vars.get("swfVfy")));
