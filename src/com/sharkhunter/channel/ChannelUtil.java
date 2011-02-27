@@ -320,7 +320,7 @@ public class ChannelUtil {
 	public static String createMediaUrl(HashMap<String,String> vars) {
 		String rUrl=vars.get("url");
 		if(!rUrl.startsWith("rtmp://"))
-			return rUrl;
+			return "navix://channel?url="+escape(rUrl);
 		switch(Channels.rtmpMethod()) {
 			case Channels.RTMP_MAGIC_TOKEN:
 				rUrl=ChannelUtil.append(rUrl, "!!!pms_ch_dash_y!!!", vars.get("playpath"));
