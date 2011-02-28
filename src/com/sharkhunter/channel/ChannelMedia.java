@@ -123,7 +123,8 @@ public class ChannelMedia implements ChannelProps,ChannelScraper {
 		parent.debug("found media "+nName+" thumb "+thumb+" url "+url);
 		// asx is weird and one would expect mencoder to support it no
 		boolean asx=autoASX||(type==ChannelMedia.TYPE_ASX)||
-							 (ChannelUtil.getProperty(prop, "auto_asx"));	
+							 (ChannelUtil.getProperty(prop, "auto_asx"));
+		url=ChannelUtil.pendData(url,prop,"url");
 		if(Channels.save())  { // Add save version
 			ChannelPMSSaveFolder sf=new ChannelPMSSaveFolder(parent,nName,url,thumb,script,asx,
 					                parent.getFormat(),this);
@@ -143,8 +144,7 @@ public class ChannelMedia implements ChannelProps,ChannelScraper {
 	public String scrape(Channel ch, String url, String scriptName) {
 		String realUrl;
 		if(ChannelUtil.empty(scriptName)) { // no script just return what we got
-			realUrl=ChannelUtil.pendData(url,prop,"url");
-			params.put("url", realUrl);
+			params.put("url", url);
 			return ChannelUtil.createMediaUrl(params);
 		}
 		ch.debug("media scrape type "+scriptType+" name "+scriptName);
@@ -153,8 +153,7 @@ public class ChannelMedia implements ChannelProps,ChannelScraper {
 		ArrayList<String> sData=Channels.getScript(scriptName);
 		if(sData==null) { // weird no script found, log and bail out
 			ch.debug("no script "+scriptName+" defined");
-			realUrl=ChannelUtil.pendData(url,prop,"url");
-			params.put("url", realUrl);
+			params.put("url", url);
 			return ChannelUtil.createMediaUrl(params);
 		}
 		realUrl=ChannelNaviXProc.lite(ch,url,sData);
@@ -162,7 +161,6 @@ public class ChannelMedia implements ChannelProps,ChannelScraper {
 			ch.debug("Bad script result");
 			return null;
 		}
-		realUrl=ChannelUtil.pendData(realUrl, prop, "url");
 		params.put("url", realUrl);
 		return ChannelUtil.createMediaUrl(params);
 	}

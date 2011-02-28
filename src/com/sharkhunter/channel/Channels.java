@@ -45,7 +45,7 @@ public class Channels extends VirtualFolder implements FileListener {
     	appendTS=false;
     	rtmp=Channels.RTMP_MAGIC_TOKEN;
     	//rtmp=Channels.RTMP_DUMP;
-    	PMS.minimal("Start channel 0.51");
+    	PMS.minimal("Start channel 0.52");
     	dbg=new ChannelDbg(new File(path+File.separator+"channel.log"));
     	fileMonitor=null;
     	if(poll>0)
