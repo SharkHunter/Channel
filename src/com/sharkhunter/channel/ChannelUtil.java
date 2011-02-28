@@ -317,10 +317,16 @@ public class ChannelUtil {
 		return str;
 	}
 	
+	public static String createMediaUrl(String url) {
+		if(!url.startsWith("rtmp://"))
+			return url;
+		return "rtmpdump://channel?url="+escape(url);
+	}
+	
 	public static String createMediaUrl(HashMap<String,String> vars) {
 		String rUrl=vars.get("url");
 		if(!rUrl.startsWith("rtmp://"))
-			return "navix://channel?url="+escape(rUrl);
+			return rUrl;//return "navix://channel?url="+escape(rUrl);
 		switch(Channels.rtmpMethod()) {
 			case Channels.RTMP_MAGIC_TOKEN:
 				rUrl=ChannelUtil.append(rUrl, "!!!pms_ch_dash_y!!!", vars.get("playpath"));
@@ -330,7 +336,6 @@ public class ChannelUtil {
 			case Channels.RTMP_DUMP:
 				Channels.debug("rtmpdump method");
 				rUrl="rtmpdump://channel?url="+escape(rUrl);
-				Channels.debug("rulr "+rUrl);
 				rUrl=ChannelUtil.append(rUrl, "&-y=", escape(vars.get("playpath")));
 				rUrl=ChannelUtil.append(rUrl, "&-W=", escape(vars.get("swfVfy")));
 				rUrl=ChannelUtil.append(rUrl, "&-s=", escape(vars.get("swfplayer")));

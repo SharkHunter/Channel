@@ -99,6 +99,12 @@ public class ChannelMedia implements ChannelProps,ChannelScraper {
 		return ChannelUtil.getProperty(prop, "only_first");
 	}
 	
+	public void stash(String key,String val) {
+		if(ChannelUtil.empty(val))
+			return;
+		params.put(key, val);
+	}
+	
 	public void add(DLNAResource res,String nName,String url,String thumb,boolean autoASX) {
 		if(!ChannelUtil.empty(thumbURL)) {
 			if(ChannelUtil.getProperty(prop, "use_conf_thumb"))
@@ -135,16 +141,21 @@ public class ChannelMedia implements ChannelProps,ChannelScraper {
 
 	@Override
 	public String scrape(Channel ch, String url, String scriptName) {
-		if(ChannelUtil.empty(scriptName)) // no script just return what we got
-			return ChannelUtil.pendData(url,prop,"url");
 		String realUrl;
+		if(ChannelUtil.empty(scriptName)) { // no script just return what we got
+			realUrl=ChannelUtil.pendData(url,prop,"url");
+			params.put("url", realUrl);
+			return ChannelUtil.createMediaUrl(params);
+		}
 		ch.debug("media scrape type "+scriptType+" name "+scriptName);
 		if(scriptType==ChannelMedia.SCRIPT_NET) 
 			return ChannelNaviXProc.parse(ch,url,scriptName);
 		ArrayList<String> sData=Channels.getScript(scriptName);
 		if(sData==null) { // weird no script found, log and bail out
 			ch.debug("no script "+scriptName+" defined");
-			return ChannelUtil.pendData(url,prop,"url");
+			realUrl=ChannelUtil.pendData(url,prop,"url");
+			params.put("url", realUrl);
+			return ChannelUtil.createMediaUrl(params);
 		}
 		realUrl=ChannelNaviXProc.lite(ch,url,sData);
 		if(ChannelUtil.empty(realUrl)) {

@@ -226,7 +226,8 @@
     if all have no name. This production of data is used regexp "groups" (="()"). Which group in
     a match expression that is the url,name or thumb is controlled by the order parameter.
 
-    The order is a comma separated list with the names name,url,thumb in the correct order and
+    The order is a comma separated list with the names name,url,thumb (for rtmp streams the keywords 
+    playpath and sfwVfy can also be matched)in the correct order and
     combination. A keyword can occur more than once and if that is the case it will be concatenated
     with the rest of the same sort.
 

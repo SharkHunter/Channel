@@ -1,4 +1,4 @@
-version=0.12
+version=0.14
 channel TV4 {
 	img=http://cdn01.tv4.se/polopoly_fs/2.740!logoImage/807786835.png
 	folder {
@@ -34,8 +34,10 @@ channel TV4 {
 					media {
 						#matcher=<meta base=\"(rtmp[^\"]+)\" /></head><body><switch><video src=\"(mp4:[^\?]+)\?
 						matcher=<meta base=\"(rtmp[^\"]+)\" />[^\"]+\"(mp4.*MP415[^\?]+)\?
-						order=url,url
-						prop=url_separator=!!!pms_ch_dash_y!!!,append_url=!!!pms_ch_dash_w!!!http://cdn01.tv4.se/polopoly_fs/1.1615597.1280745068!approot/tv4video.swf
+						#order=url,url
+						order=url,playpath
+#					prop=url_separator=!!!pms_ch_dash_y!!!,append_url=!!!pms_ch_dash_w!!!http://cdn01.tv4.se/polopoly_fs/1.1615597.1280745068!approot/tv4video.swf
+						put=swfVfy=http://cdn01.tv4.se/polopoly_fs/1.1615597.1280745068!approot/tv4video.swf
 					}
 				}
 			}

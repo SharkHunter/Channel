@@ -1,4 +1,4 @@
-version=0.18
+version=0.20
 macrodef ardItem {
 	item {
 		#<h3 class="mt-title"><a href="/ard/servlet/content/3517136?documentId=6067530" class="mt-fo_source" rel="/ard/servlet/ajax-cache/6067530/view=ajax/index.html">Europa zecht, Deutschland blecht - Steht die Europäische ...</a></h3>
@@ -13,8 +13,8 @@ macrodef ardItem {
 		media {
 			# mediaCollection.addMediaStream(0, 2, "rtmp://vod.daserste.de/ardfs/", "mp4:videoportal/mediathek/Verbotene+Liebe/c_160000/160995/format174660.f4v?sen=Verbotene+Liebe&amp;for=Web-L&amp;clip=Vorschau+auf+Folge+3763");
 			matcher=mediaCollection\.addMediaStream\([^,]*, [^,]*, \"(rtmp:[^\"]+)\", \"(mp4:[^\"]+)\"\);
-			order=url,url
-			prop=url_separator=!!!pms_ch_dash_y!!!,
+			order=url,playpath
+			#prop=url_separator=!!!pms_ch_dash_y!!!,
 		}
 	}
 }
