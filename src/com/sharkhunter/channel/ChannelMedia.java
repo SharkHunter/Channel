@@ -120,11 +120,12 @@ public class ChannelMedia implements ChannelProps,ChannelScraper {
 		thumb=ChannelUtil.getThumb(thumb, thumbURL, parent);
 		if(ChannelUtil.getProperty(prop, "unescape_url"))
 			url=ChannelUtil.unescape(url);
+		thumb=ChannelUtil.pendData(thumb, prop, "thumb");
+		url=ChannelUtil.pendData(url,prop,"url");
 		parent.debug("found media "+nName+" thumb "+thumb+" url "+url);
 		// asx is weird and one would expect mencoder to support it no
 		boolean asx=autoASX||(type==ChannelMedia.TYPE_ASX)||
 							 (ChannelUtil.getProperty(prop, "auto_asx"));
-		url=ChannelUtil.pendData(url,prop,"url");
 		if(Channels.save())  { // Add save version
 			ChannelPMSSaveFolder sf=new ChannelPMSSaveFolder(parent,nName,url,thumb,script,asx,
 					                parent.getFormat(),this);
