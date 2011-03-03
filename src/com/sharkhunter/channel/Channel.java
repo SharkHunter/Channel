@@ -141,15 +141,15 @@ public class Channel extends VirtualFolder {
 		return cred.pwd;
 	}
 	
-	public String getAuth() {
+	public ChannelAuth getAuth() {
 		if(logObj==null)
-			return "";
+			return null;
 		if(cred==null)
-			return "";
+			return null;
 		if(ChannelUtil.empty(cred.user))
-			return "";
+			return null;
 		if(ChannelUtil.empty(cred.pwd))
-			return "";
+			return null;
 		return logObj.getAuthStr(cred.user, cred.pwd);
 	}
 }

@@ -66,19 +66,23 @@ public class ChannelUtil {
 	}
 	
 	public static String fetchPage(URLConnection connection) {
-		return fetchPage(connection,"","",null);
+		return fetchPage(connection,null,"",null);
 	}
 	
-	public static String fetchPage(URLConnection connection,String auth,String cookie) {
+	public static String fetchPage(URLConnection connection,ChannelAuth auth,String cookie) {
 		return fetchPage(connection,auth,cookie,null);
 	}
 	
-	public static String fetchPage(URLConnection connection,String auth,String cookie,HashMap<String,String> hdr) {
+	public static String fetchPage(URLConnection connection,ChannelAuth auth,String cookie,HashMap<String,String> hdr) {
 		try {
 //			URLConnection connection=url.openConnection();
 			connection.setRequestProperty("User-Agent","Mozilla/5.0 (Windows; U; Windows NT 6.1; sv-SE; rv:1.9.2.3) Gecko/20100409 Firefox/3.6.3");
-			if(!empty(auth))
-				connection.setRequestProperty("Authorization", auth);
+			if(auth!=null) {
+				if(auth.method==ChannelLogin.STD)
+					connection.setRequestProperty("Authorization", auth.authStr);
+				else if(auth.method==ChannelLogin.COOKIE) 
+					cookie=append(cookie,"; ",auth.authStr);
+			}
 			if(!empty(cookie))
 				connection.setRequestProperty("Cookie",cookie);
 			if(hdr!=null&&hdr.size()!=0) {
@@ -172,11 +176,11 @@ public class ChannelUtil {
 	}
 	
 	public static String append(String res,String sep,String data) {
-  	  	if(res==null||res.length()==0)
+  	  	if(empty(res))
   	  		return data;
-  	  	if(data==null||data.length()==0)
+  	  	if(empty(data))
   	  		return res;
-  	  	if(sep==null)
+  	  	if(empty(sep))
   	  		return res+data;
   	  	return res+sep+data;
     }
@@ -347,6 +351,7 @@ public class ChannelUtil {
 				rUrl=vars.get("url");
 				break;
 		}
+		Channels.debug("return media url "+rUrl);
 		return rUrl;
 	}	
 }

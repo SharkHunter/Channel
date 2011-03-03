@@ -88,6 +88,14 @@ macrodef movieMacro {
 
 channel IceFilms {
    img=http://img.icefilms.info/logo.png
+   login {
+	url=http://www.megavideo.com/?c=login
+	user=username
+	passwd=password
+	params=login=1&redir=1
+	mediaOnly=true
+	method=cookie
+   }
    folder {
       name=TV Shows
 	  folder {

@@ -139,7 +139,7 @@ public class ChannelNaviXProc {
 					sPage=ChannelUtil.postPage(u,(q==null?"":q),vars.get("s_cookie"),hdr);
 				}
 				else {
-					sPage=ChannelUtil.fetchPage(u,"",vars.get("s_cookie"),hdr);
+					sPage=ChannelUtil.fetchPage(u,null,vars.get("s_cookie"),hdr);
 				}
 				if(ChannelUtil.empty(sPage)) {
 					parent.debug("bad page from proc");

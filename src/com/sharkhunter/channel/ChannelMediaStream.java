@@ -92,8 +92,16 @@ public class ChannelMediaStream extends DLNAResource {
 			Channels.debug("Retrieving " + urlobj.toString());
 			URLConnection conn = urlobj.openConnection();
 			conn.setRequestProperty("User-Agent","Mozilla/5.0 (Windows; U; Windows NT 6.1; sv-SE; rv:1.9.2.3) Gecko/20100409 Firefox/3.6.3");
-			if(!ChannelUtil.empty(ch.getAuth()))	
-				conn.setRequestProperty("Authorization", ch.getAuth());
+			ChannelAuth auth=ch.getAuth();
+			String cookie="";
+			if(auth!=null) {
+				if(auth.method==ChannelLogin.STD)
+					conn.setRequestProperty("Authorization", auth.authStr);
+				else if(auth.method==ChannelLogin.COOKIE) 
+					cookie=ChannelUtil.append(cookie,"; ",auth.authStr);
+			}
+			if(!ChannelUtil.empty(cookie))
+				conn.setRequestProperty("Cookie",cookie);
 			InputStream is = conn.getInputStream();
 			if(saveName!=null) {
 				return startSave(is);
