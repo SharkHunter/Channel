@@ -4,6 +4,7 @@ import java.io.BufferedReader;
 import java.io.DataOutputStream;
 import java.io.InputStreamReader;
 import java.io.UnsupportedEncodingException;
+import java.net.URI;
 import java.net.URL;
 import java.net.URLConnection;
 import java.net.URLDecoder;
@@ -317,20 +318,23 @@ public class ChannelUtil {
 		try {
 			return URLEncoder.encode(str,"UTF-8");
 		} catch (Exception e) {
+			//Channels.debug("esc err "+e);
 		}
 		return str;
 	}
 	
 	public static String createMediaUrl(String url) {
+		//Channels.debug("create media url entry(str only) "+url);
 		if(!url.startsWith("rtmp://"))
-			return url;
+			return url;//return "navix://channel?url="+escape(url);
 		return "rtmpdump://channel?url="+escape(url);
 	}
 	
 	public static String createMediaUrl(HashMap<String,String> vars) {
 		String rUrl=vars.get("url");
+		//Channels.debug("create media url entry "+rUrl);
 		if(!rUrl.startsWith("rtmp://"))
-			return rUrl;//return "navix://channel?url="+escape(rUrl);
+			return rUrl;//"navix://channel?url="+escape(rUrl);
 		switch(Channels.rtmpMethod()) {
 			case Channels.RTMP_MAGIC_TOKEN:
 				rUrl=ChannelUtil.append(rUrl, "!!!pms_ch_dash_y!!!", vars.get("playpath"));

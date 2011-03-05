@@ -405,7 +405,7 @@ public class ChannelNaviXProc {
 
 	public static String parse(Channel parent,String url,String pUrl) {
 		if(pUrl==null) // no processor, just return what we got
-			return url;
+			return ChannelUtil.createMediaUrl(url);
 		URL pu=null;
 		try {
 			pu = new URL(pUrl+"?url="+url);
