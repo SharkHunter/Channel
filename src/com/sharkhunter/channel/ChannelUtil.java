@@ -323,9 +323,19 @@ public class ChannelUtil {
 		return str;
 	}
 	
+	public static boolean rtmpStream(String url) {
+		try {
+			URI u=new URI(url);
+			return u.getScheme().startsWith("rtmp");
+		}
+		catch (Exception e) {
+			return false;
+		}
+	}
+	
 	public static String createMediaUrl(String url) {
 		//Channels.debug("create media url entry(str only) "+url);
-		if(!url.startsWith("rtmp://"))
+		if(!rtmpStream(url))
 			return url;//return "navix://channel?url="+escape(url);
 		return "rtmpdump://channel?url="+escape(url);
 	}
@@ -333,7 +343,7 @@ public class ChannelUtil {
 	public static String createMediaUrl(HashMap<String,String> vars) {
 		String rUrl=vars.get("url");
 		//Channels.debug("create media url entry "+rUrl);
-		if(!rUrl.startsWith("rtmp://"))
+		if(!rtmpStream(rUrl))
 			return rUrl;//"navix://channel?url="+escape(rUrl);
 		switch(Channels.rtmpMethod()) {
 			case Channels.RTMP_MAGIC_TOKEN:

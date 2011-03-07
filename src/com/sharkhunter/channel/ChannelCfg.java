@@ -23,6 +23,12 @@ public class ChannelCfg {
 	private String saPath;
 	private String rtmpPath;
 	private String scriptPath;
+	private String sopcastPath;
+	private String pplivePath;
+	private String perlPath;
+	private String pythonPath;
+	private String get_flPath;
+	private String ytPath;
 	private Channels top;
 	
 	public ChannelCfg(Channels top) {
@@ -32,6 +38,10 @@ public class ChannelCfg {
 		scriptPath=null;
 		this.top=top;
 	}
+	
+	///////////////////////////////////
+	// Set methods
+	///////////////////////////////////
 	
 	public void setPath(String p) {
 		chPath=p;
@@ -48,6 +58,34 @@ public class ChannelCfg {
 	public void setScriptPath(String p) {
 		scriptPath=p;
 	}
+	
+	public void setSopPath(String p) {
+		sopcastPath=p;
+	}
+	
+	public void setPPLivePath(String p) {
+		pplivePath=p;
+	}
+	
+	public void setPerlPath(String p) {
+		perlPath=p;
+	}
+	
+	public void setPythPath(String p) {
+		pythonPath=p;
+	}
+	
+	public void setGetFlPath(String p) {
+		get_flPath=p;
+	}
+	
+	public void setYouTubePath(String p) {
+		ytPath=p;
+	}
+	
+	////////////////////////////////////////
+	// Get methods
+	////////////////////////////////////////
 
 	public String getPath() {
 		return chPath;
@@ -65,11 +103,52 @@ public class ChannelCfg {
 		return scriptPath;
 	}
 	
+	public String getSopPath() {
+		return sopcastPath;
+	}
+	
+	public String getPPLivePath() {
+		return pplivePath;
+	}
+	
+	public String getPerlPath() {
+		return perlPath;
+	}
+	
+	public String getPythonPath() {
+		return pythonPath;
+	}
+	
+	public String getFlashPath() {
+		if(ChannelUtil.empty(get_flPath))
+			return getScriptPath();
+		return get_flPath;
+	}
+	
+	public String getYouTubePath() {
+		if(ChannelUtil.empty(ytPath))
+			return getScriptPath();
+		return ytPath;
+	}
+	
+	//////////////////////////////////////
+	// Other methods
+	//////////////////////////////////////
+	
 	public void init() {
+		// Paths
 		chPath=top.getPath();
 		saPath=top.getSavePath();
 		scriptPath=(String) PMS.getConfiguration().getCustomProperty("pmsencoder.script.directory");
 		rtmpPath=(String) PMS.getConfiguration().getCustomProperty("rtmpdump.path");
+		sopcastPath=(String) PMS.getConfiguration().getCustomProperty("sopcast.path");
+		pplivePath=(String) PMS.getConfiguration().getCustomProperty("pplive.path");
+		perlPath=(String) PMS.getConfiguration().getCustomProperty("perl.path");
+		pythonPath=(String) PMS.getConfiguration().getCustomProperty("python.path");
+		get_flPath=(String) PMS.getConfiguration().getCustomProperty("get-flash-videos.path");
+		ytPath=(String) PMS.getConfiguration().getCustomProperty("youtube-dl.path");
+		
+		// Other
 		String dbg=(String)PMS.getConfiguration().getCustomProperty("channels.debug");
 		String rtmpMode=(String)PMS.getConfiguration().getCustomProperty("channels.rtmp");
 		if(rtmpMode!=null) {
@@ -85,6 +164,11 @@ public class ChannelCfg {
 				Channels.debug(false);
 	}
 	
+	private void configPath(String key,String val) {
+		if(!ChannelUtil.empty(val))
+			PMS.getConfiguration().setCustomProperty(key,val);
+	}
+	
 	public void commit() {
 		top.setSave(saPath);
 		top.setPath(chPath);
@@ -95,13 +179,17 @@ public class ChannelCfg {
 		try {
 			ChannelNaviXNookie.init(new File(dPath+File.separator+"nookie"));
 			validatePMSEncoder();
-			updateRTMPScript();
+			//updateRTMPScript();
 			PMS.getConfiguration().setCustomProperty("channels.path",chPath);
 			PMS.getConfiguration().setCustomProperty("channels.save",saPath);
-			if(!ChannelUtil.empty(scriptPath))
-				PMS.getConfiguration().setCustomProperty("pmsencoder.script.directory",scriptPath);
-			if(!ChannelUtil.empty(rtmpPath))
-				PMS.getConfiguration().setCustomProperty("rtmpdump.path",rtmpPath);
+			configPath("pmsencoder.script.directory",scriptPath);
+			configPath("rtmpdump.path",rtmpPath);
+			configPath("sopcast.path",sopcastPath);
+			configPath("pplive.path",pplivePath);
+			configPath("perl.path",perlPath);
+			configPath("python.path",pythonPath);
+			configPath("get-flash-videos.path",get_flPath);
+			configPath("youtube-dl.path",ytPath);
 			PMS.getConfiguration().setCustomProperty("channels.debug",String.valueOf(Channels.debugStatus()));
 			PMS.getConfiguration().save();
 		} catch (Exception e) {
@@ -181,9 +269,9 @@ public class ChannelCfg {
 	            byte data[] = new byte[BUFFER];
 	            // write the files to the disk
 	            String fName=chPath+File.separator+entry.getName();
-	            if(entry.getName().contains(".groovy")) // script
+	          /*  if(entry.getName().contains(".groovy")) // script
 	            	if(scriptPath!=null)
-	            		fName=scriptPath+File.separator+entry.getName();
+	            		fName=scriptPath+File.separator+entry.getName();*/
 	            FileOutputStream fos1 = new FileOutputStream(fName);
 	            BufferedOutputStream dest = new BufferedOutputStream(fos1, BUFFER);
 	            while ((count = zis.read(data, 0, BUFFER)) != -1) {
@@ -194,7 +282,7 @@ public class ChannelCfg {
 	         }
 	         zis.close();
 	         in.close();
-	         updateRTMPScript();
+//	         updateRTMPScript();
 	      } catch(Exception e) {
 	    	  Channels.debug("error fetching channels "+e);
 	      }
