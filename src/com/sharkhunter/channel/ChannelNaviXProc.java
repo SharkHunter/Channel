@@ -403,9 +403,9 @@ public class ChannelNaviXProc {
 		return false;
 	}
 
-	public static String parse(Channel parent,String url,String pUrl) {
+	public static String parse(Channel parent,String url,String pUrl,int format) {
 		if(pUrl==null) // no processor, just return what we got
-			return ChannelUtil.createMediaUrl(url);
+			return ChannelUtil.createMediaUrl(url,format);
 		URL pu=null;
 		try {
 			pu = new URL(pUrl+"?url="+url);
@@ -489,21 +489,21 @@ public class ChannelNaviXProc {
 		}
 		// We made it construct result
 		parent.debug("createMediaurl");
-		String rUrl=ChannelUtil.createMediaUrl(vars);
+		String rUrl=ChannelUtil.createMediaUrl(vars,format);
 		parent.debug("navix return media url "+rUrl);
 		return rUrl;
 	}
 	
-	public static String lite(Channel parent,String url,ArrayList<String> lines) {
+	public static String lite(Channel parent,String url,ArrayList<String> lines,int format) {
 		String[] arr=lines.toArray(new String[lines.size()]);
-		return lite(parent,url,arr);
+		return lite(parent,url,arr,format);
 	}
-	public static String lite(Channel parent,String url,String[] lines) {
+	public static String lite(Channel parent,String url,String[] lines,int format) {
 		try {
 			vars.clear();
 			if(parseV2(parent,lines,0,url))
 				parent.debug("found report statement in NIPL lite script. Hopefully script worked anyway.");
-			String rUrl=ChannelUtil.createMediaUrl(vars);
+			String rUrl=ChannelUtil.createMediaUrl(vars,format);
 			parent.debug("navix lite return media url "+rUrl);
 			return rUrl;
 		}

@@ -64,7 +64,7 @@ public class ChannelMediaStream extends DLNAResource {
     
     public InputStream getInputStream(long low, long high, double timeseek, RendererConfiguration mediarenderer) throws IOException {
     	if(scraper!=null)
-    		realUrl=scraper.scrape(ch,url,processor);
+    		realUrl=scraper.scrape(ch,url,processor,format);
     	else
     		realUrl=url;
     	if(autoASX&&ChannelUtil.isASX(realUrl))
@@ -82,7 +82,7 @@ public class ChannelMediaStream extends DLNAResource {
 
     public InputStream getInputStream() {
     	if(scraper!=null)
-    		realUrl=scraper.scrape(ch,url,processor);
+    		realUrl=scraper.scrape(ch,url,processor,format);
     	else
     		realUrl=url;
     	if(ChannelUtil.empty(realUrl))
@@ -91,7 +91,7 @@ public class ChannelMediaStream extends DLNAResource {
 			URL urlobj = new URL(realUrl);
 			Channels.debug("Retrieving " + urlobj.toString());
 			URLConnection conn = urlobj.openConnection();
-			conn.setRequestProperty("User-Agent","Mozilla/5.0 (Windows; U; Windows NT 6.1; sv-SE; rv:1.9.2.3) Gecko/20100409 Firefox/3.6.3");
+			conn.setRequestProperty("User-Agent",ChannelUtil.defAgentString);
 			ChannelAuth auth=ch.getAuth();
 			String cookie="";
 			if(auth!=null) {

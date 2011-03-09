@@ -142,27 +142,27 @@ public class ChannelMedia implements ChannelProps,ChannelScraper {
 	}
 
 	@Override
-	public String scrape(Channel ch, String url, String scriptName) {
+	public String scrape(Channel ch, String url, String scriptName,int format) {
 		String realUrl;
 		if(ChannelUtil.empty(scriptName)) { // no script just return what we got
 			params.put("url", url);
-			return ChannelUtil.createMediaUrl(params);
+			return ChannelUtil.createMediaUrl(params,format);
 		}
 		ch.debug("media scrape type "+scriptType+" name "+scriptName);
 		if(scriptType==ChannelMedia.SCRIPT_NET) 
-			return ChannelNaviXProc.parse(ch,url,scriptName);
+			return ChannelNaviXProc.parse(ch,url,scriptName,format);
 		ArrayList<String> sData=Channels.getScript(scriptName);
 		if(sData==null) { // weird no script found, log and bail out
 			ch.debug("no script "+scriptName+" defined");
 			params.put("url", url);
-			return ChannelUtil.createMediaUrl(params);
+			return ChannelUtil.createMediaUrl(params,format);
 		}
-		realUrl=ChannelNaviXProc.lite(ch,url,sData);
+		realUrl=ChannelNaviXProc.lite(ch,url,sData,format);
 		if(ChannelUtil.empty(realUrl)) {
 			ch.debug("Bad script result");
 			return null;
 		}
 		params.put("url", realUrl);
-		return ChannelUtil.createMediaUrl(params);
+		return ChannelUtil.createMediaUrl(params,format);
 	}
 }

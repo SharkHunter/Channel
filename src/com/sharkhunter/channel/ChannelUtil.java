@@ -13,8 +13,13 @@ import java.util.ArrayList;
 import java.util.HashMap;
 
 import net.pms.PMS;
+import net.pms.formats.Format;
 
 public class ChannelUtil {
+	
+	// Misc constants
+	
+	public static final String defAgentString="Mozilla/5.0 (Windows; U; Windows NT 6.1; sv-SE; rv:1.9.2.3) Gecko/20100409 Firefox/3.6.3";
 	
 	public static String postPage(URLConnection connection,String query) {
 		return postPage(connection,query,null,null);
@@ -30,7 +35,7 @@ public class ChannelUtil {
 		//connection.setAllowUserInteraction(true);   
 
 		connection.setRequestProperty ("Content-Type", "application/x-www-form-urlencoded");
-		connection.setRequestProperty("User-Agent","Mozilla/5.0 (Windows; U; Windows NT 6.1; sv-SE; rv:1.9.2.3) Gecko/20100409 Firefox/3.6.3");
+		connection.setRequestProperty("User-Agent",defAgentString);
 		connection.setRequestProperty("Content-Length", "" + query.length());  
 		
 		try {
@@ -77,7 +82,7 @@ public class ChannelUtil {
 	public static String fetchPage(URLConnection connection,ChannelAuth auth,String cookie,HashMap<String,String> hdr) {
 		try {
 //			URLConnection connection=url.openConnection();
-			connection.setRequestProperty("User-Agent","Mozilla/5.0 (Windows; U; Windows NT 6.1; sv-SE; rv:1.9.2.3) Gecko/20100409 Firefox/3.6.3");
+			connection.setRequestProperty("User-Agent",defAgentString);
 			if(auth!=null) {
 				if(auth.method==ChannelLogin.STD)
 					connection.setRequestProperty("Authorization", auth.authStr);
@@ -324,27 +329,45 @@ public class ChannelUtil {
 	}
 	
 	public static boolean rtmpStream(String url) {
+		return streamType(url,"rtmp");
+	}
+	
+	public static boolean streamType(String url,String type) {
 		try {
 			URI u=new URI(url);
-			return u.getScheme().startsWith("rtmp");
+			return u.getScheme().startsWith(type);
 		}
 		catch (Exception e) {
+			Channels.debug("execp stream type "+e);
 			return false;
 		}
 	}
 	
-	public static String createMediaUrl(String url) {
+	public static String createMediaUrl(String url,int format) {
 		//Channels.debug("create media url entry(str only) "+url);
-		if(!rtmpStream(url))
-			return url;//return "navix://channel?url="+escape(url);
-		return "rtmpdump://channel?url="+escape(url);
+		HashMap<String,String> map=new HashMap<String,String>();
+		map.put("url", url);
+		return createMediaUrl(map,format);
 	}
 	
-	public static String createMediaUrl(HashMap<String,String> vars) {
+	public static String createMediaUrl(HashMap<String,String> vars,int format) {
 		String rUrl=vars.get("url");
-		//Channels.debug("create media url entry "+rUrl);
-		if(!rtmpStream(rUrl))
-			return rUrl;//"navix://channel?url="+escape(rUrl);
+		Channels.debug("create media url entry "+rUrl+" format "+format);
+		if(rUrl.startsWith("http")) {
+			if(format!=Format.VIDEO)
+				return rUrl;
+			rUrl="navix://channel?url="+escape(rUrl);
+			String agent=vars.get("agent");
+			if(empty(agent))
+				agent=ChannelUtil.defAgentString;
+			rUrl=append(rUrl,"&agent=",escape(agent));
+			Channels.debug("return media url "+rUrl);
+			return rUrl;
+		}
+		
+		if(!rtmpStream(rUrl)) // type is sopcast etc.
+			return rUrl;
+		
 		switch(Channels.rtmpMethod()) {
 			case Channels.RTMP_MAGIC_TOKEN:
 				rUrl=ChannelUtil.append(rUrl, "!!!pms_ch_dash_y!!!", vars.get("playpath"));

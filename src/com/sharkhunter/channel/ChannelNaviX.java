@@ -138,8 +138,8 @@ public class ChannelNaviX extends VirtualFolder implements ChannelScraper {
 	}
 
 	@Override
-	public String scrape(Channel ch, String url, String processorUrl) {
-		return ChannelNaviXProc.parse(ch,url,processorUrl);
+	public String scrape(Channel ch, String url, String processorUrl,int format) {
+		return ChannelNaviXProc.parse(ch,url,processorUrl,format);
 	}
 		
 		
