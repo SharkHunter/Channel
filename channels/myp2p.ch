@@ -1,4 +1,4 @@
-version=0.1
+version=0.2
 macrodef sopMacro {
 	media {
 		# Sopcast media
@@ -31,7 +31,7 @@ channel MyP2P {
 			matcher=onclick=\"location\.href=\'(competition\.php\?competitionid=&part=sports&discipline=[^\']+)\';\" id=\"[^\"]+\" align=\"center\"><img src=\"([^\"]+)\" /><br><span class=\"subtext\"><b>([^<]+)</b>
 			order=url,thumb,name
 			url=http://myp2p.eu/
-			prop=name_separator=-
+			prop=name_separator=-,peek
 			folder {
 				# Event list
 				matcher=<a href=\"(broadcast.php\?matchid=[^&]+&part=sports)\">.*?<b>([^&]+)&nbsp;<img.*?&nbsp;([^<]*)</b> 
@@ -47,7 +47,7 @@ channel MyP2P {
 		# Now playing
 		name=Now playing
 		url=http://myp2p.eu/index.php?part=sports
-		prop=name_separator=-
+		prop=name_separator=-,peek
 		folder {
 				matcher=<a href=\"(broadcast.php\?matchid=[^&]+&part=sports)\">.*?<b>([^&]+)&nbsp;<img.*?&nbsp;([^<]*)</b> 
 				order=url,name+

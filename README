@@ -305,7 +305,11 @@
       Stop matching after the first match has been found on a page.
       
     * prepend_parenturl:
-      Prepends the URL of the parent to the match.       
+      Prepends the URL of the parent to the match.
+      
+    * peek:
+      Only valid on folders. If set th plugin will peek into the subfolders and if the subfolders is
+      empty it will not be added.   
     
     NIPL src
     ---------
