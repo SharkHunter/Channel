@@ -49,7 +49,7 @@ public class ChannelGUI implements  ActionListener, ItemListener{
 		JPanel inst=new JPanel();
 		JPanel pmsenc=new JPanel(new GridBagLayout());
 		JButton channels=new JButton("Install/Update");
-		//JButton install=new JButton("Install");
+		JButton debugPack=new JButton("Pack debug info");
 		JButton cBrowse=new JButton("Browse...");
 		JButton sBrowse=new JButton("Browse...");
 		JButton rBrowse=new JButton("Browse...");
@@ -104,8 +104,10 @@ public class ChannelGUI implements  ActionListener, ItemListener{
 		get_flBrowse.addActionListener(this);
 		ytBrowse.setActionCommand("ytpath");
 		ytBrowse.addActionListener(this);
-		channels.setActionCommand("channels");
+		channels.setActionCommand("other_channels");
 		channels.addActionListener(this);
+		debugPack.setActionCommand("other_debug");
+		debugPack.addActionListener(this);
 		dbg.addItemListener(this);
 
 		GridBagConstraints c = new GridBagConstraints();
@@ -247,6 +249,7 @@ public class ChannelGUI implements  ActionListener, ItemListener{
 		top1.add(pmsenc,BorderLayout.NORTH);
 		top1.add(new JSeparator(), BorderLayout.CENTER);
 		top1.add(inst,BorderLayout.SOUTH);
+		top1.add(debugPack);
 		top.add(top1,BorderLayout.SOUTH);
 		return top;
 	}
@@ -254,7 +257,7 @@ public class ChannelGUI implements  ActionListener, ItemListener{
 	@Override
 	public void actionPerformed(ActionEvent e) {
 		String text = (String)e.getActionCommand();
-		if(!text.equals("channels")) {
+		if(!text.startsWith("other_")) {
 			JFileChooser path=new JFileChooser();
 			path.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
 			int res=path.showOpenDialog(null);
@@ -289,11 +292,16 @@ public class ChannelGUI implements  ActionListener, ItemListener{
 			}
 		}
 		else  {
-			PMS.debug("update channels files");
-			pushPaths();
-			cfg.commit();
-			cfg.fetchChannels();
-			root.fileChanged(new File(cfg.getPath()));
+			if(text.equals("other_channels")) {
+				PMS.debug("update channels files");
+				pushPaths();
+				cfg.commit();
+				cfg.fetchChannels();
+				root.fileChanged(new File(cfg.getPath()));
+			}
+			else if(text.equals("other_debug")) {
+				cfg.packDbg();
+			}
 		}
 
 	}

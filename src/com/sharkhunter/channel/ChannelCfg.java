@@ -5,6 +5,7 @@ import java.io.BufferedOutputStream;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -15,6 +16,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
+import java.util.zip.ZipOutputStream;
+
 import net.pms.PMS;
 
 public class ChannelCfg {
@@ -254,7 +257,7 @@ public class ChannelCfg {
 			validatePMSEncoder();
 			URL u=new URL(chZip);
 			URLConnection connection=u.openConnection();
-			connection.setRequestProperty("User-Agent","Mozilla/5.0 (Windows; U; Windows NT 6.1; sv-SE; rv:1.9.2.3) Gecko/20100409 Firefox/3.6.3");
+			connection.setRequestProperty("User-Agent",ChannelUtil.defAgentString);
 			connection.setDoInput(true);
 			connection.setDoOutput(true);
 			InputStream in=connection.getInputStream();
@@ -286,5 +289,57 @@ public class ChannelCfg {
 	      } catch(Exception e) {
 	    	  Channels.debug("error fetching channels "+e);
 	      }
+	}
+	
+	//////////////////////////////////////////////////
+	// Pack debug info
+	//////////////////////////////////////////////////
+	
+	public void packDbg() {
+		String fName=chPath+File.separator+"channel_dbg.zip";
+		try {
+			ZipOutputStream zos=new ZipOutputStream(new FileOutputStream(fName));
+			// 1st the channel.log
+			File dbg=Channels.dbgFile();
+			FileInputStream in = new FileInputStream(dbg);
+			byte[] buf = new byte[1024];
+			zos.putNextEntry(new ZipEntry(dbg.getName()));
+			
+			// Transfer bytes from the file to the ZIP file
+			int len;
+			while ((len = in.read(buf)) > 0) 
+				zos.write(buf, 0, len);
+			
+			// Complete the entry
+			zos.closeEntry();
+			in.close();
+			
+			// 2nd pmsencoder.log
+			File pmsenc=new File("pmsencoder.log");
+			in = new FileInputStream(pmsenc);
+			zos.putNextEntry(new ZipEntry(pmsenc.getName()));
+			while ((len = in.read(buf)) > 0) 
+				zos.write(buf, 0, len);
+			
+			// Complete the entry
+			zos.closeEntry();
+			in.close();
+			
+			// Finally PMS log
+			File pms=new File("debug.log");
+			in = new FileInputStream(pms);
+			zos.putNextEntry(new ZipEntry(pms.getName()));
+			while ((len = in.read(buf)) > 0) 
+				zos.write(buf, 0, len);
+			
+			// Complete the entry
+			zos.closeEntry();
+			in.close();
+			
+			zos.close();
+			
+		} catch (Exception e) {
+			PMS.debug("error packing dbg info "+e);
+		}
 	}
 }

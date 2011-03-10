@@ -50,6 +50,10 @@ public class ChannelDbg {
 		return (os!=null);
 	}
 	
+	public File logFile() {
+		return f;
+	}
+	
 	public void debug(String str) {
 		if(os==null)
 			return;
