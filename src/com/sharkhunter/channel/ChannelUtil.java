@@ -13,6 +13,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 
 import net.pms.PMS;
+import net.pms.configuration.PmsConfiguration;
 import net.pms.formats.Format;
 
 public class ChannelUtil {
@@ -315,6 +316,7 @@ public class ChannelUtil {
 		try {
 			return URLDecoder.decode(str,"UTF-8");
 		} catch (Exception e) {
+			//Channels.debug("unesc err "+e);
 		}
 		return str;
 	}
@@ -361,6 +363,29 @@ public class ChannelUtil {
 			if(empty(agent))
 				agent=ChannelUtil.defAgentString;
 			rUrl=append(rUrl,"&agent=",escape(agent));
+			rUrl=append(rUrl,"&rate=","48000");
+			String sub=vars.get("subtitle");
+			if(!empty(sub)) { // we got subtitles
+				// lot of things to append here
+				rUrl=append(rUrl,"&subs=",escape(sub));
+				//-spuaa 3 -subcp ISO-8859-10 -subfont C:\Windows\Fonts\Arial.ttf -subfont-text-scale 2 -subfont-outline 1 -subfont-blur 1 -subpos 90 -quiet -quiet -sid 100 -fps 25 -ofps 25 -sub C:\downloads\Kings Speech.srt -lavdopts fast -mc 0 -noskip -af lavcresample=48000 -srate 48000 -o \\.\pipe\mencoder1299956406082
+				PmsConfiguration configuration=PMS.getConfiguration();
+				//String subtitleQuality = config.getMencoderVobsubSubtitleQuality();
+				String subcp=configuration.getMencoderSubCp();
+				rUrl=append(rUrl,"&subcp=",escape(subcp));
+				rUrl=append(rUrl,"&subtext=",escape(configuration.getMencoderNoAssScale()));
+				rUrl=append(rUrl,"&subout=",escape(configuration.getMencoderNoAssOutline()));
+				rUrl=append(rUrl,"&subblur=",escape(configuration.getMencoderNoAssBlur()));
+				int subpos = 1;
+                try {
+                        subpos = Integer.parseInt(configuration.getMencoderNoAssSubPos());
+                } catch (NumberFormatException n) {
+                }
+                rUrl=append(rUrl,"&subpos=",String.valueOf(100 - subpos));
+                
+              //  rUrl=append(rUrl,"&subdelay=","20000");
+
+			}
 			Channels.debug("return media url "+rUrl);
 			return rUrl;
 		}

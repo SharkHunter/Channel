@@ -10,6 +10,8 @@ import java.io.PipedInputStream;
 import java.io.PipedOutputStream;
 import java.net.URL;
 import java.net.URLConnection;
+import java.util.ArrayList;
+import java.util.Collections;
 
 import net.pms.configuration.RendererConfiguration;
 import net.pms.dlna.DLNAMediaInfo;
@@ -64,7 +66,7 @@ public class ChannelMediaStream extends DLNAResource {
     
     public InputStream getInputStream(long low, long high, double timeseek, RendererConfiguration mediarenderer) throws IOException {
     	if(scraper!=null)
-    		realUrl=scraper.scrape(ch,url,processor,format);
+    		realUrl=scraper.scrape(ch,url,processor,format,this);
     	else
     		realUrl=url;
     	if(autoASX&&ChannelUtil.isASX(realUrl))
@@ -82,7 +84,7 @@ public class ChannelMediaStream extends DLNAResource {
 
     public InputStream getInputStream() {
     	if(scraper!=null)
-    		realUrl=scraper.scrape(ch,url,processor,format);
+    		realUrl=scraper.scrape(ch,url,processor,format,this);
     	else
     		realUrl=url;
     	if(ChannelUtil.empty(realUrl))

@@ -5,6 +5,7 @@ import java.util.HashMap;
 
 import net.pms.PMS;
 import net.pms.dlna.DLNAResource;
+import net.pms.formats.Format;
 
 public class ChannelMedia implements ChannelProps,ChannelScraper {
 	public static final int TYPE_NORMAL=0;
@@ -23,6 +24,7 @@ public class ChannelMedia implements ChannelProps,ChannelScraper {
 	private int scriptType;
 	private int type;
 	private HashMap<String,String> params;
+	private String subtitle;
 	
 	public ChannelMedia(ArrayList<String> data,Channel parent) {
 		Ok=false;
@@ -88,6 +90,9 @@ public class ChannelMedia implements ChannelProps,ChannelScraper {
 				if(stash.length>1)
 					params.put(stash[0],stash[1]);
 			}
+			if(keyval[0].equalsIgnoreCase("subtitle")) {
+				subtitle=keyval[1];
+			}
 		}
 	}
 	
@@ -140,10 +145,58 @@ public class ChannelMedia implements ChannelProps,ChannelScraper {
 	public String separator(String base) {
 		return ChannelUtil.getPropertyValue(prop, base+"_separator");
 	}
-
+	
+	private int getNameIndex() {
+		try {
+			String x=ChannelUtil.getPropertyValue(prop, "name_index");
+			if(!ChannelUtil.empty(x)) {
+				int j= new Integer(x).intValue();
+				if(j>0)
+					return j;
+			}
+		}
+		catch (Exception e) {
+		}
+		return 0;
+	}
+	
+	private String backTrack(DLNAResource start) {
+		if(start==null)
+			return null;
+		if(Channels.save()) // compensate for save
+			start=start.getParent();
+		int stop=getNameIndex();
+		if(stop==0)
+			return start.getName();
+		int i=0;
+		DLNAResource curr=start;
+		while(i<stop) {
+			curr=curr.getParent();
+			i++;
+			if(curr instanceof Channel) {
+				curr=null;
+				break;
+			}
+		}
+		if(curr!=null)
+			return curr.getName();
+		return null;
+	}
+	
 	@Override
-	public String scrape(Channel ch, String url, String scriptName,int format) {
+	public String scrape(Channel ch, String url, String scriptName,int format,DLNAResource start) {
 		String realUrl;
+		ch.debug("scrape sub "+subtitle);
+		if(subtitle!=null) {
+			ChannelSubs subs=Channels.getSubs(subtitle);
+			if(subs!=null) {
+				String realName=backTrack(start);
+				parent.debug("backtracked name "+realName);
+				String subFile=subs.getSubs(realName);
+				parent.debug("subs "+subFile);
+				params.put("subtitle",subFile);	
+			}
+		}
 		if(ChannelUtil.empty(scriptName)) { // no script just return what we got
 			params.put("url", url);
 			return ChannelUtil.createMediaUrl(params,format);

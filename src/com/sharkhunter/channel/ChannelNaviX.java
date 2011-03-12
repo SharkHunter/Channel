@@ -2,6 +2,9 @@ package com.sharkhunter.channel;
 
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.util.ArrayList;
+
+import net.pms.dlna.DLNAResource;
 import net.pms.dlna.virtual.VirtualFolder;
 import net.pms.formats.Format;
 
@@ -138,9 +141,8 @@ public class ChannelNaviX extends VirtualFolder implements ChannelScraper {
 	}
 
 	@Override
-	public String scrape(Channel ch, String url, String processorUrl,int format) {
+	public String scrape(Channel ch, String url, String processorUrl,int format,DLNAResource start) {
 		return ChannelNaviXProc.parse(ch,url,processorUrl,format);
 	}
-		
 		
 }

@@ -28,6 +28,7 @@ public class Channels extends VirtualFolder implements FileListener {
     private ArrayList<ChannelMacro> macros;
     private ArrayList<ChannelCred> cred;
     private HashMap<String,ChannelMacro> scripts;
+    private HashMap<String,ChannelSubs> subtitles;
     private ChannelDbg dbg;
     private static Channels inst=null;
     private String savePath;
@@ -40,11 +41,12 @@ public class Channels extends VirtualFolder implements FileListener {
     	chFiles=new ArrayList<File>();
     	cred=new ArrayList<ChannelCred>();
     	scripts=new HashMap<String,ChannelMacro>();
+    	subtitles=new HashMap<String,ChannelSubs>();
     	savePath="";
     	appendTS=false;
     	//rtmp=Channels.RTMP_MAGIC_TOKEN;
     	rtmp=Channels.RTMP_DUMP;
-    	PMS.minimal("Start channel 0.58");
+    	PMS.minimal("Start channel 0.58f");
     	dbg=new ChannelDbg(new File(path+File.separator+"channel.log"));
     	fileMonitor=null;
     	if(poll>0)
@@ -114,7 +116,7 @@ public class Channels extends VirtualFolder implements FileListener {
     	}
     }
     
-    private void parseMacroScript(String data) {
+    private void parseDefines(String data) {
     	String str;
     	String[] lines=data.split("\n");
     	macros=new ArrayList<ChannelMacro>();
@@ -138,14 +140,22 @@ public class Channels extends VirtualFolder implements FileListener {
     	    	scripts.put(sName, new ChannelMacro(sName,sData));
     	    	continue;
     	    }
+    	    if(str.startsWith("subdef ")) {
+    	    	String sName=str.substring(7,str.lastIndexOf('{')).trim();
+    	    	ArrayList<String> sData=ChannelUtil.gatherBlock(lines, i+1);
+    	    	i+=sData.size();
+    	    	if(subtitles.get(sName)!=null)
+    	    		continue;
+    	    	subtitles.put(sName, new ChannelSubs(sName,sData,file));
+    	    	continue;
+    	    }
     	}
     }
     
     public void parseChannels(File f)  throws Exception {
     	BufferedReader in=new BufferedReader(new FileReader(f));
     	String str;
-    	boolean macro=false;
-    	boolean script=false;
+    	boolean defines=false;
     	StringBuilder sb=new StringBuilder();
     	String ver="unknown";    	
     	while ((str = in.readLine()) != null) {
@@ -153,9 +163,11 @@ public class Channels extends VirtualFolder implements FileListener {
     		if(ChannelUtil.ignoreLine(str))
 				continue;
     	    if(str.trim().startsWith("macrodef"))
-    	    	macro=true;
+    	    	defines=true;
     	    if(str.trim().startsWith("scriptdef"))
-    	    	script=true;
+    	    	defines=true;
+    	    if(str.trim().startsWith("subdef"))
+    	    	defines=true;
     	    if(str.trim().startsWith("version")) {
     	    	String[] v=str.split("\\s*=\\s*");
     	    	if(v.length<2)
@@ -169,9 +181,10 @@ public class Channels extends VirtualFolder implements FileListener {
     	in.close();
     	PMS.minimal("parsing channel file "+f.toString()+" version "+ver);
     	debug("parsing channel file "+f.toString()+" version "+ver);
-    	if(macro||script)
-    		parseMacroScript(sb.toString());
-    	readChannel(sb.toString());
+    	String s=sb.toString();
+    	if(defines)
+    		parseDefines(s);
+    	readChannel(s);
     	addCred();
     }
     
@@ -328,6 +341,10 @@ public class Channels extends VirtualFolder implements FileListener {
 			return m.getMacro();
 		}
 		return null;
+	}
+	
+	public static ChannelSubs getSubs(String name) {
+		return inst.subtitles.get(name);
 	}
 	
 	/////////////////////////////////
