@@ -33,12 +33,14 @@ public class ChannelCfg {
 	private String get_flPath;
 	private String ytPath;
 	private Channels top;
+	private boolean subs;
 	
 	public ChannelCfg(Channels top) {
 		chPath=null;
 		saPath=null;
 		rtmpPath=null;
 		scriptPath=null;
+		subs=true;
 		this.top=top;
 	}
 	
@@ -153,6 +155,7 @@ public class ChannelCfg {
 		
 		// Other
 		String dbg=(String)PMS.getConfiguration().getCustomProperty("channels.debug");
+		String sub=(String) PMS.getConfiguration().getCustomProperty("channels.subtitle");
 		String rtmpMode=(String)PMS.getConfiguration().getCustomProperty("channels.rtmp");
 		if(rtmpMode!=null) {
 			if(rtmpMode.trim().equalsIgnoreCase("1"))
@@ -165,6 +168,11 @@ public class ChannelCfg {
 				Channels.debug(true);
 			else
 				Channels.debug(false);
+		if(!ChannelUtil.empty(sub))
+			if(sub.equalsIgnoreCase("true"))
+				Channels.setSubs(true);
+			else
+				Channels.setSubs(false);
 	}
 	
 	private void configPath(String key,String val) {
@@ -194,6 +202,7 @@ public class ChannelCfg {
 			configPath("get-flash-videos.path",get_flPath);
 			configPath("youtube-dl.path",ytPath);
 			PMS.getConfiguration().setCustomProperty("channels.debug",String.valueOf(Channels.debugStatus()));
+			PMS.getConfiguration().setCustomProperty("channels.subtitles",String.valueOf(Channels.doSubs()));
 			PMS.getConfiguration().save();
 		} catch (Exception e) {
 		}

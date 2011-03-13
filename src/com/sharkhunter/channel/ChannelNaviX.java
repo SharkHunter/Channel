@@ -3,6 +3,8 @@ package com.sharkhunter.channel;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.ArrayList;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import net.pms.dlna.DLNAResource;
 import net.pms.dlna.virtual.VirtualFolder;
@@ -13,13 +15,15 @@ public class ChannelNaviX extends VirtualFolder implements ChannelScraper {
 	private Channel parent;
 	private String[] props;
 	private int continues;
-	private boolean contAll; 
+	private boolean contAll;
+	private String subtitle;
 	
-	public ChannelNaviX(Channel ch,String name,String thumb,String url,String[] props) {
+	public ChannelNaviX(Channel ch,String name,String thumb,String url,String[] props,String sub) {
 		super(name,ChannelUtil.getThumb(thumb,null,ch));
 		this.url=url;
 		this.props=props;
 		contAll=false;
+		this.subtitle=sub;
 		continues=ChannelUtil.calcCont(props);
 		if(continues==0)
 			contAll=true;
@@ -63,7 +67,7 @@ public class ChannelNaviX extends VirtualFolder implements ChannelScraper {
 						}
 					}
 				}
-				addChild(new ChannelNaviX(parent,name,thumb,nextUrl,props));
+				addChild(new ChannelNaviX(parent,name,thumb,nextUrl,props,subtitle));
 			}
 			else {
 				int f=getFormat(type);
@@ -139,10 +143,25 @@ public class ChannelNaviX extends VirtualFolder implements ChannelScraper {
 	public void discoverChildren() {
 		readPlx(url);
 	}
+	
+	public String subCb(String realName) {
+		if(ChannelUtil.empty(subtitle)||!Channels.doSubs())
+			return null;
+		ChannelSubs subs=Channels.getSubs(subtitle);
+		if(subs==null) 
+			return null;
+		// Maybe we should mangle the name?
+		String nameMangle=ChannelUtil.getPropertyValue(props, "name_mangle");
+		realName=ChannelUtil.mangle(nameMangle, realName);
+		parent.debug("backtracked name "+realName);
+		String subFile=subs.getSubs(realName);
+		parent.debug("subs "+subFile);
+		return subFile;
+	}
 
 	@Override
 	public String scrape(Channel ch, String url, String processorUrl,int format,DLNAResource start) {
-		return ChannelNaviXProc.parse(ch,url,processorUrl,format);
+		return ChannelNaviXProc.parse(url,processorUrl,format,this,start);
 	}
 		
 }

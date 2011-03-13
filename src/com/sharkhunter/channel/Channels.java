@@ -33,11 +33,13 @@ public class Channels extends VirtualFolder implements FileListener {
     private static Channels inst=null;
     private String savePath;
     private boolean appendTS;
+    private boolean subs;
     
     public Channels(String path,long poll) {
     	super("Channels",null);
     	this.file=new File(path);
     	inst=this;
+    	subs=true;
     	chFiles=new ArrayList<File>();
     	cred=new ArrayList<ChannelCred>();
     	scripts=new HashMap<String,ChannelMacro>();
@@ -46,7 +48,7 @@ public class Channels extends VirtualFolder implements FileListener {
     	appendTS=false;
     	//rtmp=Channels.RTMP_MAGIC_TOKEN;
     	rtmp=Channels.RTMP_DUMP;
-    	PMS.minimal("Start channel 0.58f");
+    	PMS.minimal("Start channel 0.71");
     	dbg=new ChannelDbg(new File(path+File.separator+"channel.log"));
     	fileMonitor=null;
     	if(poll>0)
@@ -358,4 +360,13 @@ public class Channels extends VirtualFolder implements FileListener {
 	public static int rtmpMethod() {
 		return inst.rtmp;
 	}
+	
+	public static void setSubs(boolean b) {
+		inst.subs=b;
+	}
+	
+	public static boolean doSubs() {
+		return inst.subs;
+	}
+	
 }

@@ -12,6 +12,8 @@ import java.util.HashMap;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import net.pms.dlna.DLNAResource;
+
 public class ChannelNaviXProc {
 	
 	private static HashMap<String,String> vars=new HashMap<String,String>();
@@ -84,18 +86,18 @@ public class ChannelNaviXProc {
 		return false;
 	}
 	
-	private static boolean parseV2(Channel parent,String[] lines,int start,String url) throws Exception {
+	private static boolean parseV2(String[] lines,int start,String url) throws Exception {
 		Pattern ifparse=Pattern.compile("^([^<>=!]+)\\s*([!<>=]+)\\s*(.*)");
 		boolean if_skip=false;
 		boolean if_true=false;
-		parent.debug("parse v2 ");
+		Channels.debug("parse v2 ");
 		vars.put("s_url", url);
 		for(int i=start;i<lines.length;i++) {
 			String line=lines[i];
 			if(ChannelUtil.ignoreLine(line))
 				continue;
 			line=line.trim();
-			parent.debug("navix proc line "+line);
+			Channels.debug("navix proc line "+line);
 			if(if_true)
 				if(line.startsWith("else")||line.startsWith("elseif")) {
 					if_skip=true;
@@ -142,11 +144,11 @@ public class ChannelNaviXProc {
 					sPage=ChannelUtil.fetchPage(u,null,vars.get("s_cookie"),hdr);
 				}
 				if(ChannelUtil.empty(sPage)) {
-					parent.debug("bad page from proc");
+					Channels.debug("bad page from proc");
 					throw new Exception("empty scrape page");
 				}
 				vars.put("geturl", u.getURL().toString());
-				parent.debug("scrape page "+sPage);
+				Channels.debug("scrape page "+sPage);
 				vars.put("htmRaw", sPage);
 				// get headers and cookies
 				String hName="";
@@ -184,7 +186,7 @@ public class ChannelNaviXProc {
 			
 			if(line.startsWith("if ")) { // if block
 				String cond=line.substring(3);
-				parent.debug("if "+cond+" pattern "+ifparse.pattern());
+				Channels.debug("if "+cond+" pattern "+ifparse.pattern());
 				Matcher im=ifparse.matcher(cond);
 				String var;
 				String op=null;
@@ -194,7 +196,7 @@ public class ChannelNaviXProc {
 				}	
 				else {
 					var=vars.get(im.group(1));
-					parent.debug("gc "+im.groupCount()+" "+var);
+					Channels.debug("gc "+im.groupCount()+" "+var);
 					if(im.groupCount()>1)
 						op=im.group(2);
 					if(im.groupCount()>2) {
@@ -202,7 +204,7 @@ public class ChannelNaviXProc {
 						comp=fixVar(s.trim(),vars.get(s.trim()));
 					}
 				}
-				parent.debug("if var "+var+" op "+op+" comp "+comp);
+				Channels.debug("if var "+var+" op "+op+" comp "+comp);
 				if(op==null) { // no operator
 					if(var!=null) {
 						if_true=true;
@@ -230,7 +232,7 @@ public class ChannelNaviXProc {
 				}	
 				else {
 					var=vars.get(im.group(1));
-					parent.debug("gc "+im.groupCount()+" "+var);
+					Channels.debug("gc "+im.groupCount()+" "+var);
 					if(im.groupCount()>1)
 						op=im.group(2);
 					if(im.groupCount()>2) {
@@ -259,7 +261,7 @@ public class ChannelNaviXProc {
 			}
 			
 			if(line.startsWith("error ")) {
-				parent.debug("Error "+line.substring(6));
+				Channels.debug("Error "+line.substring(6));
 				throw new Exception("NIPL error");
 			}
 			
@@ -269,7 +271,7 @@ public class ChannelNaviXProc {
 				String res=ChannelUtil.append(vars.get(ops[0].trim()),"",
 											  fixVar(ops[1],vars.get(ops[1])));
 				vars.put(ops[0].trim(), res);
-				parent.debug("concat "+ops[0]+" res "+res);
+				Channels.debug("concat "+ops[0]+" res "+res);
 				continue;
 			}
 			
@@ -278,11 +280,11 @@ public class ChannelNaviXProc {
 				Pattern re=Pattern.compile(escapeChars(vars.get("regex")));
 				Matcher m=re.matcher(vars.get(var));
 				if(!m.find()) {
-					parent.debug("no match "+re.pattern());
+					Channels.debug("no match "+re.pattern());
 					vars.put("nomatch","1");
 				}
 				else {
-					parent.debug("match "+m.groupCount());
+					Channels.debug("match "+m.groupCount());
 					for(int j=1;j<=m.groupCount();j++)	
 						vars.put("v"+String.valueOf(j), m.group(j));
 				}
@@ -293,7 +295,8 @@ public class ChannelNaviXProc {
 				String[] ops=line.substring(8).split(" ",2);
 				Pattern re=Pattern.compile(vars.get("regex"));
 				Matcher m=re.matcher(vars.get(ops[0]));
-				m.replaceAll(ops[1]);
+				String res=m.replaceAll(fixVar(ops[1],vars.get(ops[1])));
+				vars.put(ops[0], res);
 				continue;
 			}
 			
@@ -305,13 +308,8 @@ public class ChannelNaviXProc {
 			}
 			
 			if(line.startsWith("escape ")) {
-				String var=line.substring(9).trim();
-				String res;
-				try {
-					res = URLEncoder.encode(vars.get(var),"UTF-8");
-				} catch (UnsupportedEncodingException e) {
-					continue;
-				}
+				String var=line.substring(7).trim();
+				String res=ChannelUtil.escape(vars.get(var));
 				vars.put(var, res);
 				continue;
 			}
@@ -323,7 +321,7 @@ public class ChannelNaviXProc {
 				if(key.startsWith("report_val ")) {
 					key=key.substring(11);
 					rvars.put(key, fixVar(val,vars.get(val)));
-					parent.debug("rvar ass "+key+"="+fixVar(val,vars.get(val)));
+					Channels.debug("rvar ass "+key+"="+fixVar(val,vars.get(val)));
 				}
 				else {
 					String realVal=fixVar(val,vars.get(val));
@@ -332,13 +330,13 @@ public class ChannelNaviXProc {
 						ChannelNaviXNookie.store(key.substring(8),realVal,vars.get("nookie_expires"));
 					}
 					vars.put(key, realVal);
-					parent.debug("var ass "+key+"="+realVal);
+					Channels.debug("var ass "+key+"="+realVal);
 				}
 				continue;
 			}
 			
 			if(line.startsWith("report")) {
-				parent.debug("report found take another spin");
+				Channels.debug("report found take another spin");
 				return true;
 			}
 			
@@ -347,15 +345,15 @@ public class ChannelNaviXProc {
 			
 		}
 		// This is weird no play statement?? throw error
-		parent.debug("no play found");
+		Channels.debug("no play found");
 		throw new Exception("NIPL error no play");
 	}
 	
-	private static boolean parseV1(Channel parent,String[] lines,int start,String url) throws Exception {
+	private static boolean parseV1(String[] lines,int start,String url) throws Exception {
 		String nextUrl=lines[start];
 		int modLen=lines.length-start;
 		if(nextUrl.contains("error")) {
-			parent.debug("navix v1 error");
+			Channels.debug("navix v1 error");
 			throw new Exception("NaviX v1 parsse error");
 		}
 		if(modLen<2) {
@@ -373,7 +371,7 @@ public class ChannelNaviXProc {
 		String sPage=ChannelUtil.fetchPage(u, null, cookie,null);
 		if(ChannelUtil.empty(sPage)) 
 			throw new Exception("Empty scrap page");
-		parent.debug("v1 scrap page "+sPage);
+		Channels.debug("v1 scrap page "+sPage);
 		Pattern re=Pattern.compile(escapeChars(filt));
 		Matcher m=re.matcher(sPage);
 		if(m.find()) {
@@ -386,7 +384,7 @@ public class ChannelNaviXProc {
 			}
 			URLConnection u1=new URL(res+v).openConnection();
 			String sPage2=ChannelUtil.fetchPage(u1);
-			parent.debug("res "+res+v);
+			Channels.debug("res "+res+v);
 			if(ChannelUtil.empty(sPage2))
 				throw new Exception("Empty scrap page");
 			String[] l=sPage2.split("\n");
@@ -402,15 +400,19 @@ public class ChannelNaviXProc {
 		}
 		return false;
 	}
+	
+	public static String parse(String url,String pUrl,int format) {
+		return parse(url,pUrl,format,null,null);
+	}
 
-	public static String parse(Channel parent,String url,String pUrl,int format) {
+	public static String parse(String url,String pUrl,int format,ChannelNaviX caller,DLNAResource start) {
 		if(pUrl==null) // no processor, just return what we got
 			return ChannelUtil.createMediaUrl(url,format);
 		URL pu=null;
 		try {
 			pu = new URL(pUrl+"?url="+url);
 		} catch (MalformedURLException e) {
-			parent.debug("error fetching page "+e);
+			Channels.debug("error fetching page "+e);
 			return null;
 		}	
 		int phase=0;
@@ -433,19 +435,19 @@ public class ChannelNaviXProc {
 				for(String key : rvars.keySet()) {
 					res=res+"&"+key+"="+rvars.get(key);
 				}
-				parent.debug("rvars "+res);
+				Channels.debug("rvars "+res);
 				res=res.replaceAll("v\\d+=&","&");
 				res=res.replace("nomatch=&", "&");
 				res=res.replaceAll("&+","&");
                 res=res.replaceAll("^&","");
-                parent.debug("rvars fixed "+res);
+                Channels.debug("rvars fixed "+res);
                 try {
 					//res=URLEncoder.encode(res, "UTF-8");
-					parent.debug("res urlified "+res);
+					Channels.debug("res urlified "+res);
 					pu=new URL(pUrl+"?"+res);
-					parent.debug("pUrl "+pu.toString());
+					Channels.debug("pUrl "+pu.toString());
 				} catch (Exception e) {
-					parent.debug("wierd error "+e);
+					Channels.debug("wierd error "+e);
 					return null;
 				}
 			}
@@ -455,11 +457,11 @@ public class ChannelNaviXProc {
 			} catch (Exception e1) {
 				procPage="";
 			}
-			parent.debug("processor page "+procPage);
+			Channels.debug("processor page "+procPage);
 			if(ChannelUtil.empty(procPage)) 
 				return null;
 			if(phase>0&&lastPage.equals(procPage)) {
-				parent.debug("processor loop");
+				Channels.debug("processor loop");
 				return null;
 			}
 			lastPage=procPage;
@@ -469,46 +471,52 @@ public class ChannelNaviXProc {
 				i++;
 			try {
 				if(lines[i].equalsIgnoreCase("v2"))
-					loop=parseV2(parent,lines,i+1,url);
+					loop=parseV2(lines,i+1,url);
 				else if(lines[i].equalsIgnoreCase("v1"))
-					loop=parseV1(parent,lines,i+1,pUrl);
+					loop=parseV1(lines,i+1,pUrl);
 				else {
-					parent.debug("weird version "+lines[i]+" guess "+(phase>0?"v2":"v1"));
+					Channels.debug("weird version "+lines[i]+" guess "+(phase>0?"v2":"v1"));
 					if(phase>0)
-						loop=parseV2(parent,lines,i,pUrl);
+						loop=parseV2(lines,i,pUrl);
 					else
-						loop=parseV1(parent,lines,i,pUrl);
+						loop=parseV1(lines,i,pUrl);
 				}
 				phase++;
-				parent.debug("loop "+loop+" phase "+phase);
+				Channels.debug("loop "+loop+" phase "+phase);
 			}
 			catch (Exception e) {
-				parent.debug("error during NIPL parse "+e);
+				Channels.debug("error during NIPL parse "+e);
 				return null;
 			}
 		}
 		// We made it construct result
-		parent.debug("createMediaurl");
+		Channels.debug("createMediaurl");
+		if(caller!=null) {
+			HashMap<String,String> tmp=new HashMap<String,String>(vars); // subs might use NaviX scripts...
+			String sub=caller.subCb(ChannelUtil.backTrack(start, 0));
+			vars=tmp;
+			vars.put("subtitle", sub);
+		}
 		String rUrl=ChannelUtil.createMediaUrl(vars,format);
-		parent.debug("navix return media url "+rUrl);
+		Channels.debug("navix return media url "+rUrl);
 		return rUrl;
 	}
 	
-	public static String lite(Channel parent,String url,ArrayList<String> lines,int format) {
+	public static String lite(String url,ArrayList<String> lines,int format) {
 		String[] arr=lines.toArray(new String[lines.size()]);
-		return lite(parent,url,arr,format);
+		return lite(url,arr,format);
 	}
-	public static String lite(Channel parent,String url,String[] lines,int format) {
+	public static String lite(String url,String[] lines,int format) {
 		try {
 			vars.clear();
-			if(parseV2(parent,lines,0,url))
-				parent.debug("found report statement in NIPL lite script. Hopefully script worked anyway.");
+			if(parseV2(lines,0,url))
+				Channels.debug("found report statement in NIPL lite script. Hopefully script worked anyway.");
 			String rUrl=ChannelUtil.createMediaUrl(vars,format);
-			parent.debug("navix lite return media url "+rUrl);
+			Channels.debug("navix lite return media url "+rUrl);
 			return rUrl;
 		}
 		catch (Exception e) {
-			parent.debug("error during NIPL lite parse "+e);
+			Channels.debug("error during NIPL lite parse "+e);
 			return null;
 		}
 	}

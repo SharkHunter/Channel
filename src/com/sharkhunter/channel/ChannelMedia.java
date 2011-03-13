@@ -2,6 +2,8 @@ package com.sharkhunter.channel;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import net.pms.PMS;
 import net.pms.dlna.DLNAResource;
@@ -146,51 +148,17 @@ public class ChannelMedia implements ChannelProps,ChannelScraper {
 		return ChannelUtil.getPropertyValue(prop, base+"_separator");
 	}
 	
-	private int getNameIndex() {
-		try {
-			String x=ChannelUtil.getPropertyValue(prop, "name_index");
-			if(!ChannelUtil.empty(x)) {
-				int j= new Integer(x).intValue();
-				if(j>0)
-					return j;
-			}
-		}
-		catch (Exception e) {
-		}
-		return 0;
-	}
-	
-	private String backTrack(DLNAResource start) {
-		if(start==null)
-			return null;
-		if(Channels.save()) // compensate for save
-			start=start.getParent();
-		int stop=getNameIndex();
-		if(stop==0)
-			return start.getName();
-		int i=0;
-		DLNAResource curr=start;
-		while(i<stop) {
-			curr=curr.getParent();
-			i++;
-			if(curr instanceof Channel) {
-				curr=null;
-				break;
-			}
-		}
-		if(curr!=null)
-			return curr.getName();
-		return null;
-	}
-	
 	@Override
 	public String scrape(Channel ch, String url, String scriptName,int format,DLNAResource start) {
 		String realUrl;
 		ch.debug("scrape sub "+subtitle);
-		if(subtitle!=null) {
+		if(subtitle!=null&&Channels.doSubs()) {
 			ChannelSubs subs=Channels.getSubs(subtitle);
 			if(subs!=null) {
-				String realName=backTrack(start);
+				String realName=ChannelUtil.backTrack(start,ChannelUtil.getNameIndex(prop));
+				// Maybe we should mangle the name?
+				String nameMangle=ChannelUtil.getPropertyValue(prop, "name_mangle");
+				realName=ChannelUtil.mangle(nameMangle, realName);
 				parent.debug("backtracked name "+realName);
 				String subFile=subs.getSubs(realName);
 				parent.debug("subs "+subFile);
@@ -203,14 +171,14 @@ public class ChannelMedia implements ChannelProps,ChannelScraper {
 		}
 		ch.debug("media scrape type "+scriptType+" name "+scriptName);
 		if(scriptType==ChannelMedia.SCRIPT_NET) 
-			return ChannelNaviXProc.parse(ch,url,scriptName,format);
+			return ChannelNaviXProc.parse(url,scriptName,format);
 		ArrayList<String> sData=Channels.getScript(scriptName);
 		if(sData==null) { // weird no script found, log and bail out
 			ch.debug("no script "+scriptName+" defined");
 			params.put("url", url);
 			return ChannelUtil.createMediaUrl(params,format);
 		}
-		realUrl=ChannelNaviXProc.lite(ch,url,sData,format);
+		realUrl=ChannelNaviXProc.lite(url,sData,format);
 		if(ChannelUtil.empty(realUrl)) {
 			ch.debug("Bad script result");
 			return null;

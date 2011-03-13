@@ -10,6 +10,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import net.pms.dlna.DLNAResource;
+import net.pms.formats.Format;
 
 public class ChannelSubs implements ChannelProps {
 	
@@ -18,16 +19,17 @@ public class ChannelSubs implements ChannelProps {
 	private ChannelMatcher matcher;
 	private int best;
 	private int pathCnt;
-	private Pattern nameMangle;
 	private String[] prop;
 	private File dPath;
+	private String script;
+	private String nameScript;
 
 	public ChannelSubs(String name,ArrayList<String> data,File dPath) {
 		best=1;
-		pathCnt=0;
+		script=null;
+		nameScript=null;
 		this.dPath=new File(dPath.getAbsolutePath()+File.separator+"data");
 		this.name=name;
-		nameMangle=null;
 		for(int i=0;i<data.size();i++) {
 			String line=data.get(i).trim();
 			String[] keyval=line.split("\\s*=\\s*",2);
@@ -57,35 +59,23 @@ public class ChannelSubs implements ChannelProps {
 				if(best<1)
 					best=1;
 			}
-			if(keyval[0].equalsIgnoreCase("mangle_name")) {
-				nameMangle=Pattern.compile(keyval[1]);
-			}
 			if(keyval[0].equalsIgnoreCase("prop"))	
-				prop=keyval[1].trim().split(",");				
+				prop=keyval[1].trim().split(",");	
+			if(keyval[0].equalsIgnoreCase("name_script")) {
+				nameScript=keyval[1];
+			}
+			if(keyval[0].equalsIgnoreCase("script")) {
+				script=keyval[1];
+			}
+				
 		}
-	}
-	
-	public String getSubs(ArrayList<DLNAResource> path) {
-		DLNAResource r;
-		if(pathCnt==0) // pick last
-			r=path.get(path.size()-1);
-		else
-			r=path.get(pathCnt-1);
-		return getSubs(r.getName());
 	}
 	
 	public String getSubs(String mediaName) {
 		Channels.debug("get subs "+mediaName);
 		if(ChannelUtil.empty(mediaName))
 			return null;
-		// Maybe we should mangle the name?
-		if(nameMangle!=null) {
-			Matcher m=nameMangle.matcher(mediaName);
-			if(m.find())
-				mediaName=m.group(1);
-		}
 		mediaName=mediaName.trim();
-		Channels.debug("mangled name "+mediaName);
 		String subUrl=fetchSubsUrl(mediaName);
 		Channels.debug("subUrl "+subUrl);
 		if(ChannelUtil.empty(subUrl))
@@ -116,7 +106,17 @@ public class ChannelSubs implements ChannelProps {
 	}
 	
 	public String fetchSubsUrl(String mediaName) {
-		String realUrl=ChannelUtil.concatURL(url,ChannelUtil.escape(mediaName));
+		if(!ChannelUtil.empty(nameScript)) {
+			ArrayList<String> s=Channels.getScript(nameScript);
+			if(s!=null) {
+				mediaName=ChannelNaviXProc.lite(mediaName, s, Format.AUDIO);
+			}
+			else
+				mediaName=ChannelUtil.escape(mediaName);
+		}	
+		else
+			mediaName=ChannelUtil.escape(mediaName);
+		String realUrl=ChannelUtil.concatURL(url,mediaName);
 		Channels.debug("try fecth "+realUrl);
 		try {
 			URL u=new URL(realUrl);
@@ -124,6 +124,11 @@ public class ChannelSubs implements ChannelProps {
 			Channels.debug("subs page "+page);
 			if(ChannelUtil.empty(page))
 				return null;
+			if(!ChannelUtil.empty(script)) { // we got a script, we'll use it 
+				ArrayList<String> s=Channels.getScript(script);
+				if(s!=null) 
+					return ChannelNaviXProc.lite(page, s, Format.AUDIO);
+			}
 			matcher.startMatch(page);
 			int cnt=1;
 			String first=null;

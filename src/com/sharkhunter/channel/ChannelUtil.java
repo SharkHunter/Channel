@@ -11,9 +11,12 @@ import java.net.URLDecoder;
 import java.net.URLEncoder;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import net.pms.PMS;
 import net.pms.configuration.PmsConfiguration;
+import net.pms.dlna.DLNAResource;
 import net.pms.formats.Format;
 
 public class ChannelUtil {
@@ -415,5 +418,68 @@ public class ChannelUtil {
 		}
 		Channels.debug("return media url "+rUrl);
 		return rUrl;
-	}	
+	}
+	
+	public static String backTrack(DLNAResource start,int stop) {
+		if(start==null)
+			return null;
+		if(Channels.save()) // compensate for save
+			start=start.getParent();
+		if(stop==0)
+			return start.getName();
+		int i=0;
+		DLNAResource curr=start;
+		while(i<stop) {
+			curr=curr.getParent();
+			i++;
+			if(curr instanceof Channel) {
+				curr=null;
+				break;
+			}
+		}
+		if(curr!=null)
+			return curr.getName();
+		return null;
+	}
+	
+	public static String backTrack(DLNAResource start,int[] stops) {
+		String res="";
+		for(int i=0;i<stops.length;i++) {
+			res=append(res," ",backTrack(start,stops[i]));
+		}
+		return res;
+	}
+	
+	public static int[] getNameIndex(String[] prop) {
+		try {
+			String x=ChannelUtil.getPropertyValue(prop, "name_index");
+			if(!empty(x)) {
+				String[] idx=x.split("\\+");
+				int[] res=new int[idx.length];
+				for(int i=0;i<idx.length;i++) {
+					int j= new Integer(idx[i]).intValue();
+					if(j>0)
+						res[i]=j;
+				}
+				return res;
+			}
+		}
+		catch (Exception e) {
+			Channels.debug("excep "+e);
+		}
+		return null;
+	}
+	
+	public static String mangle(String re,String str) {
+		if(empty(re))
+			return str;
+		Matcher m=Pattern.compile(re).matcher(str);
+		String res="";
+		if(!m.find())
+			return str;
+		for(int i=1;i<=m.groupCount();i++)
+			res=res+m.group(i);
+		return res;
+	}
+	
 }

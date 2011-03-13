@@ -35,7 +35,8 @@ public class ChannelGUI implements  ActionListener, ItemListener{
 	private JTextField python;
 	private JTextField get_flash;
 	private JTextField yt;
-	
+	private JCheckBox dbg;
+	private JCheckBox subs;
 	
 	public ChannelGUI(ChannelCfg cfg,Channels root) {
 		this.cfg=cfg;
@@ -70,7 +71,8 @@ public class ChannelGUI implements  ActionListener, ItemListener{
 		JLabel l8=new JLabel("Python path: ");
 		JLabel l9=new JLabel("get_flash_videos path: ");
 		JLabel l10=new JLabel("YouTube-dl path: ");
-		JCheckBox dbg=new JCheckBox("Enable debug",Channels.debugStatus());
+		dbg=new JCheckBox("Enable debug",Channels.debugStatus());
+		subs=new JCheckBox("Use subtiles",Channels.doSubs());
 		chPath=new JTextField(cfg.getPath(),20);
 		saPath=new JTextField(cfg.getSavePath(),20);
 		rtmp=new JTextField(cfg.getRtmpPath(),20);
@@ -109,6 +111,7 @@ public class ChannelGUI implements  ActionListener, ItemListener{
 		debugPack.setActionCommand("other_debug");
 		debugPack.addActionListener(this);
 		dbg.addItemListener(this);
+		subs.addItemListener(this);
 
 		GridBagConstraints c = new GridBagConstraints();
 		// 1st the channels path
@@ -140,6 +143,11 @@ public class ChannelGUI implements  ActionListener, ItemListener{
 		c.gridy = 2;
 		c.weightx=1.0;
 		pathPanel.add(dbg,c);
+		// Subs
+		c.gridx = 0;
+		c.gridy = 3;
+		c.weightx=1.0;
+		pathPanel.add(subs,c);
 
 		// 3rd the rtmp path
 		c.gridx = 0;
@@ -308,10 +316,14 @@ public class ChannelGUI implements  ActionListener, ItemListener{
 
 	@Override
 	public void itemStateChanged(ItemEvent e) {
-		if (e.getStateChange() == ItemEvent.DESELECTED) // dbg off
-			Channels.debug(false);
-		if(e.getStateChange() == ItemEvent.SELECTED)  // dbg on
-			Channels.debug(true);
+		boolean val=true;
+		Object source = e.getItemSelectable();
+		if (e.getStateChange() == ItemEvent.DESELECTED) 
+			val=false;
+		if(source==dbg)
+			Channels.debug(val);
+		if(source==subs)
+			Channels.setSubs(val);
 		cfg.commit();
 	}
 	

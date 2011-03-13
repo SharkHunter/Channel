@@ -35,6 +35,8 @@ public class ChannelFolder implements ChannelProps{
 	private int continues;
 	private boolean contAll;
 	
+	private String sub;
+	
 	public ChannelFolder(ArrayList<String> data,Channel parent) {
 		this(data,parent,null);
 	}
@@ -133,6 +135,9 @@ public class ChannelFolder implements ChannelProps{
 					matcher=new ChannelMatcher(null,keyval[1],this);
 				else
 					matcher.setOrder(keyval[1]);
+			}
+			if(keyval[0].equalsIgnoreCase("subtitle")) {
+				sub=keyval[1];
 			}
 		}
 	}
@@ -264,7 +269,7 @@ public class ChannelFolder implements ChannelProps{
 		String realUrl=ChannelUtil.concatURL(url,urlEnd);			
 		if(isNaviX()) { // i'm navix special handling
 			res.addChild(new ChannelNaviX(parent,name,ChannelUtil.getThumb(null,pThumb, parent),
-										  realUrl,prop));
+										  realUrl,prop,sub));
 			return;
 		}
 		if(!ChannelUtil.empty(realUrl)) {

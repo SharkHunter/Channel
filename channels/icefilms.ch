@@ -21,14 +21,40 @@ macrodef mediaMacro {
 		    matcher=<a href=\"([^\"]+)\"\s+class=\"down_links_mv\"
 			order=url
 			subtitle=s4u
-			prop=concat_name=rear,name_separator= ,name_index=2,
+			prop=concat_name=rear,name_separator= ,name_index=2,name_mangle=([^\(]+)\(
            }
 		   media {
 			#<div class="down_butt_pad1" style="display:none;" id="downloadlink"><a href="http://www820.megaupload.com/files/e852a3a714538767347d5866d6ad9d7c/big_bang_theory.1x01.dvdrip_xvid-fov.H2020.dvd4arab.com.avi" class="down_butt1"></a>
 			matcher=<div class=\"down_butt_pad1\" style=\"display:none;\" id=\"downloadlink\"><a href="([^\"]+)"
 			name=MegaUpload
 			order=url
-			prop=concat_name=rear,name_separator= ,
+			subtitle=s4u
+			prop=concat_name=rear,name_separator= ,name_index=2,name_mangle=([^\(]+)\(
+           }   
+      }
+}
+
+macrodef tvMedia {
+folder {
+           # last link
+           # Proceed to: <a href="http://www.megaupload.com/?d=cfu23kvq&w=631&h=392"
+           matcher=Proceed to: <a href=\"([^\"]+)\"
+           order=url
+           type=empty
+           media {
+			name=MegaVideo
+		    matcher=<a href=\"([^\"]+)\"\s+class=\"down_links_mv\"
+			order=url
+			subtitle=s4u
+			prop=concat_name=rear,name_separator= ,name_index=3+2,name_mangle=([^\(]+)\([^ ]+ (.*)
+           }
+		   media {
+			#<div class="down_butt_pad1" style="display:none;" id="downloadlink"><a href="http://www820.megaupload.com/files/e852a3a714538767347d5866d6ad9d7c/big_bang_theory.1x01.dvdrip_xvid-fov.H2020.dvd4arab.com.avi" class="down_butt1"></a>
+			matcher=<div class=\"down_butt_pad1\" style=\"display:none;\" id=\"downloadlink\"><a href="([^\"]+)"
+			name=MegaUpload
+			order=url
+			subtitle=s4u
+			prop=concat_name=rear,name_separator= ,name_index=3+2,name_mangle=([^\(]+)\([^ ]+ (.*)
            }   
       }
 }
@@ -58,7 +84,8 @@ macrodef tvMacro {
                #href=http://www.icefilms.info/components/com_iceplayer/GMorBMlet.php?vid=21739&img=http://www.icefilms.info/images/vid_images/thesimpsons.jpg&ttl=The+Simpsons+1x01+Simpsons+Roasting+on+an+Open+Fire+%281989%29&sourceid=21739&url=http://www.megaupload.com/?d=cfu23kvq&w=631&h=392>Source #1:
                matcher=href=([^>]+)>Source #
                order=url
-               macro=mediaMacro
+              #macro=mediaMacro
+			  macro=tvMedia
             }
          }
       }
