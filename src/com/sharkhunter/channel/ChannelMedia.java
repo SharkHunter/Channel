@@ -15,6 +15,7 @@ public class ChannelMedia implements ChannelProps,ChannelScraper {
 	
 	public static final int SCRIPT_LOCAL=0;
 	public static final int SCRIPT_NET=1;
+	public static final int SCRIPT_EXT=2;
 	
 	public boolean Ok;
 	private ChannelMatcher matcher;
@@ -76,6 +77,11 @@ public class ChannelMedia implements ChannelProps,ChannelScraper {
 				parent.debug("assign net script "+keyval[1]);
 				script=keyval[1];
 				scriptType=ChannelMedia.SCRIPT_NET;
+			}
+			if(keyval[0].equalsIgnoreCase("escript")) {
+				parent.debug("assign ext script "+keyval[1]);
+				script=keyval[1];
+				scriptType=ChannelMedia.SCRIPT_EXT;
 			}
 			if(keyval[0].equalsIgnoreCase("name"))
 				name=keyval[1];
@@ -172,6 +178,11 @@ public class ChannelMedia implements ChannelProps,ChannelScraper {
 		ch.debug("media scrape type "+scriptType+" name "+scriptName);
 		if(scriptType==ChannelMedia.SCRIPT_NET) 
 			return ChannelNaviXProc.parse(url,scriptName,format);
+		if(scriptType==ChannelMedia.SCRIPT_EXT) {
+			String f=ChannelUtil.format2str(format);
+			ProcessBuilder pb=new ProcessBuilder(scriptName,url,f);
+			return ChannelUtil.execute(pb);
+		}	
 		ArrayList<String> sData=Channels.getScript(scriptName);
 		if(sData==null) { // weird no script found, log and bail out
 			ch.debug("no script "+scriptName+" defined");

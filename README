@@ -203,6 +203,7 @@
        [type=asx|normal]
        [script=<script name>]
        [nscript=<script url>]
+       [escript=<script path>]
     }
 
     The parameters of media has the same meaning as those of item and folder. The type parameter can
@@ -212,6 +213,8 @@
     per media.
     * nscript - uses the remote script (which should be an NIPL processor) to retrive the actual 
     media url.
+    * escript - external script that is executed from within the plugin. The script is called with two (2)
+    arguments the url and the format. The script should write the new scraped url on stdout and then exit.
 
     Matching
     ---------

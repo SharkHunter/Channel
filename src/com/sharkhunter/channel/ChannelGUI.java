@@ -267,7 +267,7 @@ public class ChannelGUI implements  ActionListener, ItemListener{
 		String text = (String)e.getActionCommand();
 		if(!text.startsWith("other_")) {
 			JFileChooser path=new JFileChooser();
-			path.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
+			//path.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
 			int res=path.showOpenDialog(null);
 			if(res==JFileChooser.APPROVE_OPTION) {
 				if(path.getSelectedFile().exists()){

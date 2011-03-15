@@ -2,6 +2,7 @@ package com.sharkhunter.channel;
 
 import java.io.BufferedReader;
 import java.io.DataOutputStream;
+import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.UnsupportedEncodingException;
 import java.net.URI;
@@ -357,9 +358,10 @@ public class ChannelUtil {
 	
 	public static String createMediaUrl(HashMap<String,String> vars,int format) {
 		String rUrl=vars.get("url");
+		int rtmpMet=Channels.rtmpMethod();
 		Channels.debug("create media url entry "+rUrl+" format "+format);
 		if(rUrl.startsWith("http")) {
-			if(format!=Format.VIDEO)
+			if(format!=Format.VIDEO||rtmpMet==Channels.RTMP_MAGIC_TOKEN)
 				return rUrl;
 			rUrl="navix://channel?url="+escape(rUrl);
 			String agent=vars.get("agent");
@@ -396,7 +398,7 @@ public class ChannelUtil {
 		if(!rtmpStream(rUrl)) // type is sopcast etc.
 			return rUrl;
 		
-		switch(Channels.rtmpMethod()) {
+		switch(rtmpMet) {
 			case Channels.RTMP_MAGIC_TOKEN:
 				rUrl=ChannelUtil.append(rUrl, "!!!pms_ch_dash_y!!!", vars.get("playpath"));
 				rUrl=ChannelUtil.append(rUrl, "!!!pms_ch_dash_w!!!", vars.get("swfplayer"));
@@ -480,6 +482,38 @@ public class ChannelUtil {
 		for(int i=1;i<=m.groupCount();i++)
 			res=res+m.group(i);
 		return res;
+	}
+	
+	public static String format2str(int format) {
+		switch(format) {
+		case Format.AUDIO:
+			return "Audio";
+		case Format.VIDEO:
+			return "Video";
+		case Format.IMAGE:
+			return "Image";
+		default:
+			return "Unknown";
+		}
+	}
+	
+	public static String execute(ProcessBuilder pb) {
+		try {
+			Process pid=pb.start();
+			InputStream is = pid.getInputStream();
+	        InputStreamReader isr = new InputStreamReader(is);
+	        BufferedReader br = new BufferedReader(isr);
+	        String line;
+	        StringBuilder sb=new StringBuilder();
+	        while ((line = br.readLine()) != null) 
+	        	sb.append(line);
+	        pid.waitFor();
+	        return sb.toString();
+		}
+		catch (Exception e) {
+			Channels.debug("executing external script failed "+e);
+		}
+		return null;
 	}
 	
 }
