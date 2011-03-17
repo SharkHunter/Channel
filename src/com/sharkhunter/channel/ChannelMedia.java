@@ -181,7 +181,9 @@ public class ChannelMedia implements ChannelProps,ChannelScraper {
 		if(scriptType==ChannelMedia.SCRIPT_EXT) {
 			String f=ChannelUtil.format2str(format);
 			ProcessBuilder pb=new ProcessBuilder(scriptName,url,f);
-			return ChannelUtil.execute(pb);
+			String rUrl=ChannelUtil.execute(pb);
+			params.put("url", rUrl);
+			return ChannelUtil.createMediaUrl(params, format);
 		}	
 		ArrayList<String> sData=Channels.getScript(scriptName);
 		if(sData==null) { // weird no script found, log and bail out

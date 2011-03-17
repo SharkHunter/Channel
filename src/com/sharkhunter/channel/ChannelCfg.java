@@ -259,7 +259,8 @@ public class ChannelCfg {
 	// Fetch files
 	///////////////////////////////////////////
 	
-	private static final String chZip="http://cloud.github.com/downloads/SharkHunter/Channel/channels.zip"; 
+	private static final String chZip="http://cloud.github.com/downloads/SharkHunter/Channel/channels.zip";
+	private static final String extFile="http://cloud.github.com/downloads/SharkHunter/Channel/ext.txt";
 	
 	public void fetchChannels() {
 		try {			
@@ -298,6 +299,63 @@ public class ChannelCfg {
 	      } catch(Exception e) {
 	    	  Channels.debug("error fetching channels "+e);
 	      }
+	      fetchExternals();
+	}
+	
+	private void readFile(String url,String outFile) {
+		try {
+			URL u=new URL(url);
+			URLConnection connection=u.openConnection();
+			connection.setRequestProperty("User-Agent",ChannelUtil.defAgentString);
+			connection.setDoInput(true);
+			connection.setDoOutput(true);
+			InputStream in=connection.getInputStream();
+			File f=new File(outFile);
+			FileOutputStream out=new FileOutputStream(f);
+			byte[] buf = new byte[4096];
+			int len;
+			while((len=in.read(buf))!=-1)
+				out.write(buf, 0, len);
+			out.flush();
+			out.close();
+			in.close();
+		}
+		catch (Exception e) {
+			Channels.debug("error fetching externals(read) "+e);
+		}
+	}
+	
+	private void fetchExternals() {
+		try {
+			URL u=new URL(extFile);
+			URLConnection connection=u.openConnection();
+			connection.setRequestProperty("User-Agent",ChannelUtil.defAgentString);
+			connection.setDoInput(true);
+			connection.setDoOutput(true);
+			InputStream in=connection.getInputStream();
+			BufferedReader br = new BufferedReader(new InputStreamReader(in));
+			String line;
+			while ((line = br.readLine()) != null) {
+				if(ChannelUtil.ignoreLine(line))
+					continue;
+				String[] str=line.split(",");
+				if(str.length<3)
+					continue;
+				String eUrl=str[0];
+				String type=str[1];
+				String cfgVar=str[2];
+				ensureCreated(scriptPath);
+				if(type.equalsIgnoreCase("raw")) {
+					String outFile=scriptPath+File.separator+cfgVar.replace(".path", "");
+					readFile(eUrl,outFile);
+					configPath(cfgVar,outFile);
+				}					
+			}
+			PMS.getConfiguration().save();	
+		}
+		catch (Exception e) {
+			Channels.debug("error fetching externals "+e);
+		}
 	}
 	
 	//////////////////////////////////////////////////

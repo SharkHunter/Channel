@@ -363,14 +363,15 @@ public class ChannelUtil {
 		if(rUrl.startsWith("http")) {
 			if(format!=Format.VIDEO||rtmpMet==Channels.RTMP_MAGIC_TOKEN)
 				return rUrl;
-			rUrl="navix://channel?url="+escape(rUrl);
+			//rUrl="navix://channel?url="+escape(rUrl);
+			rUrl="channel?url="+escape(rUrl);
 			String agent=vars.get("agent");
 			if(empty(agent))
 				agent=ChannelUtil.defAgentString;
 			rUrl=append(rUrl,"&agent=",escape(agent));
-			rUrl=append(rUrl,"&rate=","48000");
 			String sub=vars.get("subtitle");
 			if(!empty(sub)) { // we got subtitles
+				rUrl="subs://"+rUrl;
 				// lot of things to append here
 				rUrl=append(rUrl,"&subs=",escape(sub));
 				//-spuaa 3 -subcp ISO-8859-10 -subfont C:\Windows\Fonts\Arial.ttf -subfont-text-scale 2 -subfont-outline 1 -subfont-blur 1 -subpos 90 -quiet -quiet -sid 100 -fps 25 -ofps 25 -sub C:\downloads\Kings Speech.srt -lavdopts fast -mc 0 -noskip -af lavcresample=48000 -srate 48000 -o \\.\pipe\mencoder1299956406082
@@ -387,10 +388,10 @@ public class ChannelUtil {
                 } catch (NumberFormatException n) {
                 }
                 rUrl=append(rUrl,"&subpos=",String.valueOf(100 - subpos));
-                
               //  rUrl=append(rUrl,"&subdelay=","20000");
-
 			}
+			else
+				rUrl="navix://"+rUrl;
 			Channels.debug("return media url "+rUrl);
 			return rUrl;
 		}
