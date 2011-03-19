@@ -26,6 +26,7 @@ channel NaviX {
 		url=http://navix.turner3d.net/playlist/all.plx
 		type=navix
 		prop=continue_name=(.*>>>.*|.*Next [Pp]age.*),continue_limit=6,auto_asx
+		subtitle=s4u
 	}
 	folder {
 		name=Img test
@@ -33,9 +34,10 @@ channel NaviX {
 		type=navix
 	}
 	folder {
-		url=http://navix.turner3d.net/playlist/43095/justme4u2c_site_scrapers_(hs).plx?action=sortsel&cur=ord
-		name=Cool scrapers
+		name=House
+		url=http://navix.turner3d.net/playlist/20203/house_m.d.plx
+		prop=continue_name=(.*>>>.*|.*Next [Pp]age.*),continue_limit=6,auto_asx
 		type=navix
 		subtitle=s4u
 	}
-	}
+}

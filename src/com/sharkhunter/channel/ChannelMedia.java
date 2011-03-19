@@ -135,10 +135,18 @@ public class ChannelMedia implements ChannelProps,ChannelScraper {
 			url=ChannelUtil.unescape(url);
 		thumb=ChannelUtil.pendData(thumb, prop, "thumb");
 		url=ChannelUtil.pendData(url,prop,"url");
+		if(ChannelUtil.empty(url))
+			return;
+		if(ChannelUtil.empty(nName))
+			nName="Unknown";
 		parent.debug("found media "+nName+" thumb "+thumb+" url "+url);
 		// asx is weird and one would expect mencoder to support it no
-		boolean asx=autoASX||(type==ChannelMedia.TYPE_ASX)||
-							 (ChannelUtil.getProperty(prop, "auto_asx"));
+		int asx=ChannelUtil.ASXTYPE_NONE;
+		if(ChannelUtil.getProperty(prop, "auto_asx"))
+			asx=ChannelUtil.ASXTYPE_AUTO;
+		if(type==ChannelMedia.TYPE_ASX)
+			asx=ChannelUtil.ASXTYPE_FORCE;
+		
 		if(Channels.save())  { // Add save version
 			ChannelPMSSaveFolder sf=new ChannelPMSSaveFolder(parent,nName,url,thumb,script,asx,
 					                parent.getFormat(),this);
@@ -158,6 +166,7 @@ public class ChannelMedia implements ChannelProps,ChannelScraper {
 	public String scrape(Channel ch, String url, String scriptName,int format,DLNAResource start) {
 		String realUrl;
 		ch.debug("scrape sub "+subtitle);
+		String subFile="";
 		if(subtitle!=null&&Channels.doSubs()) {
 			ChannelSubs subs=Channels.getSubs(subtitle);
 			if(subs!=null) {
@@ -166,7 +175,7 @@ public class ChannelMedia implements ChannelProps,ChannelScraper {
 				String nameMangle=ChannelUtil.getPropertyValue(prop, "name_mangle");
 				realName=ChannelUtil.mangle(nameMangle, realName);
 				parent.debug("backtracked name "+realName);
-				String subFile=subs.getSubs(realName);
+				subFile=subs.getSubs(realName);
 				parent.debug("subs "+subFile);
 				params.put("subtitle",subFile);	
 			}
@@ -177,7 +186,7 @@ public class ChannelMedia implements ChannelProps,ChannelScraper {
 		}
 		ch.debug("media scrape type "+scriptType+" name "+scriptName);
 		if(scriptType==ChannelMedia.SCRIPT_NET) 
-			return ChannelNaviXProc.parse(url,scriptName,format);
+			return ChannelNaviXProc.parse(url,scriptName,format,subFile);
 		if(scriptType==ChannelMedia.SCRIPT_EXT) {
 			String f=ChannelUtil.format2str(format);
 			ProcessBuilder pb=new ProcessBuilder(scriptName,url,f);

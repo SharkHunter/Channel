@@ -21,6 +21,7 @@ macrodef mediaMacro {
 		    matcher=<a href=\"([^\"]+)\"\s+class=\"down_links_mv\"
 			order=url
 			subtitle=s4u
+			nscript=http://navix.turner3d.net/proc/megavideo
 			prop=concat_name=rear,name_separator= ,name_index=2,name_mangle=([^\(]+)\(
            }
 		   media {
@@ -46,6 +47,7 @@ folder {
 		    matcher=<a href=\"([^\"]+)\"\s+class=\"down_links_mv\"
 			order=url
 			subtitle=s4u
+			nscript=http://navix.turner3d.net/proc/megavideo
 			prop=concat_name=rear,name_separator= ,name_index=3+2,name_mangle=([^\(]+)\([^ ]+ (.*)
            }
 		   media {

@@ -9,12 +9,12 @@ public class ChannelPMSSaveFolder extends VirtualFolder {
 	private String name;
 	private String thumb;
 	private String proc;
-	private boolean asx;
+	private int asx;
 	private ChannelScraper scraper;
 	private int type;
 	
 	public ChannelPMSSaveFolder(Channel ch,String name,String url,String thumb,
-								String proc,boolean asx,int type,
+								String proc,int asx,int type,
 								ChannelScraper scraper) {
 		super(name,thumb);
 		this.url=url;

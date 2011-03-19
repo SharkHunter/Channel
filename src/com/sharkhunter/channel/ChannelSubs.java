@@ -76,6 +76,9 @@ public class ChannelSubs implements ChannelProps {
 		if(ChannelUtil.empty(mediaName))
 			return null;
 		mediaName=mediaName.trim();
+		File f=new File(dPath.getAbsolutePath()+File.separator+mediaName);
+		if(f.exists())
+			return f.getAbsolutePath();
 		String subUrl=fetchSubsUrl(mediaName);
 		Channels.debug("subUrl "+subUrl);
 		if(ChannelUtil.empty(subUrl))
@@ -88,7 +91,6 @@ public class ChannelSubs implements ChannelProps {
 			connection.setDoInput(true);
 			connection.setDoOutput(true);
 			InputStream in=connection.getInputStream();
-			File f=new File(dPath.getAbsolutePath()+File.separator+mediaName);
 			FileOutputStream out=new FileOutputStream(f);
 			byte[] buf = new byte[4096];
 			int len;

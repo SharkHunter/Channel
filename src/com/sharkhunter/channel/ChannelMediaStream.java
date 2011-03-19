@@ -27,18 +27,18 @@ public class ChannelMediaStream extends DLNAResource {
 	private int format;
 	private Channel ch;
 	private String realUrl;
-	private boolean autoASX;
+	private int ASX;
 	private ChannelScraper scraper;
 	private String saveName; 
 	
 	public ChannelMediaStream(Channel ch,String name,String nextUrl,
-							  String thumb,String proc,int type,boolean asx,
+							  String thumb,String proc,int type,int asx,
 							  ChannelScraper scraper) {
 		this(ch,name,nextUrl,thumb,proc,type,asx,scraper,null);
 		
 	}
 	public ChannelMediaStream(Channel ch,String name,String nextUrl,
-							  String thumb,String proc,int type,boolean asx,
+							  String thumb,String proc,int type,int asx,
 							  ChannelScraper scraper,String saveName) {
 		super(type);
 		url=nextUrl;
@@ -48,7 +48,7 @@ public class ChannelMediaStream extends DLNAResource {
 		this.format=type;
 		this.ch=ch;
 		realUrl=null;
-		autoASX=asx;
+		ASX=asx;
 		this.scraper=scraper;
 		this.saveName=saveName;
 	}
@@ -69,8 +69,7 @@ public class ChannelMediaStream extends DLNAResource {
     		realUrl=scraper.scrape(ch,url,processor,format,this);
     	else
     		realUrl=url;
-    	if(autoASX&&ChannelUtil.isASX(realUrl))
-    		realUrl=ChannelUtil.parseASX(realUrl);
+    	realUrl=ChannelUtil.parseASX(realUrl, ASX);
     	if(ChannelUtil.empty(realUrl))
     		return null;
     	InputStream is=super.getInputStream(low,high,timeseek,mediarenderer);

@@ -402,12 +402,24 @@ public class ChannelNaviXProc {
 	}
 	
 	public static String parse(String url,String pUrl,int format) {
-		return parse(url,pUrl,format,null,null);
+		return parse(url,pUrl,format,null,null,null);
+	}
+	
+	public static String parse(String url,String pUrl,int format,String subFile) {
+		return parse(url,pUrl,format,null,null,subFile);
+	}
+	
+	public static String parse(String url,String pUrl,int format,ChannelNaviX caller,DLNAResource start) {
+		return parse(url,pUrl,format,caller,start,null);
 	}
 
-	public static String parse(String url,String pUrl,int format,ChannelNaviX caller,DLNAResource start) {
+	public static String parse(String url,String pUrl,int format,ChannelNaviX caller,DLNAResource start,String subFile) {
+		vars.clear();
+		rvars.clear();
+		vars.put("subtitle",subFile);
+		vars.put("url", url);
 		if(pUrl==null) // no processor, just return what we got
-			return ChannelUtil.createMediaUrl(url,format);
+			return ChannelUtil.createMediaUrl(vars,format);
 		URL pu=null;
 		try {
 			pu = new URL(pUrl+"?url="+url);
@@ -418,8 +430,6 @@ public class ChannelNaviXProc {
 		int phase=0;
 		boolean loop=true;
 		String lastPage="";
-		rvars.clear();
-		vars.clear();
 		// copy nookies to vars
 		for(String key : nookies.keySet()) {
 			if(ChannelNaviXNookie.expired(key)) {

@@ -26,6 +26,11 @@ public class ChannelUtil {
 	
 	public static final String defAgentString="Mozilla/5.0 (Windows; U; Windows NT 6.1; sv-SE; rv:1.9.2.3) Gecko/20100409 Firefox/3.6.3";
 	
+	// ASX types
+	public static final int ASXTYPE_NONE=0;
+	public static final int ASXTYPE_AUTO=1;
+	public static final int ASXTYPE_FORCE=2;
+	
 	public static String postPage(URLConnection connection,String query) {
 		return postPage(connection,query,null,null);
 	}
@@ -260,7 +265,11 @@ public class ChannelUtil {
 		return (line.charAt(0)=='#');
 	}
 	
-	public static String parseASX(String url) {
+	public static String parseASX(String url, int type) {
+		if(type==ChannelUtil.ASXTYPE_NONE)
+			return url;
+		if(type==ChannelUtil.ASXTYPE_AUTO&&!isASX(url))
+			return url;
 		String page;
 		try {
 			page = ChannelUtil.fetchPage(new URL(url).openConnection());
