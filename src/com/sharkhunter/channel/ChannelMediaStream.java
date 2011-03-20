@@ -81,7 +81,7 @@ public class ChannelMediaStream extends DLNAResource {
     	if(ChannelUtil.empty(realUrl))
     		return null;
     	InputStream is=super.getInputStream(low,high,timeseek,mediarenderer);
-    	if(saveName!=null||Channels.cache()) {
+    	if((saveName!=null)||Channels.cache()) {
     		return startSave(is);
     	}
     	else
@@ -112,7 +112,7 @@ public class ChannelMediaStream extends DLNAResource {
 			if(!ChannelUtil.empty(cookie))
 				conn.setRequestProperty("Cookie",cookie);
 			InputStream is = conn.getInputStream();
-			if(saveName!=null||Channels.cache()) {
+			if((saveName!=null)||Channels.cache()) {
 				return startSave(is);
 			}
 			else

@@ -372,7 +372,7 @@ public class ChannelUtil {
 		int rtmpMet=Channels.rtmpMethod();
 		Channels.debug("create media url entry "+rUrl+" format "+format);
 		if(rUrl.startsWith("http")) {
-			if(format!=Format.VIDEO||rtmpMet==Channels.RTMP_MAGIC_TOKEN)
+			if((format!=Format.VIDEO)||(rtmpMet==Channels.RTMP_MAGIC_TOKEN))
 				return rUrl;
 			//rUrl="navix://channel?url="+escape(rUrl);
 			rUrl="channel?url="+escape(rUrl);
