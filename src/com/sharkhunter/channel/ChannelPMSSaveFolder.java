@@ -28,7 +28,7 @@ public class ChannelPMSSaveFolder extends VirtualFolder {
 	}
 	
 	public void discoverChildren() {
-		addChild(new ChannelMediaStream(ch,"SAVE&PLAY",url,thumb,proc,type,asx,scraper,name));
-		addChild(new ChannelMediaStream(ch,"PLAY",url,thumb,proc,type,asx,scraper,null));
+		addChild(new ChannelMediaStream(ch,"SAVE&PLAY",url,thumb,proc,type,asx,scraper,name,name));
+		addChild(new ChannelMediaStream(ch,"PLAY",url,thumb,proc,type,asx,scraper,name,null));
 	}
 }

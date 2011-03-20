@@ -34,6 +34,7 @@ public class ChannelCfg {
 	private String ytPath;
 	private Channels top;
 	private boolean subs;
+	private boolean cache;
 	
 	public ChannelCfg(Channels top) {
 		chPath=null;
@@ -42,6 +43,7 @@ public class ChannelCfg {
 		scriptPath=null;
 		subs=true;
 		this.top=top;
+		cache=false;
 	}
 	
 	///////////////////////////////////
@@ -136,6 +138,10 @@ public class ChannelCfg {
 		return ytPath;
 	}
 	
+	public boolean getCache() {
+		return cache;
+	}
+	
 	//////////////////////////////////////
 	// Other methods
 	//////////////////////////////////////
@@ -156,6 +162,7 @@ public class ChannelCfg {
 		// Other
 		String dbg=(String)PMS.getConfiguration().getCustomProperty("channels.debug");
 		String sub=(String) PMS.getConfiguration().getCustomProperty("channels.subtitle");
+		String cacheStr=(String) PMS.getConfiguration().getCustomProperty("channels.cache");
 		String rtmpMode=(String)PMS.getConfiguration().getCustomProperty("channels.rtmp");
 		if(rtmpMode!=null) {
 			if(rtmpMode.trim().equalsIgnoreCase("1"))
@@ -173,6 +180,11 @@ public class ChannelCfg {
 				Channels.setSubs(true);
 			else
 				Channels.setSubs(false);
+		if(!ChannelUtil.empty(cacheStr))
+			if(cacheStr.equalsIgnoreCase("true"))
+				Channels.setCache(true);
+			else
+				Channels.setCache(false);
 	}
 	
 	private void configPath(String key,String val) {

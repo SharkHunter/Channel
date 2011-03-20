@@ -305,14 +305,14 @@ public class ChannelFolder implements ChannelProps{
 	    		String mUrl=m.getMatch("url",true);
 	    		String thumb=m.getMatch("thumb",false);
 	    		String playpath=m.getMatch("playpath",false);
-	    		String swfplayer=m.getMatch("swfplayer",false);
+	    		String swfplayer=m.getMatch("swfVfy",false);
 	    		thumb=ChannelUtil.getThumb(thumb, pThumb, parent);
 	    		parent.debug("media matching using "+m.getRegexp().pattern());
 	    		if(ChannelUtil.empty(someName))
 	    			someName=nName;
 	    		m1.add(res, someName, mUrl, thumb,ChannelUtil.getProperty(prop, "auto_asx"));
 	    		m1.stash("playpath",playpath);
-	    		m1.stash("swfplayer",swfplayer);
+	    		m1.stash("swfVfy",swfplayer);
 	    		if(m1.onlyFirst())
 	    			break;
 	    	}

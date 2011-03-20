@@ -2,6 +2,8 @@ package com.sharkhunter.channel;
 
 import java.io.BufferedReader;
 import java.io.DataOutputStream;
+import java.io.File;
+import java.io.FileOutputStream;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.UnsupportedEncodingException;
@@ -411,7 +413,7 @@ public class ChannelUtil {
 		switch(rtmpMet) {
 			case Channels.RTMP_MAGIC_TOKEN:
 				rUrl=ChannelUtil.append(rUrl, "!!!pms_ch_dash_y!!!", vars.get("playpath"));
-				rUrl=ChannelUtil.append(rUrl, "!!!pms_ch_dash_w!!!", vars.get("swfplayer"));
+				rUrl=ChannelUtil.append(rUrl, "!!!pms_ch_dash_w!!!", vars.get("swfVfy"));
 				break;
 			
 			case Channels.RTMP_DUMP:
@@ -524,6 +526,20 @@ public class ChannelUtil {
 			Channels.debug("executing external script failed "+e);
 		}
 		return null;
+	}
+
+	public static void cacheFile(File f,String type) {
+		File cache=new File(Channels.cacheFile());
+		long ttd=System.currentTimeMillis()+(7*24*60*60); // now + 1week
+		String data="\n\r"+f.getAbsolutePath()+","+String.valueOf(ttd)+","+type+"\n\r";
+		try {
+			FileOutputStream out=new FileOutputStream(cache,true);
+			out.write(data.getBytes(), 0, data.length());
+			out.flush();
+			out.close();
+		}
+		catch (Exception e) {
+		}
 	}
 	
 }

@@ -71,14 +71,19 @@ public class ChannelSubs implements ChannelProps {
 		}
 	}
 	
+	private String cacheFile(File f) {
+		ChannelUtil.cacheFile(f,"sub");
+		return f.getAbsolutePath();
+	}
+	
 	public String getSubs(String mediaName) {
 		Channels.debug("get subs "+mediaName);
 		if(ChannelUtil.empty(mediaName))
 			return null;
 		mediaName=mediaName.trim();
-		File f=new File(dPath.getAbsolutePath()+File.separator+mediaName);
+		File f=new File(dPath.getAbsolutePath()+File.separator+mediaName+".srt");
 		if(f.exists())
-			return f.getAbsolutePath();
+			return cacheFile(f);
 		String subUrl=fetchSubsUrl(mediaName);
 		Channels.debug("subUrl "+subUrl);
 		if(ChannelUtil.empty(subUrl))
@@ -99,7 +104,7 @@ public class ChannelSubs implements ChannelProps {
 			out.flush();
 			out.close();
 			in.close();
-			return f.getAbsolutePath();
+			return cacheFile(f);
 		}
 		catch (Exception e) {
 			Channels.debug("Error fetching subfile "+e);

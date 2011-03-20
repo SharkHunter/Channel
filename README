@@ -323,11 +323,11 @@
       but it will be used the same way as a play.
     * Only v2 scripts are allowed.
 
-    Magic token
+    RTMP stash
     -------------
-    Some rtmp streams needs to be played by rtmpdump by the use of the -y option. To solve this issue
-    a special url_separator should be used. If the url_separator is !!!pms_ch_dash_y!!! it will
-    be replace by -y just before given to rtmpdump.
+    Some rtmp streams needs to be played by rtmpdump by the use of the -y(=playpath) or -W(=sfwVfy) option. 
+    To solve this issue	use the keyword put=<key>=<val>, where key is playpath or sfwCfy respectively and
+    val is the string needed.
 
     Sample file
     -----------

@@ -34,22 +34,27 @@ public class Channels extends VirtualFolder implements FileListener {
     private String savePath;
     private boolean appendTS;
     private boolean subs;
+    private ChannelCache cache;
+    private boolean doCache;
     
     public Channels(String path,long poll) {
     	super("Channels",null);
     	this.file=new File(path);
     	inst=this;
     	subs=true;
+    	doCache=false;
     	chFiles=new ArrayList<File>();
     	cred=new ArrayList<ChannelCred>();
     	scripts=new HashMap<String,ChannelMacro>();
     	subtitles=new HashMap<String,ChannelSubs>();
+    	cache=new ChannelCache(path);
     	savePath="";
     	appendTS=false;
     	//rtmp=Channels.RTMP_MAGIC_TOKEN;
     	rtmp=Channels.RTMP_DUMP;
-    	PMS.minimal("Start channel 0.74");
+    	PMS.minimal("Start channel 0.80");
     	dbg=new ChannelDbg(new File(path+File.separator+"channel.log"));
+    	addChild(cache);
     	fileMonitor=null;
     	if(poll>0)
     		fileMonitor=new FileMonitor(poll);
@@ -299,6 +304,7 @@ public class Channels extends VirtualFolder implements FileListener {
 	public void setSave(String sPath,String ts) {
 		savePath=sPath;
 		appendTS=(ChannelUtil.empty(ts)?false:true);
+		cache.savePath(sPath);
 		PMS.debug("[Channel]: using save path "+sPath);
 		debug("using save path "+sPath);
 	}
@@ -307,24 +313,28 @@ public class Channels extends VirtualFolder implements FileListener {
 		return !ChannelUtil.empty(inst.savePath);
 	}
 	
-	public static String fileName(String name) {
+	public static String fileName(String name,boolean cache) {
 		String ts="";
 		String ext=ChannelUtil.extension(name);
 		if(inst.appendTS) 
 			ts="_"+String.valueOf(System.currentTimeMillis());
+		String fName=name+ts+(ChannelUtil.empty(ext)?"":ext);
 		// if we got an extension we move it to the end of the filename
-		return inst.savePath+File.separator+name+ts+(ChannelUtil.empty(ext)?"":ext);
+		if(!cache&&save())
+			return inst.savePath+File.separator+fName;
+		else
+			return getPath()+File.separator+"data"+File.separator+fName;
 	}
 	
 	///////////////////////////////////////////
 	// Path handling
 	///////////////////////////////////////////
 	
-	public String getSavePath() {
+	public static String getSavePath() {
 		return inst.savePath;
 	}
 	
-	public String getPath() {
+	public static String getPath() {
 		return inst.file.getAbsolutePath();
 	}
 	
@@ -368,5 +378,18 @@ public class Channels extends VirtualFolder implements FileListener {
 	public static boolean doSubs() {
 		return inst.subs;
 	}
+	
+	public static boolean cache() {
+		return inst.doCache;
+	}
+	
+	public static void setCache(boolean b) {
+		inst.doCache=true;
+	}
+	
+	public static String cacheFile() {
+		return inst.file.getAbsolutePath()+File.separator+"data"+File.separator+"cache";
+	}
+	
 	
 }

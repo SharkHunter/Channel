@@ -2,6 +2,7 @@ package com.sharkhunter.channel;
 
 import java.io.BufferedInputStream;
 import java.io.BufferedOutputStream;
+import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -30,16 +31,22 @@ public class ChannelMediaStream extends DLNAResource {
 	private int ASX;
 	private ChannelScraper scraper;
 	private String saveName; 
+	private String dispName;
 	
 	public ChannelMediaStream(Channel ch,String name,String nextUrl,
+			  String thumb,String proc,int type,int asx,
+			  ChannelScraper scraper) {	
+		this(ch,name,nextUrl,thumb,proc,type,asx,scraper,name,null);
+	}
+	public ChannelMediaStream(Channel ch,String name,String nextUrl,
 							  String thumb,String proc,int type,int asx,
-							  ChannelScraper scraper) {
-		this(ch,name,nextUrl,thumb,proc,type,asx,scraper,null);
+							  ChannelScraper scraper,String dispName) {
+		this(ch,name,nextUrl,thumb,proc,type,asx,scraper,dispName,null);
 		
 	}
 	public ChannelMediaStream(Channel ch,String name,String nextUrl,
 							  String thumb,String proc,int type,int asx,
-							  ChannelScraper scraper,String saveName) {
+							  ChannelScraper scraper,String dispName,String saveName) {
 		super(type);
 		url=nextUrl;
 		this.name=name;
@@ -51,6 +58,7 @@ public class ChannelMediaStream extends DLNAResource {
 		ASX=asx;
 		this.scraper=scraper;
 		this.saveName=saveName;
+		this.dispName=dispName;
 	}
 	
     public InputStream getThumbnailInputStream() throws IOException {
@@ -73,7 +81,7 @@ public class ChannelMediaStream extends DLNAResource {
     	if(ChannelUtil.empty(realUrl))
     		return null;
     	InputStream is=super.getInputStream(low,high,timeseek,mediarenderer);
-    	if(saveName!=null) {
+    	if(saveName!=null||Channels.cache()) {
     		return startSave(is);
     	}
     	else
@@ -104,7 +112,7 @@ public class ChannelMediaStream extends DLNAResource {
 			if(!ChannelUtil.empty(cookie))
 				conn.setRequestProperty("Cookie",cookie);
 			InputStream is = conn.getInputStream();
-			if(saveName!=null) {
+			if(saveName!=null||Channels.cache()) {
 				return startSave(is);
 			}
 			else
@@ -117,8 +125,13 @@ public class ChannelMediaStream extends DLNAResource {
     }
     
     private InputStream startSave(InputStream is) throws IOException {
-    	String fName=Channels.fileName(saveName);
-    	fName=ChannelUtil.guessExt(fName,realUrl);
+    	String sName=saveName;
+    	boolean cache=ChannelUtil.empty(saveName);
+    	if(cache)
+    		sName=dispName;
+    	String fName=Channels.fileName(sName,cache);
+    	//fName=ChannelUtil.guessExt(fName,realUrl);
+    	ChannelUtil.cacheFile(new File(fName),"media");
 		BufferedOutputStream fos=new BufferedOutputStream(new FileOutputStream(fName));
  	   	PipedOutputStream pos=(new PipedOutputStream());
  	   	PipedInputStream pis=new PipedInputStream(pos);

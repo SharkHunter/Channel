@@ -154,7 +154,7 @@ public class ChannelMedia implements ChannelProps,ChannelScraper {
 		}
 		else {
 			res.addChild(new ChannelMediaStream(parent,nName,url,thumb,script,parent.getFormat(),
-					asx,this));
+						asx,this));
 		}
 	}
 	
