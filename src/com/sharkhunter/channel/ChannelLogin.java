@@ -13,7 +13,7 @@ import net.pms.PMS;
 public class ChannelLogin {
 	
 	public static final int STD=0;
-	public static final int COOKIE=0;
+	public static final int COOKIE=1;
 	
 	private Channel parent;
 	private String user;
@@ -110,20 +110,24 @@ public class ChannelLogin {
 		URL u=new URL(url);
 		HttpURLConnection connection = (HttpURLConnection) u.openConnection();
 		HttpURLConnection.setFollowRedirects(true);   
-		connection.setInstanceFollowRedirects(true);   
+		connection.setInstanceFollowRedirects(false);   
 		connection.setRequestMethod("POST");  
 		String page=ChannelUtil.postPage(connection, query);
 		String hName="";
+		//Channels.debug("result "+connection.getResponseCode()+" page "+page);
 		for (int j=1; (hName = connection.getHeaderFieldKey(j))!=null; j++) {
+			Channels.debug("hdr "+hName);
 		 	if (!hName.equals("Set-Cookie")) 
 		 		continue;
 		 	String[] fields = connection.getHeaderField(j).split(";\\s*");
 	 		String cookie=fields[0];
-		 	cookie = cookie.substring(0, cookie.indexOf(";"));
-	        /*tokenStr=cookie;
+	 		int pos;
+	 		if((pos=cookie.indexOf(";"))!=-1)
+	 			cookie = cookie.substring(0, pos);
+	        tokenStr=cookie;
 	        loggedOn=true;
-	        return mkResult();*/
-		 	return null;
+	        return mkResult();
+//		 	return null;
 		}
 		return null;
 	}
@@ -133,6 +137,7 @@ public class ChannelLogin {
 	}
 	
 	public ChannelAuth getAuthStr(String usr,String pass,boolean media) {
+		Channels.debug("login on channel "+parent.getName()+" type "+type);
 		if(loggedOn)
 			return mkResult();
 		if(!media&&mediaOnly)

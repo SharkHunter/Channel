@@ -186,7 +186,7 @@ public class ChannelMedia implements ChannelProps,ChannelScraper {
 		}
 		ch.debug("media scrape type "+scriptType+" name "+scriptName);
 		if(scriptType==ChannelMedia.SCRIPT_NET) 
-			return ChannelNaviXProc.parse(url,scriptName,format,subFile);
+			return ChannelNaviXProc.parse(url,scriptName,format,subFile,parent);
 		if(scriptType==ChannelMedia.SCRIPT_EXT) {
 			String f=ChannelUtil.format2str(format);
 			ProcessBuilder pb=new ProcessBuilder(scriptName,url,f);

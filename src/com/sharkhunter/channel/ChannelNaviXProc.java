@@ -402,22 +402,28 @@ public class ChannelNaviXProc {
 	}
 	
 	public static String parse(String url,String pUrl,int format) {
-		return parse(url,pUrl,format,null,null,null);
+		return parse(url,pUrl,format,null,null,null,null);
 	}
 	
-	public static String parse(String url,String pUrl,int format,String subFile) {
-		return parse(url,pUrl,format,null,null,subFile);
+	public static String parse(String url,String pUrl,int format,String subFile,Channel ch) {
+		return parse(url,pUrl,format,null,null,subFile,ch);
 	}
 	
 	public static String parse(String url,String pUrl,int format,ChannelNaviX caller,DLNAResource start) {
-		return parse(url,pUrl,format,caller,start,null);
+		return parse(url,pUrl,format,caller,start,null,null);
 	}
 
-	public static String parse(String url,String pUrl,int format,ChannelNaviX caller,DLNAResource start,String subFile) {
+	public static String parse(String url,String pUrl,int format,ChannelNaviX caller,
+							   DLNAResource start,String subFile,Channel ch) {
 		vars.clear();
 		rvars.clear();
 		vars.put("subtitle",subFile);
 		vars.put("url", url);
+		if(ch!=null) {
+			ChannelAuth auth=ch.getAuth();
+			if((auth!=null)&&(auth.method==ChannelLogin.COOKIE))
+				vars.put("s_cookie", auth.authStr);
+		}
 		if(pUrl==null) // no processor, just return what we got
 			return ChannelUtil.createMediaUrl(vars,format);
 		URL pu=null;

@@ -52,7 +52,7 @@ public class Channels extends VirtualFolder implements FileListener {
     	appendTS=false;
     	//rtmp=Channels.RTMP_MAGIC_TOKEN;
     	rtmp=Channels.RTMP_DUMP;
-    	PMS.minimal("Start channel 0.81");
+    	PMS.minimal("Start channel 0.82");
     	dbg=new ChannelDbg(new File(path+File.separator+"channel.log"));
     	addChild(cache);
     	fileMonitor=null;
@@ -203,6 +203,7 @@ public class Channels extends VirtualFolder implements FileListener {
     		if(ch==null)
     			continue;
     		cr.ch=ch;
+    		debug("adding cred to channel "+cr.channelName);
     		ch.addCred(cr);
     	}
     		

@@ -1,4 +1,4 @@
-version=0.16
+version=0.20
 ## NOTE!!!
 ## 
 ## We match out both the megavideo play link and megaupload link
@@ -117,7 +117,15 @@ macrodef movieMacro {
 
 channel IceFilms {
    img=http://img.icefilms.info/logo.png
-   folder {
+  login {
+		# Login data
+		url=http://www.megavideo.com/?c=
+		user=username
+		passwd=password
+		params=login=1&redir=1
+		type=cookie
+	}
+	folder {
       name=TV Shows
 	  folder {
 		#Popular
