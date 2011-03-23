@@ -1,6 +1,9 @@
 package com.sharkhunter.channel;
 
 import java.io.InputStream;
+
+import org.apache.commons.lang.StringEscapeUtils;
+
 import net.pms.dlna.virtual.VirtualFolder;
 
 public class ChannelPMSFolder extends VirtualFolder implements ChannelFilter{
@@ -22,7 +25,7 @@ public class ChannelPMSFolder extends VirtualFolder implements ChannelFilter{
 		}
 		
 		public ChannelPMSFolder(ChannelFolder cf,String name,String filter,String url,String thumb) {
-			super(name==null?"":name,thumb);
+			super(name==null?"":StringEscapeUtils.unescapeHtml(name),thumb);
 			this.cf=cf;
 			this.filter=filter;
 			this.url=url;

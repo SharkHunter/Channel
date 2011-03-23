@@ -5,6 +5,8 @@ import java.util.HashMap;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import org.apache.commons.lang.StringEscapeUtils;
+
 import net.pms.PMS;
 import net.pms.dlna.DLNAResource;
 import net.pms.formats.Format;
@@ -139,6 +141,7 @@ public class ChannelMedia implements ChannelProps,ChannelScraper {
 			return;
 		if(ChannelUtil.empty(nName))
 			nName="Unknown";
+		nName=StringEscapeUtils.unescapeHtml(nName);
 		parent.debug("found media "+nName+" thumb "+thumb+" url "+url);
 		// asx is weird and one would expect mencoder to support it no
 		int asx=ChannelUtil.ASXTYPE_NONE;
@@ -167,6 +170,11 @@ public class ChannelMedia implements ChannelProps,ChannelScraper {
 		String realUrl;
 		ch.debug("scrape sub "+subtitle);
 		String subFile="";
+		int asx=ChannelUtil.ASXTYPE_NONE;
+		if(ChannelUtil.getProperty(prop, "auto_asx"))
+			asx=ChannelUtil.ASXTYPE_AUTO;
+		if(type==ChannelMedia.TYPE_ASX)
+			asx=ChannelUtil.ASXTYPE_FORCE;
 		if(subtitle!=null&&Channels.doSubs()) {
 			ChannelSubs subs=Channels.getSubs(subtitle);
 			if(subs!=null) {
@@ -181,7 +189,7 @@ public class ChannelMedia implements ChannelProps,ChannelScraper {
 			}
 		}
 		if(ChannelUtil.empty(scriptName)) { // no script just return what we got
-			params.put("url", url);
+			params.put("url", ChannelUtil.parseASX(url,asx));
 			return ChannelUtil.createMediaUrl(params,format);
 		}
 		ch.debug("media scrape type "+scriptType+" name "+scriptName);
@@ -191,7 +199,7 @@ public class ChannelMedia implements ChannelProps,ChannelScraper {
 			String f=ChannelUtil.format2str(format);
 			ProcessBuilder pb=new ProcessBuilder(scriptName,url,f);
 			String rUrl=ChannelUtil.execute(pb);
-			params.put("url", rUrl);
+			params.put("url",  ChannelUtil.parseASX(rUrl,asx));
 			return ChannelUtil.createMediaUrl(params, format);
 		}	
 		ArrayList<String> sData=Channels.getScript(scriptName);
@@ -205,7 +213,7 @@ public class ChannelMedia implements ChannelProps,ChannelScraper {
 			ch.debug("Bad script result");
 			return null;
 		}
-		params.put("url", realUrl);
+		params.put("url",  ChannelUtil.parseASX(realUrl,asx));
 		return ChannelUtil.createMediaUrl(params,format);
 	}
 }

@@ -3,6 +3,8 @@ package com.sharkhunter.channel;
 import java.io.InputStream;
 import java.net.MalformedURLException;
 
+import org.apache.commons.lang.StringEscapeUtils;
+
 import net.pms.dlna.virtual.VirtualFolder;
 
 public class ChannelPMSItem extends VirtualFolder implements ChannelFilter{
@@ -12,7 +14,7 @@ public class ChannelPMSItem extends VirtualFolder implements ChannelFilter{
 	private String url;
 	
 	public ChannelPMSItem(ChannelItem ci,String name,String filter,String url,String thumb) {
-		super(name,thumb);
+		super(StringEscapeUtils.unescapeHtml(name),thumb);
 		this.ci=ci;
 		this.filter=filter;
 		this.url=url;

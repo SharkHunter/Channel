@@ -76,8 +76,7 @@ public class ChannelMediaStream extends DLNAResource {
     	if(scraper!=null)
     		realUrl=scraper.scrape(ch,url,processor,format,this);
     	else
-    		realUrl=url;
-    	realUrl=ChannelUtil.parseASX(realUrl, ASX);
+    		realUrl=ChannelUtil.parseASX(url, ASX);
     	if(ChannelUtil.empty(realUrl))
     		return null;
     	InputStream is=super.getInputStream(low,high,timeseek,mediarenderer);

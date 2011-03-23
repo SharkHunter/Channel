@@ -513,7 +513,10 @@ public class ChannelNaviXProc {
 			vars=tmp;
 			vars.put("subtitle", sub);
 		}
-		String rUrl=ChannelUtil.createMediaUrl(vars,format);
+		// First asx parse (we do this always, since we are not sure here)
+		String rUrl=ChannelUtil.parseASX(vars.get("url"), ChannelUtil.ASXTYPE_AUTO);
+		vars.put("url", rUrl);
+		rUrl=ChannelUtil.createMediaUrl(vars,format);
 		Channels.debug("navix return media url "+rUrl);
 		return rUrl;
 	}

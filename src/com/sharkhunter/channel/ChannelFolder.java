@@ -4,6 +4,8 @@ import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.ArrayList;
 
+import org.apache.commons.lang.StringEscapeUtils;
+
 import net.pms.PMS;
 import net.pms.dlna.DLNAResource;
 
