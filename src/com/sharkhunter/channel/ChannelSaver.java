@@ -42,6 +42,4 @@ public class ChannelSaver implements Runnable {
 			closeAll(os);
 		}
 	}
-
-
 }

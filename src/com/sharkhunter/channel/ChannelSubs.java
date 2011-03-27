@@ -89,26 +89,8 @@ public class ChannelSubs implements ChannelProps {
 		if(ChannelUtil.empty(subUrl))
 			return null;
 		subUrl=subUrl.replace("&amp;", "&");
-		try {
-			URL u=new URL(subUrl);
-			URLConnection connection=u.openConnection();
-			connection.setRequestProperty("User-Agent",ChannelUtil.defAgentString);
-			connection.setDoInput(true);
-			connection.setDoOutput(true);
-			InputStream in=connection.getInputStream();
-			FileOutputStream out=new FileOutputStream(f);
-			byte[] buf = new byte[4096];
-			int len;
-			while((len=in.read(buf))!=-1)
-				out.write(buf, 0, len);
-			out.flush();
-			out.close();
-			in.close();
+		if(ChannelUtil.downloadBin(subUrl, f))
 			return cacheFile(f);
-		}
-		catch (Exception e) {
-			Channels.debug("Error fetching subfile "+e);
-		}
 		return null;
 	}
 	

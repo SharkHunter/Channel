@@ -1,6 +1,7 @@
 package com.sharkhunter.channel;
 
 import net.pms.dlna.virtual.VirtualFolder;
+import net.pms.dlna.virtual.VirtualVideoAction;
 
 public class ChannelPMSSaveFolder extends VirtualFolder {
 	
@@ -30,5 +31,20 @@ public class ChannelPMSSaveFolder extends VirtualFolder {
 	public void discoverChildren() {
 		addChild(new ChannelMediaStream(ch,"SAVE&PLAY",url,thumb,proc,type,asx,scraper,name,name));
 		addChild(new ChannelMediaStream(ch,"PLAY",url,thumb,proc,type,asx,scraper,name,null));
+		final ChannelOffHour oh=Channels.getOffHour();
+		if(oh!=null) {
+			final boolean add=!oh.scheduled(url);
+			final String rName=name;
+			addChild(new VirtualVideoAction((add?"ADD to ":"DELETE from ")+
+											"offhour download", true) { //$NON-NLS-1$
+				public boolean enable() {
+					String rUrl=url;
+					if(scraper!=null)
+						rUrl=scraper.scrape(ch, url, proc, type, this);
+					oh.update(rUrl, rName, add);
+					return add;
+				}
+			});
+		}
 	}
 }

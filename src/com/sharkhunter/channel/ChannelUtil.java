@@ -127,6 +127,30 @@ public class ChannelUtil {
 		}
 	}
 	
+	public static boolean downloadBin(String url,File f) {
+		try {
+			URL u=new URL(url);
+			URLConnection connection=u.openConnection();
+			connection.setRequestProperty("User-Agent",ChannelUtil.defAgentString);
+			connection.setDoInput(true);
+			connection.setDoOutput(true);
+			InputStream in=connection.getInputStream();
+			FileOutputStream out=new FileOutputStream(f);
+			byte[] buf = new byte[4096];
+			int len;
+			while((len=in.read(buf))!=-1)
+				out.write(buf, 0, len);
+			out.flush();
+			out.close();
+			in.close();
+			return true;
+		}
+		catch (Exception e) {
+			Channels.debug("Error fetching bin file "+e);
+		}
+		return false;
+	}
+	
 	public static boolean empty(String s) {
 		return (s==null)||(s.length()==0);
 	}
@@ -310,7 +334,7 @@ public class ChannelUtil {
 	
 	public static String extension(String fileName) {
 		int pos=fileName.lastIndexOf('.');
-		if(pos>0&&pos<fileName.length()-1)
+		if((pos>0)&&(pos<fileName.length()-1))
 			return fileName.substring(pos);
 		return null;
 	}
@@ -418,7 +442,7 @@ public class ChannelUtil {
 			
 			case Channels.RTMP_DUMP:
 				Channels.debug("rtmpdump method");
-				rUrl="rtmpdump://channel?url="+escape(rUrl);
+				rUrl="rtmpdump://channel?-r="+escape(rUrl);
 				rUrl=ChannelUtil.append(rUrl, "&-y=", escape(vars.get("playpath")));
 				rUrl=ChannelUtil.append(rUrl, "&-W=", escape(vars.get("swfVfy")));
 				rUrl=ChannelUtil.append(rUrl, "&-s=", escape(vars.get("swfplayer")));
@@ -510,15 +534,24 @@ public class ChannelUtil {
 	}
 	
 	public static String execute(ProcessBuilder pb) {
+		return execute(pb,false);
+	}
+	
+	public static String execute(ProcessBuilder pb,boolean verbose) {
 		try {
+			Channels.debug("about to execute "+pb.command());
+			pb.redirectErrorStream(true);
 			Process pid=pb.start();
 			InputStream is = pid.getInputStream();
 	        InputStreamReader isr = new InputStreamReader(is);
 	        BufferedReader br = new BufferedReader(isr);
 	        String line;
 	        StringBuilder sb=new StringBuilder();
-	        while ((line = br.readLine()) != null) 
+	        while ((line = br.readLine()) != null) { 
 	        	sb.append(line);
+	        	if(verbose)
+	        		Channels.debug("execute read line "+line);
+	        }
 	        pid.waitFor();
 	        return sb.toString();
 		}
@@ -542,4 +575,78 @@ public class ChannelUtil {
 		}
 	}
 	
+	public static Thread backgroundDownload(String name,String url,boolean cache) {
+		final String fName=ChannelUtil.guessExt(Channels.fileName(name, cache),
+				url);
+		if(ChannelUtil.rtmpStream(url)) {
+			try {
+				//		URL u=new URL(url); 
+				// rtmp stream special fix
+				final ProcessBuilder pb=buildPid(fName,url);
+				if(pb==null)
+					return null;
+				Channels.debug("start process");
+				Runnable r = new Runnable() {
+					public void run() {
+						ChannelUtil.execute(pb);
+					}
+				};
+				return new Thread(r);
+			}
+			catch (Exception e) {
+				return null;
+			}
+		}
+		
+		if(url.startsWith("http")||
+		   url.startsWith("navix")||
+		   url.startsWith("subs")) {
+			if(url.startsWith("navix")||
+			   url.startsWith("subs")) {
+				int pos=url.indexOf('?');
+				if(pos==-1)
+					return null;
+				String[] data=url.substring(pos+1).split("&");
+				for(int i=0;i<data.length;i++) {
+					String[] kv=data[i].split("=");
+					if(kv[0].equals("url"))
+						url=ChannelUtil.unescape(kv[1]);
+				}
+			}
+			if(empty(url))
+				return null;
+			final String rUrl=url; 
+			Runnable r = new Runnable() {
+				public void run() {
+					downloadBin(rUrl,new File(fName));
+				}
+			};
+			return new Thread(r);
+		}
+		return null;
+	}
+	
+	private static ProcessBuilder buildPid(String fName,String url) {
+			int rtmpMet=Channels.rtmpMethod();
+			if(rtmpMet==Channels.RTMP_MAGIC_TOKEN) {
+				url=url.replace("!!!pms_ch_dash_y!!!", " -y ");
+				url=url.replace("!!!pms_ch_dash_w!!!", " -W ");
+				return null;
+			}
+			ArrayList<String> args=new ArrayList<String>();
+			args.add(Channels.cfg().getRtmpPath());
+			int pos=url.indexOf('?');
+			if(pos==-1)
+				return null;
+			String[] data=url.substring(pos+1).split("&");
+			for(int i=0;i<data.length;i++) {
+				String[] kv=data[i].split("=");
+				args.add(kv[0]);
+				if(kv.length>1)
+					args.add("\""+ChannelUtil.unescape(kv[1])+"\"");
+			}
+			args.add("-o");
+			args.add("\""+fName+"\"");
+			return new ProcessBuilder(args);
+	}
 }

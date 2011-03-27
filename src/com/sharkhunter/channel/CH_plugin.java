@@ -27,6 +27,8 @@ public class CH_plugin implements AdditionalFolderAtRoot {
 			String save=(String)PMS.getConfiguration().getCustomProperty("channels.save");
 			chRoot=new Channels(path,getInterval());
 			cfg=new ChannelCfg(chRoot);
+			chRoot.setCfg(cfg);
+			cfg.init();
 			if(save!=null) {
 				String ts=(String)PMS.getConfiguration().getCustomProperty("channels.save_ts");
 				String savePath=save;
@@ -34,9 +36,9 @@ public class CH_plugin implements AdditionalFolderAtRoot {
 					savePath=path+File.separator+"saved";
 				chRoot.setSave(savePath,ts);
 				cfg.ensureCreated(savePath);
+				cfg.setSavePath(savePath);
 			}
 			gui=new ChannelGUI(cfg,chRoot);
-			cfg.init();
 			String dPath=confPath+File.separator+"data";
 			cfg.ensureCreated(dPath);
 			ChannelNaviXNookie.init(new File(dPath+File.separator+"nookie"));

@@ -148,8 +148,8 @@ public class ChannelCfg {
 	
 	public void init() {
 		// Paths
-		chPath=top.getPath();
-		saPath=top.getSavePath();
+		chPath=Channels.getPath();
+		saPath=Channels.getSavePath();
 		scriptPath=(String) PMS.getConfiguration().getCustomProperty("pmsencoder.script.directory");
 		rtmpPath=(String) PMS.getConfiguration().getCustomProperty("rtmpdump.path");
 		sopcastPath=(String) PMS.getConfiguration().getCustomProperty("sopcast.path");

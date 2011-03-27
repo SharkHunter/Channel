@@ -3,7 +3,12 @@ package com.sharkhunter.channel;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
+import java.io.IOException;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Date;
+import java.util.GregorianCalendar;
 import java.util.HashMap;
 
 import net.pms.PMS;
@@ -36,6 +41,8 @@ public class Channels extends VirtualFolder implements FileListener {
     private boolean subs;
     private ChannelCache cache;
     private boolean doCache;
+    private ChannelOffHour oh;
+    private ChannelCfg cfg;
     
     public Channels(String path,long poll) {
     	super("Channels",null);
@@ -49,10 +56,11 @@ public class Channels extends VirtualFolder implements FileListener {
     	subtitles=new HashMap<String,ChannelSubs>();
     	cache=new ChannelCache(path);
     	savePath="";
+    	oh=null;
     	appendTS=false;
     	//rtmp=Channels.RTMP_MAGIC_TOKEN;
     	rtmp=Channels.RTMP_DUMP;
-    	PMS.minimal("Start channel 0.83");
+    	PMS.minimal("Start channel 1.00");
     	dbg=new ChannelDbg(new File(path+File.separator+"channel.log"));
     	addChild(cache);
     	fileMonitor=null;
@@ -248,6 +256,39 @@ public class Channels extends VirtualFolder implements FileListener {
     	catch (Exception e) {} 
     }
     
+    private void handleVCR(File f) throws IOException {
+    		BufferedReader in = new BufferedReader(new FileReader(f));
+    		SimpleDateFormat sdfDate = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss");
+			String str;
+			GregorianCalendar now=new GregorianCalendar();
+			while ((str = in.readLine()) != null) {
+				str=str.trim();
+				if(ChannelUtil.ignoreLine(str))
+					continue;
+				String[] data=str.split(",");
+				if(data.length<2)
+					continue;
+				Date d;
+				String name="";
+				try {
+					d=sdfDate.parse(data[0]);
+				} catch (ParseException e) {
+					debug("bad date format "+str);
+					continue;
+				}
+				if(d.before(now.getTime())) {
+					debug("Time already past "+str);
+					continue;
+				}
+				String proc="";
+				if(data.length>2)
+					proc=data[2];
+				if(data.length>3)
+					name=data[3];
+				ChannelVCR vcr=new ChannelVCR(d,data[1],proc,name);
+			}
+    }
+    
     private void handleDirChange(File dir) throws Exception {
     	if(!dir.exists()) // file (or dir is gone) ignore
 			return;
@@ -269,6 +310,9 @@ public class Channels extends VirtualFolder implements FileListener {
 			}
 			else if(f.getAbsolutePath().endsWith(".cred"))
 				handleCred(f);
+			else if(f.getAbsolutePath().endsWith(".vcr"))
+				handleVCR(f);
+			
 		}	
     }
 
@@ -284,6 +328,8 @@ public class Channels extends VirtualFolder implements FileListener {
 			try {
 				if(f.getAbsolutePath().endsWith(".cred"))
 					handleCred(f);
+				else if(f.getAbsolutePath().endsWith(".vcr"))
+					handleVCR(f);
 				else
 					if(f.exists())
 						parseChannels(f);
@@ -294,18 +340,52 @@ public class Channels extends VirtualFolder implements FileListener {
 		}
 	}
 	
+	//////////////////////////////////////
+
+	private int convInt(String str,int def) {
+		try {
+			Integer i=Integer.valueOf(str);
+			return i.intValue();
+		}
+		catch (Exception e) {
+		}
+		return def;
+	}
+	
+	private void startOffHour() {
+		String cfg=(String) PMS.getConfiguration().getCustomProperty("channels.offhour");
+		if(ChannelUtil.empty(cfg)) // no config, nothing to do
+			return;
+		String ohDb=file.getAbsolutePath()+File.separator+"data"+File.separator+"offhour";
+		String[] s=cfg.split(",");
+		int max=ChannelOffHour.DEFAULT_MAX_THREAD;
+		int dur=ChannelOffHour.DEFAULT_MAX_DURATION;
+		boolean cache=false;
+		if(s.length>1)
+			dur=convInt(s[1],dur);
+		if(s.length>2)
+			max=convInt(s[2],max);
+		if(s.length>3&&s[3].equalsIgnoreCase("cache"))
+			cache=true;
+		oh=new ChannelOffHour(max,dur,s[0],new File(ohDb),cache);
+		oh.init();
+	}
+	
 	////////////////////////////////////
 	// Save handling
 	////////////////////////////////////
 	
 	public void setSave(String sPath) {
 		setSave(sPath,null);
+		
 	}
 	
 	public void setSave(String sPath,String ts) {
 		savePath=sPath;
 		appendTS=(ChannelUtil.empty(ts)?false:true);
 		cache.savePath(sPath);
+		if(oh==null) 
+			startOffHour();
 		PMS.debug("[Channel]: using save path "+sPath);
 		debug("using save path "+sPath);
 	}
@@ -316,13 +396,15 @@ public class Channels extends VirtualFolder implements FileListener {
 	
 	public static String fileName(String name,boolean cache) {
 		String ts="";
+		name=name.trim();
 		String ext=ChannelUtil.extension(name);
 		if(inst.appendTS) 
 			ts="_"+String.valueOf(System.currentTimeMillis());
-		String fName=name+ts+(ChannelUtil.empty(ext)?"":ext);
+		String fName=ChannelUtil.append(name, null, ts);
+		fName=ChannelUtil.append(fName,null, ext);
 		// if we got an extension we move it to the end of the filename
 		if(!cache&&save())
-			return inst.savePath+File.separator+fName;
+			return cfg().getSavePath()+File.separator+fName;
 		else
 			return getPath()+File.separator+"data"+File.separator+fName;
 	}
@@ -390,6 +472,18 @@ public class Channels extends VirtualFolder implements FileListener {
 	
 	public static String cacheFile() {
 		return inst.file.getAbsolutePath()+File.separator+"data"+File.separator+"cache";
+	}
+	
+	public static ChannelOffHour getOffHour() {
+		return inst.oh;
+	}
+	
+	public static ChannelCfg cfg() {
+		return inst.cfg;
+	}
+	
+	public void setCfg(ChannelCfg c) {
+		cfg=c;
 	}
 	
 	

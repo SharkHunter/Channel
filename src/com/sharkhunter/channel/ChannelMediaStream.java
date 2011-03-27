@@ -32,6 +32,7 @@ public class ChannelMediaStream extends DLNAResource {
 	private ChannelScraper scraper;
 	private String saveName; 
 	private String dispName;
+	private Thread saver;
 	
 	public ChannelMediaStream(Channel ch,String name,String nextUrl,
 			  String thumb,String proc,int type,int asx,
@@ -59,6 +60,7 @@ public class ChannelMediaStream extends DLNAResource {
 		this.scraper=scraper;
 		this.saveName=saveName;
 		this.dispName=dispName;
+		saver=null;
 	}
 	
     public InputStream getThumbnailInputStream() throws IOException {
@@ -129,16 +131,17 @@ public class ChannelMediaStream extends DLNAResource {
     	if(cache)
     		sName=dispName;
     	String fName=Channels.fileName(sName,cache);
-    	//fName=ChannelUtil.guessExt(fName,realUrl);
-    	ChannelUtil.cacheFile(new File(fName),"media");
-		BufferedOutputStream fos=new BufferedOutputStream(new FileOutputStream(fName));
+    	fName=ChannelUtil.guessExt(fName,realUrl);
+    	if(cache)
+    		ChannelUtil.cacheFile(new File(fName),"media");
+    	BufferedOutputStream fos=new BufferedOutputStream(new FileOutputStream(fName));
  	   	PipedOutputStream pos=(new PipedOutputStream());
  	   	PipedInputStream pis=new PipedInputStream(pos);
 		OutputStream[] oss=new OutputStream[2];
 		oss[0]=fos;
 		oss[1]=pos;
-		Thread cs=new Thread(new ChannelSaver(is,oss));
-		cs.start(); 
+		saver=new Thread(new ChannelSaver(is,oss));
+		saver.start(); 
 		return new BufferedInputStream(pis);
     }
 
