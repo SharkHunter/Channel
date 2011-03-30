@@ -15,7 +15,7 @@ public class CH_plugin implements AdditionalFolderAtRoot {
 
 	public CH_plugin() {
 		try {
-			File chFolder=new File(PMS.getConfiguration().getTempFolder(),"channels");
+			File chFolder=new File("channels");
 			String confPath=(String)PMS.getConfiguration().getCustomProperty("channels.path");
 			String path;
 			if(confPath==null) {

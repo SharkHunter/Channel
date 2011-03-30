@@ -173,7 +173,7 @@ public class ChannelGUI implements  ActionListener, ItemListener{
 		c.weightx=1.0;
 		pmsenc.add(scBrowse,c);
 		
-		// Sopcast
+/*		// Sopcast
 		c.gridx = 0;
 		c.gridy = 3;
 		c.weightx=1.0;
@@ -243,7 +243,7 @@ public class ChannelGUI implements  ActionListener, ItemListener{
 		pmsenc.add(yt,c);
 		c.gridx++;
 		c.weightx=1.0;
-		pmsenc.add(ytBrowse,c);
+		pmsenc.add(ytBrowse,c);*/
 
 		// Add installation buttons
 		// Channels
@@ -267,7 +267,8 @@ public class ChannelGUI implements  ActionListener, ItemListener{
 		String text = (String)e.getActionCommand();
 		if(!text.startsWith("other_")) {
 			JFileChooser path=new JFileChooser();
-			//path.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
+			if(!text.equals("rpath"))
+				path.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
 			int res=path.showOpenDialog(null);
 			if(res==JFileChooser.APPROVE_OPTION) {
 				if(path.getSelectedFile().exists()){

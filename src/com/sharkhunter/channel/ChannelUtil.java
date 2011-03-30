@@ -649,4 +649,14 @@ public class ChannelUtil {
 			args.add("\""+fName+"\"");
 			return new ProcessBuilder(args);
 	}
+	
+	public static int getFormat(String type) {
+		if(type.equalsIgnoreCase("image"))
+			return Format.IMAGE;
+		if(type.equalsIgnoreCase("video"))
+			return Format.VIDEO;
+		if(type.equalsIgnoreCase("audio"))
+			return Format.AUDIO;
+		return -1;
+	}
 }

@@ -299,6 +299,11 @@ public class ChannelFolder implements ChannelProps{
 	    for(int i=0;i<med.size();i++) {
 	    	ChannelMedia m1=med.get(i);
 	    	ChannelMatcher m=m1.getMatcher();
+	    	if(m==null) { // no matcher => static media
+	    		String thumb=ChannelUtil.getThumb(null, pThumb, parent);
+	    		m1.add(res,nName,null,thumb,ChannelUtil.getProperty(prop, "auto_asx"));
+	    		continue;
+	    	}
 	    	m.startMatch(page);
 	    	while(m.match()) {
 	    		String someName=m.getMatch("name",false);

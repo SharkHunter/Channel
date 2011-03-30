@@ -101,11 +101,16 @@ public class ChannelItem implements ChannelProps{
 			page="";
 		}
 	    parent.debug("page "+page);
-	    if(page==null||page.length()==0)
+	    if(ChannelUtil.empty(page))
 	    	return;
 	    for(int i=0;i<mediaURL.size();i++) {
 	    	ChannelMedia m1=mediaURL.get(i);
 	    	ChannelMatcher m=m1.getMatcher();
+	    	if(m==null) { // no matcher => static media
+	    		String thumb=ChannelUtil.getThumb(null, pThumb, parent);
+	    		m1.add(res,null,null,thumb,ChannelUtil.getProperty(prop, "auto_asx"));
+	    		continue;
+	    	}
 	    	m.startMatch(page);
 	    	parent.debug("matching using expr "+m.getRegexp().pattern());
 	    	while(m.match()) {

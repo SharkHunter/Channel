@@ -28,7 +28,7 @@ public class ChannelDbg {
 			return;
 		try {
 			os=new BufferedWriter(new FileWriter(f,false));
-			debug("Started");
+			debug("Started "+Channels.VERSION);
 		} catch (Exception e) {
 			os=null;
 		}

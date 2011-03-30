@@ -19,6 +19,9 @@ import no.geosoft.cc.io.FileMonitor;
 
 public class Channels extends VirtualFolder implements FileListener {
 
+	// Version string
+	public static final String VERSION="1.02";
+	
 	// Constants for RTMP string constructions
 	public static final int RTMP_MAGIC_TOKEN=1;
 	public static final int RTMP_DUMP=2;
@@ -60,7 +63,7 @@ public class Channels extends VirtualFolder implements FileListener {
     	appendTS=false;
     	//rtmp=Channels.RTMP_MAGIC_TOKEN;
     	rtmp=Channels.RTMP_DUMP;
-    	PMS.minimal("Start channel 1.01");
+    	PMS.minimal("Start channel "+VERSION);
     	dbg=new ChannelDbg(new File(path+File.separator+"channel.log"));
     	addChild(cache);
     	fileMonitor=null;

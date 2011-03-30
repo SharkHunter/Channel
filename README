@@ -204,17 +204,22 @@
        [script=<script name>]
        [nscript=<script url>]
        [escript=<script path>]
+       [format=audio|image|video]
     }
 
     The parameters of media has the same meaning as those of item and folder. The type parameter can
     be set to asx to indicate that the media stream found is an asx file which needs some special
-    treatment by the plugin. 
+    treatment by the plugin.
+    NOTE!! It is possible to define static media. In this case either url or matcher should be specified.
+    If the matcher is defined it is used. 
     * script - uses the script to retrive the actual media url. Only one script can be configured
     per media.
     * nscript - uses the remote script (which should be an NIPL processor) to retrive the actual 
     media url.
     * escript - external script that is executed from within the plugin. The script is called with two (2)
     arguments the url and the format. The script should write the new scraped url on stdout and then exit.
+    * format - overrides the channels defined format
+    
 
     Matching
     ---------

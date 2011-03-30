@@ -30,15 +30,7 @@ public class ChannelNaviX extends VirtualFolder implements ChannelScraper {
 		parent=ch;
 	}
 	
-	private int getFormat(String type) {
-		if(type.equalsIgnoreCase("image"))
-			return Format.IMAGE;
-		if(type.equalsIgnoreCase("video"))
-			return Format.VIDEO;
-		if(type.equalsIgnoreCase("audio"))
-			return Format.AUDIO;
-		return -1;
-	}
+	
 	
 	private void addMedia(String name,String nextUrl,String thumb,String proc,String type,String pp) {
 		if(type!=null) {
@@ -70,7 +62,7 @@ public class ChannelNaviX extends VirtualFolder implements ChannelScraper {
 				addChild(new ChannelNaviX(parent,name,thumb,nextUrl,props,subtitle));
 			}
 			else {
-				int f=getFormat(type);
+				int f=ChannelUtil.getFormat(type);
 				parent.debug("add media "+f+" name "+name+" url "+nextUrl);
 				if(f==-1) 
 					return;

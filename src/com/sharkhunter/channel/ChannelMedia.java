@@ -30,6 +30,8 @@ public class ChannelMedia implements ChannelProps,ChannelScraper {
 	private int type;
 	private HashMap<String,String> params;
 	private String subtitle;
+	private int format;
+	private String staticUrl;
 	
 	public ChannelMedia(ArrayList<String> data,Channel parent) {
 		Ok=false;
@@ -39,7 +41,10 @@ public class ChannelMedia implements ChannelProps,ChannelScraper {
 		script=null;
 		scriptType=ChannelMedia.SCRIPT_LOCAL;
 		params=new HashMap<String,String>();
+		format=-1;
 		parse(data);
+		if(format==-1)
+			format=parent.getFormat();
 		Ok=true;
 	}
 	
@@ -103,6 +108,12 @@ public class ChannelMedia implements ChannelProps,ChannelScraper {
 			if(keyval[0].equalsIgnoreCase("subtitle")) {
 				subtitle=keyval[1];
 			}
+			if(keyval[0].equalsIgnoreCase("format")) {
+				format=ChannelUtil.getFormat(keyval[1]);
+			}
+			if(keyval[0].equalsIgnoreCase("url")) {
+				staticUrl=keyval[1];
+			}
 		}
 	}
 	
@@ -133,6 +144,10 @@ public class ChannelMedia implements ChannelProps,ChannelScraper {
 				nName=name;
 		}
 		thumb=ChannelUtil.getThumb(thumb, thumbURL, parent);
+		if(!ChannelUtil.empty(staticUrl)&&(matcher==null)) {// static url
+			url=staticUrl;
+			nName=name;
+		}
 		if(ChannelUtil.getProperty(prop, "unescape_url"))
 			url=ChannelUtil.unescape(url);
 		thumb=ChannelUtil.pendData(thumb, prop, "thumb");
@@ -152,12 +167,11 @@ public class ChannelMedia implements ChannelProps,ChannelScraper {
 		
 		if(Channels.save())  { // Add save version
 			ChannelPMSSaveFolder sf=new ChannelPMSSaveFolder(parent,nName,url,thumb,script,asx,
-					                parent.getFormat(),this);
+					                format,this);
 			res.addChild(sf);
 		}
 		else {
-			res.addChild(new ChannelMediaStream(parent,nName,url,thumb,script,parent.getFormat(),
-						asx,this));
+			res.addChild(new ChannelMediaStream(parent,nName,url,thumb,script,format,asx,this));
 		}
 	}
 	

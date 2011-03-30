@@ -185,6 +185,19 @@ public class ChannelCfg {
 				Channels.setCache(true);
 			else
 				Channels.setCache(false);
+		
+		// Deafult
+		if(ChannelUtil.empty(rtmpPath)) {
+			String plugPath=PMS.getConfiguration().getPluginDirectory();
+			String ext=(PMS.get().isWindows()?".exe":"");
+			File f=new File(plugPath+File.separator+"rtmpdump"+ext);
+			if(f.exists()&&f.canExecute())
+				rtmpPath=f.getAbsolutePath();
+		}
+		if(ChannelUtil.empty(scriptPath)) {
+			File f=new File(chPath);
+			scriptPath=f.getParent()+File.separator+"scripts";
+		}
 	}
 	
 	private void configPath(String key,String val) {
@@ -284,19 +297,19 @@ public class ChannelCfg {
 			connection.setDoOutput(true);
 			InputStream in=connection.getInputStream();
 			
-			//Channels.debug("extract zip ");
+			//Channels.debug("extract zip "+scriptPath);
 	         ZipInputStream zis = new ZipInputStream(new BufferedInputStream(in));
 	         ZipEntry entry;
 	         while((entry = zis.getNextEntry()) != null) {
-	            //Channels.debug("Extracting: " +entry);
+	          //  Channels.debug("Extracting: " +entry);
 	            int count;
 	            final int BUFFER = 2048;
 	            byte data[] = new byte[BUFFER];
 	            // write the files to the disk
 	            String fName=chPath+File.separator+entry.getName();
-	          /*  if(entry.getName().contains(".groovy")) // script
+	            if(entry.getName().contains(".groovy")) // script
 	            	if(scriptPath!=null)
-	            		fName=scriptPath+File.separator+entry.getName();*/
+	            		fName=scriptPath+File.separator+entry.getName();
 	            FileOutputStream fos1 = new FileOutputStream(fName);
 	            BufferedOutputStream dest = new BufferedOutputStream(fos1, BUFFER);
 	            while ((count = zis.read(data, 0, BUFFER)) != -1) {
@@ -311,7 +324,7 @@ public class ChannelCfg {
 	      } catch(Exception e) {
 	    	  Channels.debug("error fetching channels "+e);
 	      }
-	      fetchExternals();
+	//      fetchExternals();
 	}
 	
 	private void readFile(String url,String outFile) {
