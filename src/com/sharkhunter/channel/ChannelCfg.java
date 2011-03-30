@@ -188,9 +188,9 @@ public class ChannelCfg {
 		
 		// Deafult
 		if(ChannelUtil.empty(rtmpPath)) {
-			String plugPath=PMS.getConfiguration().getPluginDirectory();
+			File plugPath=new File(PMS.getConfiguration().getMplayerPath());
 			String ext=(PMS.get().isWindows()?".exe":"");
-			File f=new File(plugPath+File.separator+"rtmpdump"+ext);
+			File f=new File(plugPath.getParent()+File.separator+"rtmpdump"+ext);
 			if(f.exists()&&f.canExecute())
 				rtmpPath=f.getAbsolutePath();
 		}
