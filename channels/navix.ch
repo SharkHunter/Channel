@@ -1,6 +1,6 @@
-version=0.14
+version=0.20
 channel NaviX {
-	img=http://navix.turner3d.net/images/navi-x_sm.gif
+	img=http://website.navi-x.org/networks/boxee/navix_icon.png
 	folder {
 		name=Site scraper
 		url=http://navix.turner3d.net/playlist/2229/realtime_scrapers.plx
@@ -14,13 +14,14 @@ channel NaviX {
 		type=navix
 		subtitle=s4u
 	}
-	folder {
-		name=Top
-		url=http://www.navi-x.org/playlists/med_port.plx
-		prop=continue_name=(.*>>>.*|.*Next [Pp]age.*),continue_limit=6,auto_asx
-		type=navix
-		subtitle=s4u
-	}
+
+   folder {
+      name=Navi-X Media Portal
+      url=http://navix.turner3d.net/playlist/50242/navi-xtreme_nxportal_home.plx
+      prop=continue_name=(.*>>>.*|.*Next [Pp]age.*),continue_limit=6,auto_asx
+      type=navix
+      subtitle=s4u
+   }
 	folder {
 		name=All
 		url=http://navix.turner3d.net/playlist/all.plx
@@ -36,6 +37,13 @@ channel NaviX {
 	folder {
 		name=House
 		url=http://navix.turner3d.net/playlist/20203/house_m.d.plx
+		prop=continue_name=(.*>>>.*|.*Next [Pp]age.*),continue_limit=6,auto_asx
+		type=navix
+		subtitle=s4u
+	}
+	folder {
+		name=Bosemans lists
+		url=http://navix.turner3d.net/playlist/17830/bosemans_playlist.plx
 		prop=continue_name=(.*>>>.*|.*Next [Pp]age.*),continue_limit=6,auto_asx
 		type=navix
 		subtitle=s4u

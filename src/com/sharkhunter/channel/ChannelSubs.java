@@ -6,6 +6,7 @@ import java.io.InputStream;
 import java.net.URL;
 import java.net.URLConnection;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -98,7 +99,8 @@ public class ChannelSubs implements ChannelProps {
 		if(!ChannelUtil.empty(nameScript)) {
 			ArrayList<String> s=Channels.getScript(nameScript);
 			if(s!=null) {
-				mediaName=ChannelNaviXProc.lite(mediaName, s, Format.AUDIO);
+				HashMap<String,String> res=ChannelNaviXProc.lite(mediaName, s, Format.AUDIO);
+				mediaName=res.get("url");
 			}
 			else
 				mediaName=ChannelUtil.escape(mediaName);
@@ -115,8 +117,10 @@ public class ChannelSubs implements ChannelProps {
 				return null;
 			if(!ChannelUtil.empty(script)) { // we got a script, we'll use it 
 				ArrayList<String> s=Channels.getScript(script);
-				if(s!=null) 
-					return ChannelNaviXProc.lite(page, s, Format.AUDIO);
+				if(s!=null) {
+					HashMap<String,String> res=ChannelNaviXProc.lite(page, s, Format.AUDIO);
+					return res.get("url");
+				}
 			}
 			matcher.startMatch(page);
 			int cnt=1;

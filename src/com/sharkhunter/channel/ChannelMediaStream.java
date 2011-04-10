@@ -14,10 +14,13 @@ import java.net.URLConnection;
 import java.util.ArrayList;
 import java.util.Collections;
 
+import net.pms.PMS;
 import net.pms.configuration.RendererConfiguration;
 import net.pms.dlna.DLNAMediaInfo;
 import net.pms.dlna.DLNAResource;
+import net.pms.encoders.Player;
 import net.pms.formats.Format;
+import net.pms.formats.WEB;
 
 public class ChannelMediaStream extends DLNAResource {
 
@@ -33,6 +36,8 @@ public class ChannelMediaStream extends DLNAResource {
 	private String saveName; 
 	private String dispName;
 	private Thread saver;
+	private boolean downloader;
+	private boolean scraped;
 	
 	public ChannelMediaStream(Channel ch,String name,String nextUrl,
 			  String thumb,String proc,int type,int asx,
@@ -61,6 +66,12 @@ public class ChannelMediaStream extends DLNAResource {
 		this.saveName=saveName;
 		this.dispName=dispName;
 		saver=null;
+		downloader=false;
+		scraped=false;
+	}
+	
+	public void download(boolean b) {
+		downloader=b;
 	}
 	
     public InputStream getThumbnailInputStream() throws IOException {
@@ -74,13 +85,41 @@ public class ChannelMediaStream extends DLNAResource {
 		return super.getThumbnailInputStream();
     }
     
+    private void updateStreamDetails() {
+    	Format old_ext=ext;
+    	// update format, use checktype to be future proof
+    	ext=null;
+    	checktype();
+    	if(ext==null) { // no ext found restore what we got and bail out
+    		ext=old_ext;
+    		return;
+    	}	
+    	// need to update player as well
+    	int i=0;
+    	Player pl=null;
+        while (pl == null && i < ext.getProfiles().size()) {
+                pl = PMS.get().getPlayer(ext.getProfiles().get(i), ext);
+                i++;
+        }        	
+        // if we didn't find a new player leave the old one
+        if(pl!=null)
+        	player=pl;
+    }
+    
     public InputStream getInputStream(long low, long high, double timeseek, RendererConfiguration mediarenderer) throws IOException {
-    	if(scraper!=null)
-    		realUrl=scraper.scrape(ch,url,processor,format,this);
-    	else
-    		realUrl=ChannelUtil.parseASX(url, ASX);
+    	if(!scraped) {
+    		scraped=true;
+    		if(scraper!=null)
+    			realUrl=scraper.scrape(ch,url,processor,format,this);
+    		else
+    			realUrl=ChannelUtil.parseASX(url, ASX);
+    	}
     	if(ChannelUtil.empty(realUrl))
     		return null;
+    	updateStreamDetails();
+    	Channels.debug("downloader "+downloader+" ext "+ext+" "+player);
+    	if(downloader)
+    		return getStream();
     	InputStream is=super.getInputStream(low,high,timeseek,mediarenderer);
     	if((saveName!=null)||Channels.cache()) {
     		return startSave(is);
@@ -88,15 +127,8 @@ public class ChannelMediaStream extends DLNAResource {
     	else
     	    return is;
     }
-
-
-    public InputStream getInputStream() {
-    	if(scraper!=null)
-    		realUrl=scraper.scrape(ch,url,processor,format,this);
-    	else
-    		realUrl=url;
-    	if(ChannelUtil.empty(realUrl))
-    		return null;
+    
+    private InputStream getStream() {
     	try {
 			URL urlobj = new URL(realUrl);
 			Channels.debug("Retrieving " + urlobj.toString());
@@ -112,17 +144,32 @@ public class ChannelMediaStream extends DLNAResource {
 			}
 			if(!ChannelUtil.empty(cookie))
 				conn.setRequestProperty("Cookie",cookie);
-			InputStream is = conn.getInputStream();
+			InputStream is=conn.getInputStream();
 			if((saveName!=null)||Channels.cache()) {
 				return startSave(is);
 			}
 			else
 				return is;
-		}
-		catch (Exception e) {
+    	}
+    	catch (Exception e) {
 			Channels.debug("error reading "+e);
 			return null;
 		}
+    }
+
+
+    public InputStream getInputStream() {
+    	Channels.debug("cms getinp/0 scrape "+scraper+" sc "+scraped);
+    	if(!scraped) {
+    		scraped=true;
+    		if(scraper!=null)
+    			realUrl=scraper.scrape(ch,url,processor,format,this);
+    		else
+    			realUrl=ChannelUtil.parseASX(url, ASX);
+    	}
+    	if(ChannelUtil.empty(realUrl))
+    		return null;
+    	return getStream();
     }
     
     private InputStream startSave(InputStream is) throws IOException {

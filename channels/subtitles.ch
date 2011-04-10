@@ -6,7 +6,7 @@ scriptdef s4uName {
 	year=v1
 	replace url '
 	s_url=url
-	regex='(\d)x(\d+) 
+	regex='(\d+)x(\d+) 
 	match s_url
 	res='/year=
 	concat res year
@@ -14,7 +14,7 @@ scriptdef s4uName {
 	concat res v1
 	concat res '&episode=
 	concat res v2
-	regex='(\dx\d+) .*
+	regex='(\d+x\d+) .*
 	replace url '
 	escape url
 	concat url res

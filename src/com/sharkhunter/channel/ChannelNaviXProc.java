@@ -521,18 +521,24 @@ public class ChannelNaviXProc {
 		return rUrl;
 	}
 	
-	public static String lite(String url,ArrayList<String> lines,int format) {
+	public static HashMap<String,String> lite(String url,ArrayList<String> lines,int format,int asx) {
 		String[] arr=lines.toArray(new String[lines.size()]);
-		return lite(url,arr,format);
+		return lite(url,arr,format,asx);
 	}
-	public static String lite(String url,String[] lines,int format) {
+	
+	public static HashMap<String,String> lite(String url,ArrayList<String> lines,int format) {
+		return lite(url,lines,format,ChannelUtil.ASXTYPE_AUTO);
+	}
+	
+	public static HashMap<String,String> lite(String url,String[] lines,int format,int asx) {
 		try {
 			vars.clear();
 			if(parseV2(lines,0,url))
 				Channels.debug("found report statement in NIPL lite script. Hopefully script worked anyway.");
-			String rUrl=ChannelUtil.createMediaUrl(vars,format);
-			Channels.debug("navix lite return media url "+rUrl);
-			return rUrl;
+			String rUrl=ChannelUtil.parseASX(vars.get("url"),asx);
+			vars.put("url", rUrl);
+			HashMap<String,String> res=new HashMap(vars);
+			return res;
 		}
 		catch (Exception e) {
 			Channels.debug("error during NIPL lite parse "+e);

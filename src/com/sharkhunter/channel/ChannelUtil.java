@@ -3,7 +3,10 @@ package com.sharkhunter.channel;
 import java.io.BufferedReader;
 import java.io.DataOutputStream;
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.FileOutputStream;
+import java.io.FileReader;
+import java.io.FileWriter;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.UnsupportedEncodingException;
@@ -598,6 +601,7 @@ public class ChannelUtil {
 			}
 		}
 		
+		String subFile="";
 		if(url.startsWith("http")||
 		   url.startsWith("navix")||
 		   url.startsWith("subs")) {
@@ -611,14 +615,37 @@ public class ChannelUtil {
 					String[] kv=data[i].split("=");
 					if(kv[0].equals("url"))
 						url=ChannelUtil.unescape(kv[1]);
+					if(kv[0].equals("subs"))
+						subFile=unescape(kv[1]);
 				}
 			}
 			if(empty(url))
 				return null;
-			final String rUrl=url; 
+			final String rUrl=url;
+			final String sFile=subFile;
 			Runnable r = new Runnable() {
 				public void run() {
-					downloadBin(rUrl,new File(fName));
+					File f=new File(fName);
+					if(!empty(sFile)) {
+						File s=new File(sFile);
+						byte[] buf=new byte[4096];
+						try {
+							FileInputStream in = new FileInputStream(s);
+							FileOutputStream out = new FileOutputStream(
+									new File(f.getParent()+File.separator+s.getName()));
+							while ((in.read(buf)) != -1)
+								out.write(buf);
+
+							in.close();
+							out.close();
+						}
+						catch (Exception e) {
+							// ignore this
+							Channels.debug("Error moving subtitle file "+sFile);
+						}
+					}					
+					// download the actaul movie, subtitles are done
+					downloadBin(rUrl,f);
 				}
 			};
 			return new Thread(r);

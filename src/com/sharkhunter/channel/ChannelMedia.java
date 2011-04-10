@@ -164,14 +164,17 @@ public class ChannelMedia implements ChannelProps,ChannelScraper {
 			asx=ChannelUtil.ASXTYPE_AUTO;
 		if(type==ChannelMedia.TYPE_ASX)
 			asx=ChannelUtil.ASXTYPE_FORCE;
-		
+		boolean downloader=false;//ChannelUtil.getProperty(prop, "downloader");
 		if(Channels.save())  { // Add save version
 			ChannelPMSSaveFolder sf=new ChannelPMSSaveFolder(parent,nName,url,thumb,script,asx,
 					                format,this);
+			sf.download(downloader);
 			res.addChild(sf);
 		}
 		else {
-			res.addChild(new ChannelMediaStream(parent,nName,url,thumb,script,format,asx,this));
+			ChannelMediaStream cms=new ChannelMediaStream(parent,nName,url,thumb,script,format,asx,this);
+			cms.download(downloader);
+			res.addChild(cms);
 		}
 	}
 	
@@ -222,12 +225,12 @@ public class ChannelMedia implements ChannelProps,ChannelScraper {
 			params.put("url", url);
 			return ChannelUtil.createMediaUrl(params,format);
 		}
-		realUrl=ChannelNaviXProc.lite(url,sData,format);
-		if(ChannelUtil.empty(realUrl)) {
+		HashMap<String,String> res=ChannelNaviXProc.lite(url,sData,format,asx);
+		res.put("subtitle", subFile);
+		if(res==null) {
 			ch.debug("Bad script result");
 			return null;
 		}
-		params.put("url",  ChannelUtil.parseASX(realUrl,asx));
-		return ChannelUtil.createMediaUrl(params,format);
+		return ChannelUtil.createMediaUrl(res,format);
 	}
 }
