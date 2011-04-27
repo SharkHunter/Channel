@@ -127,6 +127,10 @@ public class Channel extends VirtualFolder {
 		Channels.debug(msg);
 	}
 	
+	public String name() {
+		return name;
+	}
+	
 	public void addCred(ChannelCred c) {
 		cred=c;
 		if(logObj!=null)
@@ -152,4 +156,5 @@ public class Channel extends VirtualFolder {
 			return null;
 		return logObj.getAuthStr(cred.user, cred.pwd);
 	}
+	
 }

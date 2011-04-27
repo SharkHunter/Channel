@@ -2,6 +2,7 @@ package com.sharkhunter.channel;
 
 import java.io.BufferedReader;
 import java.io.File;
+import java.io.FileOutputStream;
 import java.io.FileReader;
 import java.io.IOException;
 import java.text.ParseException;
@@ -20,7 +21,7 @@ import no.geosoft.cc.io.FileMonitor;
 public class Channels extends VirtualFolder implements FileListener {
 
 	// Version string
-	public static final String VERSION="1.04";
+	public static final String VERSION="1.05";
 	
 	// Constants for RTMP string constructions
 	public static final int RTMP_MAGIC_TOKEN=1;
@@ -46,6 +47,7 @@ public class Channels extends VirtualFolder implements FileListener {
     private boolean doCache;
     private ChannelOffHour oh;
     private ChannelCfg cfg;
+    private HashMap<String,ChannelAuth> cookies;
     
     public Channels(String path,long poll) {
     	super("Channels",null);
@@ -57,6 +59,7 @@ public class Channels extends VirtualFolder implements FileListener {
     	cred=new ArrayList<ChannelCred>();
     	scripts=new HashMap<String,ChannelMacro>();
     	subtitles=new HashMap<String,ChannelSubs>();
+    	cookies=new HashMap<String,ChannelAuth>();
     	cache=new ChannelCache(path);
     	savePath="";
     	oh=null;
@@ -429,6 +432,10 @@ public class Channels extends VirtualFolder implements FileListener {
 		file=new File(path);
 	}
 	
+	public static String dataPath() {
+		return getPath()+File.separator+"data";
+	}
+	
 	////////////////////////////////////////////
 	// Script functions
 	////////////////////////////////////////////
@@ -489,5 +496,30 @@ public class Channels extends VirtualFolder implements FileListener {
 		cfg=c;
 	}
 	
+	//////////////////////////////////////////
+	// Cookie mgmt
+	//////////////////////////////////////////
 	
+	private static void mkCookieFile() {
+		try {
+			String file=cfg().getCookiePath();
+			FileOutputStream out=new FileOutputStream(file);
+			for(String key : inst.cookies.keySet()) {
+				ChannelAuth a=inst.cookies.get(key);
+				String data=key+"\tTRUE\t/\tFALSE\t"+String.valueOf(a.ttd)+"\t"+a.authStr.replace('=', '\t')+
+					"\n";
+				out.write(data.getBytes(), 0, data.length());
+			}	
+			out.flush();
+			out.close();
+		}
+		catch (Exception e) {
+		}
+
+	}
+	
+	public static void addCookie(String url,ChannelAuth a) {
+		if(inst.cookies.put(url, a)==null)
+			mkCookieFile();
+	}
 }

@@ -12,14 +12,16 @@ script {
             $URI = browse (uri: $HTTP.target($URI)) { $('a.mvlink').@href }
         }
     }
-    */
-
+    */	
     profile ('Megavideo') {
         pattern {
+			log.info("even cooler stuff")
             domain 'megavideo.com'
         }
-
         action {
+			log.info("cool stuff")
+			$URI = browse (uri: $HTTP.target($URI)) { $('flashvars.v\s*=\s*"([^"]+)').@script }
+			log.stuff("megav $URI")
  //           set '-r': '24'
         }
     }

@@ -164,16 +164,13 @@ public class ChannelMedia implements ChannelProps,ChannelScraper {
 			asx=ChannelUtil.ASXTYPE_AUTO;
 		if(type==ChannelMedia.TYPE_ASX)
 			asx=ChannelUtil.ASXTYPE_FORCE;
-		boolean downloader=false;//ChannelUtil.getProperty(prop, "downloader");
 		if(Channels.save())  { // Add save version
 			ChannelPMSSaveFolder sf=new ChannelPMSSaveFolder(parent,nName,url,thumb,script,asx,
 					                format,this);
-			sf.download(downloader);
 			res.addChild(sf);
 		}
 		else {
 			ChannelMediaStream cms=new ChannelMediaStream(parent,nName,url,thumb,script,format,asx,this);
-			cms.download(downloader);
 			res.addChild(cms);
 		}
 	}
@@ -207,7 +204,7 @@ public class ChannelMedia implements ChannelProps,ChannelScraper {
 		}
 		if(ChannelUtil.empty(scriptName)) { // no script just return what we got
 			params.put("url", ChannelUtil.parseASX(url,asx));
-			return ChannelUtil.createMediaUrl(params,format);
+			return ChannelUtil.createMediaUrl(params,format,ch);
 		}
 		ch.debug("media scrape type "+scriptType+" name "+scriptName);
 		if(scriptType==ChannelMedia.SCRIPT_NET) 
@@ -217,13 +214,13 @@ public class ChannelMedia implements ChannelProps,ChannelScraper {
 			ProcessBuilder pb=new ProcessBuilder(scriptName,url,f);
 			String rUrl=ChannelUtil.execute(pb);
 			params.put("url",  ChannelUtil.parseASX(rUrl,asx));
-			return ChannelUtil.createMediaUrl(params, format);
+			return ChannelUtil.createMediaUrl(params, format,ch);
 		}	
 		ArrayList<String> sData=Channels.getScript(scriptName);
 		if(sData==null) { // weird no script found, log and bail out
 			ch.debug("no script "+scriptName+" defined");
 			params.put("url", url);
-			return ChannelUtil.createMediaUrl(params,format);
+			return ChannelUtil.createMediaUrl(params,format,ch);
 		}
 		HashMap<String,String> res=ChannelNaviXProc.lite(url,sData,format,asx);
 		res.put("subtitle", subFile);
@@ -231,6 +228,6 @@ public class ChannelMedia implements ChannelProps,ChannelScraper {
 			ch.debug("Bad script result");
 			return null;
 		}
-		return ChannelUtil.createMediaUrl(res,format);
+		return ChannelUtil.createMediaUrl(res,format,ch);
 	}
 }

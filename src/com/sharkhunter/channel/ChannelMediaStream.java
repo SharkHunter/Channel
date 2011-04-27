@@ -36,7 +36,6 @@ public class ChannelMediaStream extends DLNAResource {
 	private String saveName; 
 	private String dispName;
 	private Thread saver;
-	private boolean downloader;
 	private boolean scraped;
 	
 	public ChannelMediaStream(Channel ch,String name,String nextUrl,
@@ -66,13 +65,9 @@ public class ChannelMediaStream extends DLNAResource {
 		this.saveName=saveName;
 		this.dispName=dispName;
 		saver=null;
-		downloader=false;
 		scraped=false;
 	}
 	
-	public void download(boolean b) {
-		downloader=b;
-	}
 	
     public InputStream getThumbnailInputStream() throws IOException {
     	if (thumb != null) {
@@ -84,6 +79,7 @@ public class ChannelMediaStream extends DLNAResource {
     	}
 		return super.getThumbnailInputStream();
     }
+    
     
     private void updateStreamDetails() {
     	Format old_ext=ext;
@@ -117,9 +113,6 @@ public class ChannelMediaStream extends DLNAResource {
     	if(ChannelUtil.empty(realUrl))
     		return null;
     	updateStreamDetails();
-    	Channels.debug("downloader "+downloader+" ext "+ext+" "+player);
-    	if(downloader)
-    		return getStream();
     	InputStream is=super.getInputStream(low,high,timeseek,mediarenderer);
     	if((saveName!=null)||Channels.cache()) {
     		return startSave(is);
@@ -211,7 +204,7 @@ public class ChannelMediaStream extends DLNAResource {
     public String getSystemName() {
     	if(ChannelUtil.empty(realUrl))
     		return url;
-    	else
+    	else 
     		return realUrl;
     }
 

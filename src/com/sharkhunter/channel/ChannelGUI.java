@@ -50,7 +50,7 @@ public class ChannelGUI implements  ActionListener, ItemListener{
 		JPanel inst=new JPanel();
 		JPanel pmsenc=new JPanel(new GridBagLayout());
 		JButton channels=new JButton("Install/Update");
-		JButton debugPack=new JButton("Pack debug info");
+		//JButton debugPack=new JButton("Pack debug info");
 		JButton cBrowse=new JButton("Browse...");
 		JButton sBrowse=new JButton("Browse...");
 		JButton rBrowse=new JButton("Browse...");
@@ -108,9 +108,9 @@ public class ChannelGUI implements  ActionListener, ItemListener{
 		ytBrowse.addActionListener(this);
 		channels.setActionCommand("other_channels");
 		channels.addActionListener(this);
-		debugPack.setActionCommand("other_debug");
+		/*debugPack.setActionCommand("other_debug");
 		debugPack.addActionListener(this);
-		dbg.addItemListener(this);
+		dbg.addItemListener(this);*/
 		subs.addItemListener(this);
 
 		GridBagConstraints c = new GridBagConstraints();
@@ -256,8 +256,8 @@ public class ChannelGUI implements  ActionListener, ItemListener{
 		top.add(new JSeparator(), BorderLayout.CENTER);
 		top1.add(pmsenc,BorderLayout.NORTH);
 		top1.add(new JSeparator(), BorderLayout.CENTER);
-		top1.add(inst,BorderLayout.SOUTH);
-		top1.add(debugPack);
+		/*top1.add(inst,BorderLayout.SOUTH);
+		top1.add(debugPack);*/
 		top.add(top1,BorderLayout.SOUTH);
 		return top;
 	}
@@ -308,9 +308,9 @@ public class ChannelGUI implements  ActionListener, ItemListener{
 				cfg.fetchChannels();
 				root.fileChanged(new File(cfg.getPath()));
 			}
-			else if(text.equals("other_debug")) {
+/*			else if(text.equals("other_debug")) {
 				cfg.packDbg();
-			}
+			}*/
 		}
 
 	}

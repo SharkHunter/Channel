@@ -425,7 +425,7 @@ public class ChannelNaviXProc {
 				vars.put("s_cookie", auth.authStr);
 		}
 		if(pUrl==null) // no processor, just return what we got
-			return ChannelUtil.createMediaUrl(vars,format);
+			return ChannelUtil.createMediaUrl(vars,format,ch);
 		URL pu=null;
 		try {
 			pu = new URL(pUrl+"?url="+url);
@@ -516,7 +516,8 @@ public class ChannelNaviXProc {
 		// First asx parse (we do this always, since we are not sure here)
 		String rUrl=ChannelUtil.parseASX(vars.get("url"), ChannelUtil.ASXTYPE_AUTO);
 		vars.put("url", rUrl);
-		rUrl=ChannelUtil.createMediaUrl(vars,format);
+		vars.put("__type__", "navix");
+		rUrl=ChannelUtil.createMediaUrl(vars,format,ch);
 		Channels.debug("navix return media url "+rUrl);
 		return rUrl;
 	}

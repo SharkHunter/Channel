@@ -387,26 +387,28 @@ public class ChannelUtil {
 		}
 	}
 	
-	public static String createMediaUrl(String url,int format) {
+	public static String createMediaUrl(String url,int format,Channel ch) {
 		//Channels.debug("create media url entry(str only) "+url);
 		HashMap<String,String> map=new HashMap<String,String>();
 		map.put("url", url);
-		return createMediaUrl(map,format);
+		return createMediaUrl(map,format,ch);
 	}
 	
-	public static String createMediaUrl(HashMap<String,String> vars,int format) {
+	public static String createMediaUrl(HashMap<String,String> vars,int format,Channel ch) {
 		String rUrl=vars.get("url");
 		int rtmpMet=Channels.rtmpMethod();
-		Channels.debug("create media url entry "+rUrl+" format "+format);
+		String type=vars.get("__type__");
+		Channels.debug("create media url entry "+rUrl+" format "+format+" type "+type);
 		if(rUrl.startsWith("http")) {
-			if((format!=Format.VIDEO)||(rtmpMet==Channels.RTMP_MAGIC_TOKEN))
+			if((format!=Format.VIDEO)||
+			   (rtmpMet==Channels.RTMP_MAGIC_TOKEN))    
 				return rUrl;
 			//rUrl="navix://channel?url="+escape(rUrl);
 			rUrl="channel?url="+escape(rUrl);
 			String agent=vars.get("agent");
 			if(empty(agent))
 				agent=ChannelUtil.defAgentString;
-			rUrl=append(rUrl,"&agent=",escape(agent));
+			rUrl=append(rUrl,"&agent=",escape(agent));	
 			String sub=vars.get("subtitle");
 			if(!empty(sub)) { // we got subtitles
 				rUrl="subs://"+rUrl;
@@ -429,7 +431,10 @@ public class ChannelUtil {
               //  rUrl=append(rUrl,"&subdelay=","20000");
 			}
 			else
-				rUrl="navix://"+rUrl;
+				if(!empty(type)&&type.equals("navix"))
+					rUrl="navix://"+rUrl;
+				else
+					rUrl=vars.get("url");
 			Channels.debug("return media url "+rUrl);
 			return rUrl;
 		}

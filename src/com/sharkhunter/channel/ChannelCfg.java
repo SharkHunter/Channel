@@ -32,6 +32,7 @@ public class ChannelCfg {
 	private String pythonPath;
 	private String get_flPath;
 	private String ytPath;
+	private String cookiePath;
 	private Channels top;
 	private boolean subs;
 	private boolean cache;
@@ -41,6 +42,7 @@ public class ChannelCfg {
 		saPath=null;
 		rtmpPath=null;
 		scriptPath=null;
+		cookiePath=null;
 		subs=true;
 		this.top=top;
 		cache=false;
@@ -88,6 +90,10 @@ public class ChannelCfg {
 	
 	public void setYouTubePath(String p) {
 		ytPath=p;
+	}
+	
+	public void setCookiePath(String p) {
+		cookiePath=p;
 	}
 	
 	////////////////////////////////////////
@@ -142,6 +148,10 @@ public class ChannelCfg {
 		return cache;
 	}
 	
+	public String getCookiePath() {
+		return cookiePath;
+	}
+	
 	//////////////////////////////////////
 	// Other methods
 	//////////////////////////////////////
@@ -158,6 +168,7 @@ public class ChannelCfg {
 		pythonPath=(String) PMS.getConfiguration().getCustomProperty("python.path");
 		get_flPath=(String) PMS.getConfiguration().getCustomProperty("get-flash-videos.path");
 		ytPath=(String) PMS.getConfiguration().getCustomProperty("youtube-dl.path");
+		cookiePath=(String) PMS.getConfiguration().getCustomProperty("cookie.path");
 		
 		// Other
 		String dbg=(String)PMS.getConfiguration().getCustomProperty("channels.debug");
@@ -198,6 +209,9 @@ public class ChannelCfg {
 			File f=new File(chPath);
 			scriptPath=f.getParent()+File.separator+"scripts";
 		}
+		if(ChannelUtil.empty(cookiePath)) {
+			cookiePath=Channels.dataPath()+File.separator+"cookies";
+		}
 	}
 	
 	private void configPath(String key,String val) {
@@ -226,6 +240,7 @@ public class ChannelCfg {
 			configPath("python.path",pythonPath);
 			configPath("get-flash-videos.path",get_flPath);
 			configPath("youtube-dl.path",ytPath);
+			configPath("cookie.path",cookiePath);
 			PMS.getConfiguration().setCustomProperty("channels.debug",String.valueOf(Channels.debugStatus()));
 			PMS.getConfiguration().setCustomProperty("channels.subtitles",String.valueOf(Channels.doSubs()));
 			PMS.getConfiguration().save();
@@ -380,58 +395,6 @@ public class ChannelCfg {
 		}
 		catch (Exception e) {
 			Channels.debug("error fetching externals "+e);
-		}
-	}
-	
-	//////////////////////////////////////////////////
-	// Pack debug info
-	//////////////////////////////////////////////////
-	
-	public void packDbg() {
-		String fName=chPath+File.separator+"channel_dbg.zip";
-		try {
-			ZipOutputStream zos=new ZipOutputStream(new FileOutputStream(fName));
-			// 1st the channel.log
-			File dbg=Channels.dbgFile();
-			FileInputStream in = new FileInputStream(dbg);
-			byte[] buf = new byte[1024];
-			zos.putNextEntry(new ZipEntry(dbg.getName()));
-			
-			// Transfer bytes from the file to the ZIP file
-			int len;
-			while ((len = in.read(buf)) > 0) 
-				zos.write(buf, 0, len);
-			
-			// Complete the entry
-			zos.closeEntry();
-			in.close();
-			
-			// 2nd pmsencoder.log
-			File pmsenc=new File("pmsencoder.log");
-			in = new FileInputStream(pmsenc);
-			zos.putNextEntry(new ZipEntry(pmsenc.getName()));
-			while ((len = in.read(buf)) > 0) 
-				zos.write(buf, 0, len);
-			
-			// Complete the entry
-			zos.closeEntry();
-			in.close();
-			
-			// Finally PMS log
-			File pms=new File("debug.log");
-			in = new FileInputStream(pms);
-			zos.putNextEntry(new ZipEntry(pms.getName()));
-			while ((len = in.read(buf)) > 0) 
-				zos.write(buf, 0, len);
-			
-			// Complete the entry
-			zos.closeEntry();
-			in.close();
-			
-			zos.close();
-			
-		} catch (Exception e) {
-			PMS.debug("error packing dbg info "+e);
 		}
 	}
 }

@@ -1,5 +1,7 @@
 package com.sharkhunter.channel;
 
+import java.io.File;
+import java.io.FileOutputStream;
 import java.io.UnsupportedEncodingException;
 import java.net.HttpURLConnection;
 import java.net.URL;
@@ -73,9 +75,14 @@ public class ChannelLogin {
 	}
 	
 	private ChannelAuth mkResult() {
+		return mkResult(0);
+	}
+	
+	private ChannelAuth mkResult(long ttd) {
 		ChannelAuth a=new ChannelAuth();
 		a.method=type;
 		a.authStr=tokenStr;
+		a.ttd=ttd;
 		return a;
 	}
 	
@@ -104,6 +111,18 @@ public class ChannelLogin {
 		return null;
 	}
 	
+	private ChannelAuth updateCookieDb(String cookie) {
+		long ts=System.currentTimeMillis()+(24*60*60*2);
+		String u=url.replace("http://", "");
+		int p=u.indexOf("/");
+		if(p!=-1)
+			u=u.substring(0,p);
+		Channels.debug("updte cookie db "+u+" "+cookie);
+		ChannelAuth a=mkResult(ts);
+		Channels.addCookie(u,a);
+		return a;
+	}
+	
 	private ChannelAuth cookieLogin(String usr,String pass) throws Exception {
 		String query=params+"&"+user+"="+URLEncoder.encode(usr,"UTF-8")+
 		"&"+pwd+"="+URLEncoder.encode(pass,"UTF-8");
@@ -119,14 +138,15 @@ public class ChannelLogin {
 			Channels.debug("hdr "+hName);
 		 	if (!hName.equals("Set-Cookie")) 
 		 		continue;
-		 	String[] fields = connection.getHeaderField(j).split(";\\s*");
+		 	String cStr=connection.getHeaderField(j);
+		 	String[] fields = cStr.split(";\\s*");
 	 		String cookie=fields[0];
 	 		int pos;
 	 		if((pos=cookie.indexOf(";"))!=-1)
 	 			cookie = cookie.substring(0, pos);
 	        tokenStr=cookie;
 	        loggedOn=true;
-	        return mkResult();
+	        return updateCookieDb(cookie);
 //		 	return null;
 		}
 		return null;

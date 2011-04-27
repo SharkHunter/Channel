@@ -13,7 +13,6 @@ public class ChannelPMSSaveFolder extends VirtualFolder {
 	private int asx;
 	private ChannelScraper scraper;
 	private int type;
-	private boolean downloader;
 	
 	public ChannelPMSSaveFolder(Channel ch,String name,String url,String thumb,
 								String proc,int asx,int type,
@@ -27,19 +26,12 @@ public class ChannelPMSSaveFolder extends VirtualFolder {
 		this.asx=asx;
 		this.scraper=scraper;
 		this.type=type;
-		this.downloader=false;
-	}
-	
-	public void download(boolean b) {
-		downloader=b;
 	}
 	
 	public void discoverChildren() {
 		ChannelMediaStream cms=new ChannelMediaStream(ch,"SAVE&PLAY",url,thumb,proc,type,asx,scraper,name,name);
-		cms.download(downloader);
 		addChild(cms);
 		cms=new ChannelMediaStream(ch,"PLAY",url,thumb,proc,type,asx,scraper,name,null);
-		cms.download(downloader);
 		addChild(cms);
 		final ChannelOffHour oh=Channels.getOffHour();
 		if(oh!=null) {
