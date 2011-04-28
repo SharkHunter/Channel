@@ -29,6 +29,7 @@ public class ChannelLogin {
 	private int type;
 	private boolean mediaOnly;
 	private String[] associated;
+	private long ttd;
 	
 	public ChannelLogin(ArrayList<String> data,Channel parent) {
 		this.parent=parent;
@@ -36,6 +37,7 @@ public class ChannelLogin {
 		type=ChannelLogin.STD;
 		mediaOnly=false;
 		associated=null;
+		ttd=0;
 		parse(data);
 	}
 	
@@ -79,10 +81,6 @@ public class ChannelLogin {
 	}
 	
 	private ChannelAuth mkResult() {
-		return mkResult(0);
-	}
-	
-	private ChannelAuth mkResult(long ttd) {
 		ChannelAuth a=new ChannelAuth();
 		a.method=type;
 		a.authStr=tokenStr;
@@ -127,19 +125,15 @@ public class ChannelLogin {
 	}
 	
 	private ChannelAuth updateCookieDb(String cookie) {
-		long ts=System.currentTimeMillis()+(24*60*60*2);
 		String u=trimUrl(url);
-		Channels.debug("updte cookie db "+u+" "+cookie);
-		ChannelAuth a=mkResult(ts);
-		boolean update=false;
-		if(associated==null)
-			update=Channels.addCookie(u,a);
-		else {	
+		Channels.debug("update cookie db "+u+" "+cookie);
+		ChannelAuth a=mkResult();
+		boolean update=Channels.addCookie(u,a);
+		if(associated!=null)
 			for(int i=0;i<associated.length;i++) {
 				u=trimUrl(associated[i].trim());
 				update|=Channels.addCookie(u, a);
 			}
-		}
 		if(update)
 			Channels.mkCookieFile();
 		return a;
@@ -148,9 +142,12 @@ public class ChannelLogin {
 	private ChannelAuth cookieLogin(String usr,String pass) throws Exception {
 		ChannelAuth a=Channels.getCookie(trimUrl(url));
 		if(a!=null) { // found some in hash
-			loggedOn=true;
-			tokenStr=a.authStr;
-			return a;
+			if(a.ttd<System.currentTimeMillis()) {
+				loggedOn=true;
+				tokenStr=a.authStr;
+				ttd=a.ttd;
+				return a;
+			}
 		}
 		String query=params+"&"+user+"="+URLEncoder.encode(usr,"UTF-8")+
 		"&"+pwd+"="+URLEncoder.encode(pass,"UTF-8");
@@ -174,8 +171,8 @@ public class ChannelLogin {
 	 			cookie = cookie.substring(0, pos);
 	        tokenStr=cookie;
 	        loggedOn=true;
+	        ttd=System.currentTimeMillis()+(24*60*60*2);
 	        return updateCookieDb(cookie);
-//		 	return null;
 		}
 		return null;
 	}
