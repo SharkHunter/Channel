@@ -28,12 +28,14 @@ public class ChannelLogin {
 	private String tokenStr;
 	private int type;
 	private boolean mediaOnly;
+	private String[] associated;
 	
 	public ChannelLogin(ArrayList<String> data,Channel parent) {
 		this.parent=parent;
 		this.loggedOn=false;
 		type=ChannelLogin.STD;
 		mediaOnly=false;
+		associated=null;
 		parse(data);
 	}
 	
@@ -70,7 +72,9 @@ public class ChannelLogin {
 				if(keyval[1].equalsIgnoreCase("false"))
 					mediaOnly=false;
 			}
-				
+			if(keyval[0].equalsIgnoreCase("associate")) {
+				associated=keyval[1].split(",");
+			}
 		}
 	}
 	
@@ -111,19 +115,43 @@ public class ChannelLogin {
 		return null;
 	}
 	
+	private String trimUrl(String u) {
+		String u1=u.replace("http://", "");
+		int p=u1.indexOf("/");
+		if(p!=-1)
+			u1=u1.substring(0,p);
+		p=u1.indexOf('.');
+		if(p!=-1) // skip wwwxxx.
+			u1=u1.substring(p+1);
+		return u1;
+	}
+	
 	private ChannelAuth updateCookieDb(String cookie) {
 		long ts=System.currentTimeMillis()+(24*60*60*2);
-		String u=url.replace("http://", "");
-		int p=u.indexOf("/");
-		if(p!=-1)
-			u=u.substring(0,p);
+		String u=trimUrl(url);
 		Channels.debug("updte cookie db "+u+" "+cookie);
 		ChannelAuth a=mkResult(ts);
-		Channels.addCookie(u,a);
+		boolean update=false;
+		if(associated==null)
+			update=Channels.addCookie(u,a);
+		else {	
+			for(int i=0;i<associated.length;i++) {
+				u=trimUrl(associated[i].trim());
+				update|=Channels.addCookie(u, a);
+			}
+		}
+		if(update)
+			Channels.mkCookieFile();
 		return a;
 	}
 	
 	private ChannelAuth cookieLogin(String usr,String pass) throws Exception {
+		ChannelAuth a=Channels.getCookie(trimUrl(url));
+		if(a!=null) { // found some in hash
+			loggedOn=true;
+			tokenStr=a.authStr;
+			return a;
+		}
 		String query=params+"&"+user+"="+URLEncoder.encode(usr,"UTF-8")+
 		"&"+pwd+"="+URLEncoder.encode(pass,"UTF-8");
 		URL u=new URL(url);

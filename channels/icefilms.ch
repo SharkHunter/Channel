@@ -1,5 +1,5 @@
-version=0.20
-## NOTE!!!
+version=0.25
+## NOTE!!
 ## 
 ## We match out both the megavideo play link and megaupload link
 ## here. Both are streamable, but the megaupload is of course subject to
@@ -21,7 +21,7 @@ macrodef mediaMacro {
 		    matcher=<a href=\"([^\"]+)\"\s+class=\"down_links_mv\"
 			order=url
 			subtitle=s4u
-			nscript=http://navix.turner3d.net/proc/megavideo
+			#nscript=http://navix.turner3d.net/proc/megavideo
 			prop=concat_name=rear,name_separator= ,name_index=2,name_mangle=([^\(]+)\(
            }
 		   media {
@@ -31,7 +31,15 @@ macrodef mediaMacro {
 			order=url
 			subtitle=s4u
 			prop=concat_name=rear,name_separator= ,name_index=2,name_mangle=([^\(]+)\(
-           }   
+           } 
+		   media {
+				# <a href="http://www68.megaupload.com/files/f27f675c5fd22f12f08a4e03fc2d4522/Game.of.Thrones.S01E01.HDTV.XviD-FEVER.avi" class="down_ad_butt1"></a> 
+				matcher=<a href="([^\"]+)" class="down_ad_butt1"> 
+				name=MegaUpload Premium
+				order=url
+				subtitle=s4u
+				prop=concat_name=rear,name_separator= ,name_index=2,name_mangle=([^\(]+)\(
+           }    
       }
 }
 
@@ -47,7 +55,7 @@ folder {
 		    matcher=<a href=\"([^\"]+)\"\s+class=\"down_links_mv\"
 			order=url
 			subtitle=s4u
-			nscript=http://navix.turner3d.net/proc/megavideo
+			#nscript=http://navix.turner3d.net/proc/megavideo
 			prop=concat_name=rear,name_separator= ,name_index=3+2,name_mangle=([^\(]+)\([^ ]+ (.*)
            }
 		   media {
@@ -58,6 +66,14 @@ folder {
 			subtitle=s4u
 			prop=concat_name=rear,name_separator= ,name_index=3+2,name_mangle=([^\(]+)\([^ ]+ (.*)
            }   
+		   media {
+				# <a href="http://www68.megaupload.com/files/f27f675c5fd22f12f08a4e03fc2d4522/Game.of.Thrones.S01E01.HDTV.XviD-FEVER.avi" class="down_ad_butt1"></a> 
+				matcher=<a href="([^\"]+)" class="down_ad_butt1"> 
+				name=MegaUpload Premium
+				order=url
+				subtitle=s4u
+				prop=concat_name=rear,name_separator= ,name_index=3+2,name_mangle=([^\(]+)\(
+           }    
       }
 }
 
@@ -119,11 +135,12 @@ channel IceFilms {
    img=http://img.icefilms.info/logo.png
   login {
 		# Login data
-		url=http://www.megavideo.com/?c=
+		url=http://www.megaupload.com/?c=
 		user=username
 		passwd=password
 		params=login=1&redir=1
 		type=cookie
+		associate=meagvideo.com,megaporn.com,megalive.com
 	}
 	folder {
       name=TV Shows

@@ -21,7 +21,7 @@ import no.geosoft.cc.io.FileMonitor;
 public class Channels extends VirtualFolder implements FileListener {
 
 	// Version string
-	public static final String VERSION="1.05";
+	public static final String VERSION="1.06";
 	
 	// Constants for RTMP string constructions
 	public static final int RTMP_MAGIC_TOKEN=1;
@@ -500,7 +500,7 @@ public class Channels extends VirtualFolder implements FileListener {
 	// Cookie mgmt
 	//////////////////////////////////////////
 	
-	private static void mkCookieFile() {
+	public static void mkCookieFile() {
 		try {
 			String file=cfg().getCookiePath();
 			FileOutputStream out=new FileOutputStream(file);
@@ -508,6 +508,7 @@ public class Channels extends VirtualFolder implements FileListener {
 				ChannelAuth a=inst.cookies.get(key);
 				String data=key+"\tTRUE\t/\tFALSE\t"+String.valueOf(a.ttd)+"\t"+a.authStr.replace('=', '\t')+
 					"\n";
+				debug("dump to cookie file "+data);
 				out.write(data.getBytes(), 0, data.length());
 			}	
 			out.flush();
@@ -518,8 +519,11 @@ public class Channels extends VirtualFolder implements FileListener {
 
 	}
 	
-	public static void addCookie(String url,ChannelAuth a) {
-		if(inst.cookies.put(url, a)==null)
-			mkCookieFile();
+	public static boolean addCookie(String url,ChannelAuth a) {
+		return (inst.cookies.put(url, a)==null);
+	}
+	
+	public static ChannelAuth getCookie(String url) {
+		return inst.cookies.get(url);
 	}
 }
