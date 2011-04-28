@@ -50,7 +50,6 @@ public class ChannelGUI implements  ActionListener, ItemListener{
 		JPanel inst=new JPanel();
 		JPanel pmsenc=new JPanel(new GridBagLayout());
 		JButton channels=new JButton("Install/Update");
-		//JButton debugPack=new JButton("Pack debug info");
 		JButton cBrowse=new JButton("Browse...");
 		JButton sBrowse=new JButton("Browse...");
 		JButton rBrowse=new JButton("Browse...");
@@ -84,7 +83,6 @@ public class ChannelGUI implements  ActionListener, ItemListener{
 		get_flash=new JTextField(cfg.getFlashPath(),20);
 		yt=new JTextField(cfg.getYouTubePath(),20);
 
-
 		// Add some actions
 		cBrowse.setActionCommand("cpath");
 		cBrowse.addActionListener(this);
@@ -108,9 +106,6 @@ public class ChannelGUI implements  ActionListener, ItemListener{
 		ytBrowse.addActionListener(this);
 		channels.setActionCommand("other_channels");
 		channels.addActionListener(this);
-		/*debugPack.setActionCommand("other_debug");
-		debugPack.addActionListener(this);
-		dbg.addItemListener(this);*/
 		subs.addItemListener(this);
 
 		GridBagConstraints c = new GridBagConstraints();
@@ -148,34 +143,10 @@ public class ChannelGUI implements  ActionListener, ItemListener{
 		c.gridy = 3;
 		c.weightx=1.0;
 		pathPanel.add(subs,c);
-
-		// 3rd the rtmp path
-		c.gridx = 0;
-		c.gridy = 2;
-		c.weightx=1.0;
-		pmsenc.add(l3,c);
-		c.gridx++;
-		c.weightx=2.0;
-		pmsenc.add(rtmp,c);
-		c.gridx++;
-		c.weightx=1.0;
-		pmsenc.add(rBrowse,c);
-
-		// 4th the script path
+		
+		// Sopcast
 		c.gridx = 0;
 		c.gridy = 1;
-		c.weightx=1.0;
-		pmsenc.add(l4,c);
-		c.gridx++;
-		c.weightx=2.0;
-		pmsenc.add(script,c);
-		c.gridx++;
-		c.weightx=1.0;
-		pmsenc.add(scBrowse,c);
-		
-/*		// Sopcast
-		c.gridx = 0;
-		c.gridy = 3;
 		c.weightx=1.0;
 		pmsenc.add(l5,c);
 		c.gridx++;
@@ -187,7 +158,7 @@ public class ChannelGUI implements  ActionListener, ItemListener{
 		
 		// PPLive
 		c.gridx = 0;
-		c.gridy = 4;
+		c.gridy = 2;
 		c.weightx=1.0;
 		pmsenc.add(l6,c);
 		c.gridx++;
@@ -197,67 +168,17 @@ public class ChannelGUI implements  ActionListener, ItemListener{
 		c.weightx=1.0;
 		pmsenc.add(ppBrowse,c);
 		
-		// Perl
-		c.gridx = 0;
-		c.gridy = 5;
-		c.weightx=1.0;
-		pmsenc.add(l7,c);
-		c.gridx++;
-		c.weightx=2.0;
-		pmsenc.add(perl,c);
-		c.gridx++;
-		c.weightx=1.0;
-		pmsenc.add(perlBrowse,c);
-		
-		// Python
-		c.gridx = 0;
-		c.gridy = 6;
-		c.weightx=1.0;
-		pmsenc.add(l8,c);
-		c.gridx++;
-		c.weightx=2.0;
-		pmsenc.add(python,c);
-		c.gridx++;
-		c.weightx=1.0;
-		pmsenc.add(pytBrowse,c);
-		
-		// get_flash_videos
-		c.gridx = 0;
-		c.gridy = 7;
-		c.weightx=1.0;
-		pmsenc.add(l9,c);
-		c.gridx++;
-		c.weightx=2.0;
-		pmsenc.add(get_flash,c);
-		c.gridx++;
-		c.weightx=1.0;
-		pmsenc.add(get_flBrowse,c);
-		
-		// YouTube
-		c.gridx = 0;
-		c.gridy = 8;
-		c.weightx=1.0;
-		pmsenc.add(l10,c);
-		c.gridx++;
-		c.weightx=2.0;
-		pmsenc.add(yt,c);
-		c.gridx++;
-		c.weightx=1.0;
-		pmsenc.add(ytBrowse,c);*/
-
 		// Add installation buttons
 		// Channels
 		c.fill = GridBagConstraints.BOTH;
 		inst.add(channels);
-		//inst.add(install);
 
 		// Add all
 		top.add(pathPanel,BorderLayout.NORTH);
 		top.add(new JSeparator(), BorderLayout.CENTER);
 		top1.add(pmsenc,BorderLayout.NORTH);
 		top1.add(new JSeparator(), BorderLayout.CENTER);
-		/*top1.add(inst,BorderLayout.SOUTH);
-		top1.add(debugPack);*/
+		top1.add(inst);
 		top.add(top1,BorderLayout.SOUTH);
 		return top;
 	}
@@ -308,9 +229,6 @@ public class ChannelGUI implements  ActionListener, ItemListener{
 				cfg.fetchChannels();
 				root.fileChanged(new File(cfg.getPath()));
 			}
-/*			else if(text.equals("other_debug")) {
-				cfg.packDbg();
-			}*/
 		}
 
 	}
