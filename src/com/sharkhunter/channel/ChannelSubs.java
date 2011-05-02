@@ -1,14 +1,22 @@
 package com.sharkhunter.channel;
 
+import java.io.BufferedInputStream;
+import java.io.BufferedOutputStream;
 import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
+import java.io.IOException;
 import java.io.InputStream;
+import java.io.OutputStream;
 import java.net.URL;
 import java.net.URLConnection;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import java.util.zip.ZipEntry;
+import java.util.zip.ZipInputStream;
 
 import net.pms.dlna.DLNAResource;
 import net.pms.formats.Format;
@@ -67,8 +75,64 @@ public class ChannelSubs implements ChannelProps {
 			}
 			if(keyval[0].equalsIgnoreCase("script")) {
 				script=keyval[1];
+			}	
+		}
+	}
+	
+	private String zipFile(File f) {
+		boolean concat=ChannelUtil.getProperty(prop, "zip_concat");
+		boolean keep=ChannelUtil.getProperty(prop, "zip_keep");
+		boolean first=true;
+		ZipInputStream zis;
+		try {
+			zis = new ZipInputStream(new FileInputStream(f));
+		} catch (Exception e) {
+			Channels.debug("error reading zipped subtile");
+			return null;
+		}
+		ZipEntry entry;
+		try {
+			String firstName=null;
+			OutputStream dest=null;
+			while((entry = zis.getNextEntry()) != null) {
+				//  Channels.debug("Extracting: " +entry);
+				int count;
+				final int BUFFER = 2048;
+				byte data[] = new byte[BUFFER];
+				// write the files to the disk
+				String fName=dPath+File.separator+entry.getName();
+				if(!entry.getName().contains(".srt")) // no .srt ignore
+					continue;
+				FileOutputStream fos1 = new FileOutputStream(fName);
+				if(concat) {
+					if(first) {
+						dest = new BufferedOutputStream(fos1, BUFFER);
+						first=false;
+						firstName=fName;
+					}
+				}
+				else
+					dest=new BufferedOutputStream(fos1, BUFFER);
+				while ((count = zis.read(data, 0, BUFFER)) != -1) {
+					dest.write(data, 0, count);
+				}
+				if(!concat) {
+					dest.flush();
+					dest.close();
+				}	
 			}
-				
+			if(concat) {
+				dest.flush();
+				dest.close();
+			}
+			zis.close();
+			if(!keep)
+				f.delete();
+			return cacheFile(new File(firstName)); // return the first name no matter what
+		} 
+		catch (Exception e) {
+			Channels.debug("error "+e+" reading zipped subtile");
+			return null;
 		}
 	}
 	
@@ -82,17 +146,23 @@ public class ChannelSubs implements ChannelProps {
 		if(ChannelUtil.empty(mediaName))
 			return null;
 		mediaName=mediaName.trim();
-		File f=new File(dPath.getAbsolutePath()+File.separator+mediaName+".srt");
+		String path=dPath.getAbsolutePath()+File.separator+mediaName;
+		File f=new File(path+".srt");
 		if(f.exists())
 			return cacheFile(f);
 		String subUrl=fetchSubsUrl(mediaName);
 		Channels.debug("subUrl "+subUrl);
 		if(ChannelUtil.empty(subUrl))
 			return null;
+		boolean zip=subUrl.endsWith(".zip");
 		subUrl=subUrl.replace("&amp;", "&");
-		if(ChannelUtil.downloadBin(subUrl, f))
-			return cacheFile(f);
-		return null;
+		if(zip)
+			f=new File(path+".zip");
+		if(!ChannelUtil.downloadBin(subUrl, f))
+			return null;
+		if(zip)  // zip file
+			return zipFile(f);
+		return cacheFile(f);
 	}
 	
 	public String fetchSubsUrl(String mediaName) {

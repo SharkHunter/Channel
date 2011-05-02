@@ -9,15 +9,22 @@ import java.awt.event.ItemEvent;
 import java.awt.event.ItemListener;
 import java.io.File;
 import java.io.IOException;
+import java.util.ArrayList;
 
 import javax.swing.JButton;
 import javax.swing.JCheckBox;
 import javax.swing.JComponent;
 import javax.swing.JFileChooser;
+import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
+import javax.swing.JScrollPane;
 import javax.swing.JSeparator;
+import javax.swing.JSplitPane;
+import javax.swing.JTable;
 import javax.swing.JTextField;
+import javax.swing.Popup;
+import javax.swing.table.DefaultTableModel;
 
 import net.pms.PMS;
 
@@ -35,8 +42,10 @@ public class ChannelGUI implements  ActionListener, ItemListener{
 	private JTextField python;
 	private JTextField get_flash;
 	private JTextField yt;
+	private JTextField credText;
 	private JCheckBox dbg;
 	private JCheckBox subs;
+	private JComponent topComp;
 	
 	public ChannelGUI(ChannelCfg cfg,Channels root) {
 		this.cfg=cfg;
@@ -60,6 +69,7 @@ public class ChannelGUI implements  ActionListener, ItemListener{
 		JButton pytBrowse=new JButton("Browse...");
 		JButton get_flBrowse=new JButton("Browse...");
 		JButton ytBrowse=new JButton("Browse...");
+		JButton credBrowse=new JButton("Browse...");
 		JLabel l1=new JLabel("Channels Path: ");
 		JLabel l2=new JLabel("Save Path: ");
 		JLabel l3=new JLabel("RTMPDump path: ");
@@ -70,6 +80,7 @@ public class ChannelGUI implements  ActionListener, ItemListener{
 		JLabel l8=new JLabel("Python path: ");
 		JLabel l9=new JLabel("get_flash_videos path: ");
 		JLabel l10=new JLabel("YouTube-dl path: ");
+		JLabel l11=new JLabel("Credentials path: ");
 		dbg=new JCheckBox("Enable debug",Channels.debugStatus());
 		subs=new JCheckBox("Use subtiles",Channels.doSubs());
 		chPath=new JTextField(cfg.getPath(),20);
@@ -82,6 +93,7 @@ public class ChannelGUI implements  ActionListener, ItemListener{
 		python=new JTextField(cfg.getPythonPath(),20);
 		get_flash=new JTextField(cfg.getFlashPath(),20);
 		yt=new JTextField(cfg.getYouTubePath(),20);
+		credText=new JTextField(cfg.getCredPath(),20);
 
 		// Add some actions
 		cBrowse.setActionCommand("cpath");
@@ -104,10 +116,12 @@ public class ChannelGUI implements  ActionListener, ItemListener{
 		get_flBrowse.addActionListener(this);
 		ytBrowse.setActionCommand("ytpath");
 		ytBrowse.addActionListener(this);
+		credBrowse.setActionCommand("credpath");
+		credBrowse.addActionListener(this);
 		channels.setActionCommand("other_channels");
 		channels.addActionListener(this);
 		subs.addItemListener(this);
-
+		
 		GridBagConstraints c = new GridBagConstraints();
 		// 1st the channels path
 		c.fill = GridBagConstraints.BOTH;
@@ -133,14 +147,27 @@ public class ChannelGUI implements  ActionListener, ItemListener{
 		c.gridx++;
 		c.weightx=1.0;
 		pathPanel.add(sBrowse,c);
-		// Debug
+		
+		// 3rd the cred path
 		c.gridx = 0;
 		c.gridy = 2;
+		c.weightx=1.0;
+		pathPanel.add(l11,c);
+		c.gridx++;
+		c.weightx=2.0;
+		pathPanel.add(credText,c);
+		c.gridx++;
+		c.weightx=1.0;
+		pathPanel.add(credBrowse,c);
+		
+		// Debug
+		c.gridx = 0;
+		c.gridy = 3;
 		c.weightx=1.0;
 		pathPanel.add(dbg,c);
 		// Subs
 		c.gridx = 0;
-		c.gridy = 3;
+		c.gridy = 4;
 		c.weightx=1.0;
 		pathPanel.add(subs,c);
 		
@@ -180,8 +207,11 @@ public class ChannelGUI implements  ActionListener, ItemListener{
 		top1.add(new JSeparator(), BorderLayout.CENTER);
 		top1.add(inst);
 		top.add(top1,BorderLayout.SOUTH);
+		topComp=top;
 		return top;
 	}
+	
+	private JFrame cw;
 
 	@Override
 	public void actionPerformed(ActionEvent e) {
@@ -214,6 +244,8 @@ public class ChannelGUI implements  ActionListener, ItemListener{
 							cfg.setGetFlPath(path.getSelectedFile().getCanonicalPath().toString());
 						else if(text.equals("ytpath"))
 							cfg.setYouTubePath(path.getSelectedFile().getCanonicalPath().toString());
+						else if(text.equals("credpath"))
+							cfg.setCredPath(path.getSelectedFile().getCanonicalPath().toString());
 						update();
 						cfg.commit();
 					} catch (IOException e1) {
@@ -228,9 +260,9 @@ public class ChannelGUI implements  ActionListener, ItemListener{
 				cfg.commit();
 				cfg.fetchChannels();
 				root.fileChanged(new File(cfg.getPath()));
+				return;
 			}
 		}
-
 	}
 
 	@Override
@@ -257,6 +289,7 @@ public class ChannelGUI implements  ActionListener, ItemListener{
 		python.setText(cfg.getPythonPath());
 		get_flash.setText(cfg.getFlashPath());
 		yt.setText(cfg.getYouTubePath());
+		credText.setText(cfg.getCredPath());
 	}
 	
 	private void pushPaths() {
@@ -270,6 +303,7 @@ public class ChannelGUI implements  ActionListener, ItemListener{
 		cfg.setPythPath(python.getText());
 		cfg.setGetFlPath(get_flash.getText());
 		cfg.setYouTubePath(yt.getText());
+		cfg.setCredPath(credText.getText());
 	}
 	
 }

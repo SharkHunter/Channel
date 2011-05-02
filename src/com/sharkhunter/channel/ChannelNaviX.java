@@ -16,9 +16,9 @@ public class ChannelNaviX extends VirtualFolder implements ChannelScraper {
 	private String[] props;
 	private int continues;
 	private boolean contAll;
-	private String subtitle;
+	private String[] subtitle;
 	
-	public ChannelNaviX(Channel ch,String name,String thumb,String url,String[] props,String sub) {
+	public ChannelNaviX(Channel ch,String name,String thumb,String url,String[] props,String[] sub) {
 		super(name,ChannelUtil.getThumb(thumb,null,ch));
 		this.url=url;
 		this.props=props;
@@ -142,18 +142,23 @@ public class ChannelNaviX extends VirtualFolder implements ChannelScraper {
 	}
 	
 	public String subCb(String realName) {
-		if(ChannelUtil.empty(subtitle)||!Channels.doSubs())
+		if(subtitle==null||!Channels.doSubs())
 			return null;
-		ChannelSubs subs=Channels.getSubs(subtitle);
-		if(subs==null) 
-			return null;
-		// Maybe we should mangle the name?
-		String nameMangle=ChannelUtil.getPropertyValue(props, "name_mangle");
-		realName=ChannelUtil.mangle(nameMangle, realName);
-		parent.debug("backtracked name "+realName);
-		String subFile=subs.getSubs(realName);
-		parent.debug("subs "+subFile);
-		return subFile;
+		for(int i=0;i<subtitle.length;i++) {
+			ChannelSubs subs=Channels.getSubs(subtitle[i]);
+			if(subs==null) 
+				continue;
+			// Maybe we should mangle the name?
+			String nameMangle=ChannelUtil.getPropertyValue(props, "name_mangle");
+			realName=ChannelUtil.mangle(nameMangle, realName);
+			parent.debug("backtracked name "+realName);
+			String subFile=subs.getSubs(realName);
+			parent.debug("subs "+subFile);
+			if(ChannelUtil.empty(subFile))
+				continue;
+			return subFile;
+		}
+		return null;
 	}
 
 	@Override

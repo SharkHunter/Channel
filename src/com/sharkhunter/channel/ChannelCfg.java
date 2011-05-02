@@ -36,6 +36,7 @@ public class ChannelCfg {
 	private Channels top;
 	private boolean subs;
 	private boolean cache;
+	private String credPath;
 	
 	public ChannelCfg(Channels top) {
 		chPath=null;
@@ -44,6 +45,7 @@ public class ChannelCfg {
 		scriptPath=null;
 		cookiePath=null;
 		subs=true;
+		credPath=null;
 		this.top=top;
 		cache=false;
 	}
@@ -94,6 +96,10 @@ public class ChannelCfg {
 	
 	public void setCookiePath(String p) {
 		cookiePath=p;
+	}
+	
+	public void setCredPath(String p) {
+		credPath=p;
 	}
 	
 	////////////////////////////////////////
@@ -152,6 +158,10 @@ public class ChannelCfg {
 		return cookiePath;
 	}
 	
+	public String getCredPath() {
+		return credPath;
+	}
+	
 	//////////////////////////////////////
 	// Other methods
 	//////////////////////////////////////
@@ -169,6 +179,7 @@ public class ChannelCfg {
 		get_flPath=(String) PMS.getConfiguration().getCustomProperty("get-flash-videos.path");
 		ytPath=(String) PMS.getConfiguration().getCustomProperty("youtube-dl.path");
 		cookiePath=(String) PMS.getConfiguration().getCustomProperty("cookie.path");
+		credPath=(String) PMS.getConfiguration().getCustomProperty("cred.path");
 		
 		// Other
 		String dbg=(String)PMS.getConfiguration().getCustomProperty("channels.debug");
@@ -197,7 +208,7 @@ public class ChannelCfg {
 			else
 				Channels.setCache(false);
 		
-		// Deafult
+		// Defaults
 		if(ChannelUtil.empty(rtmpPath)) {
 			File plugPath=new File(PMS.getConfiguration().getMplayerPath());
 			String ext=(PMS.get().isWindows()?".exe":"");
@@ -212,6 +223,8 @@ public class ChannelCfg {
 		if(ChannelUtil.empty(cookiePath)) {
 			cookiePath=Channels.dataPath()+File.separator+"cookies";
 		}
+		if(ChannelUtil.empty(credPath)) // defaults to channel path
+			credPath=chPath;
 	}
 	
 	private void configPath(String key,String val) {
@@ -229,9 +242,8 @@ public class ChannelCfg {
 		try {
 			ChannelNaviXNookie.init(new File(dPath+File.separator+"nookie"));
 			validatePMSEncoder();
-			//updateRTMPScript();
-			PMS.getConfiguration().setCustomProperty("channels.path",chPath);
-			PMS.getConfiguration().setCustomProperty("channels.save",saPath);
+			configPath("channels.path",chPath);
+			configPath("channels.save",saPath);
 			configPath("pmsencoder.script.directory",scriptPath);
 			configPath("rtmpdump.path",rtmpPath);
 			configPath("sopcast.path",sopcastPath);
@@ -241,32 +253,13 @@ public class ChannelCfg {
 			configPath("get-flash-videos.path",get_flPath);
 			configPath("youtube-dl.path",ytPath);
 			configPath("cookie.path",cookiePath);
+			if(!chPath.equals(credPath))
+				configPath("cred.path",credPath);
 			PMS.getConfiguration().setCustomProperty("channels.debug",String.valueOf(Channels.debugStatus()));
 			PMS.getConfiguration().setCustomProperty("channels.subtitles",String.valueOf(Channels.doSubs()));
 			PMS.getConfiguration().save();
 		} catch (Exception e) {
 		}
-	}
-	
-	private void updateRTMPScript() throws Exception {
-		if(ChannelUtil.empty(rtmpPath))
-			return;
-		String fName=scriptPath+File.separator+"rtmp.groovy";
-		StringBuilder sb=new StringBuilder();
-		FileInputStream fis=new FileInputStream(fName);
-		BufferedReader in = new BufferedReader(new InputStreamReader(fis));
-		String str;
-	    while ((str = in.readLine()) != null) {
-	    	sb.append(str);
-	    	sb.append("\n");
-	    }
-	    in.close();
-	    str=sb.toString();
-	    str=str.replace("RTMPDUMP = \'C:\\\\rtmpdump.exe\'", "RTMPDUMP = \'"+rtmpPath+"\'");
-	    FileOutputStream fos=new FileOutputStream(fName);
-	    fos.write(str.getBytes());
-	    fos.flush();
-	    fos.close();
 	}
 	
 	public void ensureCreated(String p) {
@@ -335,11 +328,9 @@ public class ChannelCfg {
 	         }
 	         zis.close();
 	         in.close();
-//	         updateRTMPScript();
 	      } catch(Exception e) {
 	    	  Channels.debug("error fetching channels "+e);
 	      }
-	//      fetchExternals();
 	}
 	
 	private void readFile(String url,String outFile) {

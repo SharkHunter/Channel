@@ -131,6 +131,10 @@ public class Channel extends VirtualFolder {
 		return name;
 	}
 	
+	public boolean login() {
+		return (logObj!=null);
+	}
+	
 	public void addCred(ChannelCred c) {
 		cred=c;
 		if(logObj!=null)
@@ -138,11 +142,15 @@ public class Channel extends VirtualFolder {
 	}
 	
 	public String user() {
-		return cred.user;
+		if(cred!=null)
+			return cred.user;
+		return null;
 	}
 	
 	public String pwd() {
-		return cred.pwd;
+		if(cred!=null)
+			return cred.pwd;
+		return null;
 	}
 	
 	public ChannelAuth getAuth() {

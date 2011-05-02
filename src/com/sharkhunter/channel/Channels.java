@@ -105,6 +105,14 @@ public class Channels extends VirtualFolder implements FileListener {
     	return null;
     }
     
+    public static ArrayList<Channel> getChannels() {
+    	ArrayList<Channel> res=new ArrayList<Channel>();
+    	for(DLNAResource f:inst.children)
+    		if(f instanceof Channel)
+    			res.add((Channel) f);
+    	return res;
+    }
+    
     private void readChannel(String data)  throws Exception {
     	String str;
     	String[] lines=data.split("\n");
@@ -494,6 +502,12 @@ public class Channels extends VirtualFolder implements FileListener {
 	
 	public void setCfg(ChannelCfg c) {
 		cfg=c;
+		if(!ChannelUtil.empty(cfg.getCredPath())&&!cfg.getCredPath().equals(file)) {
+			File f=new File(cfg.getCredPath());
+			if(fileMonitor!=null)
+				fileMonitor.addFile(f);
+			handleCred(f);
+		}
 	}
 	
 	//////////////////////////////////////////
@@ -508,7 +522,6 @@ public class Channels extends VirtualFolder implements FileListener {
 				ChannelAuth a=inst.cookies.get(key);
 				String data=key+"\tTRUE\t/\tFALSE\t"+String.valueOf(a.ttd)+"\t"+a.authStr.replace('=', '\t')+
 					"\n";
-				debug("dump to cookie file "+data);
 				out.write(data.getBytes(), 0, data.length());
 			}	
 			out.flush();

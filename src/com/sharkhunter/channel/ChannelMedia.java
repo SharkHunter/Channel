@@ -29,7 +29,7 @@ public class ChannelMedia implements ChannelProps,ChannelScraper {
 	private int scriptType;
 	private int type;
 	private HashMap<String,String> params;
-	private String subtitle;
+	private String[] subtitle;
 	private int format;
 	private String staticUrl;
 	
@@ -39,6 +39,7 @@ public class ChannelMedia implements ChannelProps,ChannelScraper {
 		this.parent=parent;
 		type=ChannelMedia.TYPE_NORMAL;
 		script=null;
+		subtitle=null;
 		scriptType=ChannelMedia.SCRIPT_LOCAL;
 		params=new HashMap<String,String>();
 		format=-1;
@@ -106,7 +107,7 @@ public class ChannelMedia implements ChannelProps,ChannelScraper {
 					params.put(stash[0],stash[1]);
 			}
 			if(keyval[0].equalsIgnoreCase("subtitle")) {
-				subtitle=keyval[1];
+				subtitle=keyval[1].split(",");
 			}
 			if(keyval[0].equalsIgnoreCase("format")) {
 				format=ChannelUtil.getFormat(keyval[1]);
@@ -190,8 +191,10 @@ public class ChannelMedia implements ChannelProps,ChannelScraper {
 		if(type==ChannelMedia.TYPE_ASX)
 			asx=ChannelUtil.ASXTYPE_FORCE;
 		if(subtitle!=null&&Channels.doSubs()) {
-			ChannelSubs subs=Channels.getSubs(subtitle);
-			if(subs!=null) {
+			for(int i=0;i<subtitle.length;i++) {
+				ChannelSubs subs=Channels.getSubs(subtitle[i]);
+				if(subs==null)
+					continue;
 				String realName=ChannelUtil.backTrack(start,ChannelUtil.getNameIndex(prop));
 				// Maybe we should mangle the name?
 				String nameMangle=ChannelUtil.getPropertyValue(prop, "name_mangle");
@@ -199,7 +202,9 @@ public class ChannelMedia implements ChannelProps,ChannelScraper {
 				parent.debug("backtracked name "+realName);
 				subFile=subs.getSubs(realName);
 				parent.debug("subs "+subFile);
-				params.put("subtitle",subFile);	
+				params.put("subtitle",subFile);
+				if(!ChannelUtil.empty(subFile))
+					break;
 			}
 		}
 		if(ChannelUtil.empty(scriptName)) { // no script just return what we got

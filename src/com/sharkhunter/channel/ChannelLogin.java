@@ -119,7 +119,7 @@ public class ChannelLogin {
 		if(p!=-1)
 			u1=u1.substring(0,p);
 		p=u1.indexOf('.');
-		if(p!=-1) // skip wwwxxx.
+		if((p!=-1)&&(u1.startsWith("www"))) // skip wwwxxx.
 			u1=u1.substring(p+1);
 		return u1;
 	}

@@ -37,7 +37,7 @@ public class ChannelFolder implements ChannelProps{
 	private int continues;
 	private boolean contAll;
 	
-	private String sub;
+	private String[] sub;
 	
 	public ChannelFolder(ArrayList<String> data,Channel parent) {
 		this(data,parent,null);
@@ -139,7 +139,7 @@ public class ChannelFolder implements ChannelProps{
 					matcher.setOrder(keyval[1]);
 			}
 			if(keyval[0].equalsIgnoreCase("subtitle")) {
-				sub=keyval[1];
+				sub=keyval[1].split(",");
 			}
 		}
 	}
