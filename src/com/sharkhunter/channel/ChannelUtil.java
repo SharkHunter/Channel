@@ -106,6 +106,12 @@ public class ChannelUtil {
 					connection.setRequestProperty("Authorization", auth.authStr);
 				else if(auth.method==ChannelLogin.COOKIE) 
 					cookie=append(cookie,"; ",auth.authStr);
+				else if(auth.method==ChannelLogin.APIKEY) {
+					URL url=connection.getURL();
+					url=new URL(url.toString()+auth.authStr);
+					connection=url.openConnection();
+				}
+					
 			}
 			if(!empty(cookie))
 				connection.setRequestProperty("Cookie",cookie);

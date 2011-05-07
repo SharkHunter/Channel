@@ -3,8 +3,10 @@ package com.sharkhunter.channel;
 import java.io.InputStream;
 import java.net.MalformedURLException;
 import java.util.ArrayList;
+import java.util.HashMap;
 
 import net.pms.PMS;
+import net.pms.dlna.DLNAResource;
 import net.pms.dlna.virtual.VirtualFolder;
 import net.pms.formats.Format;
 import net.pms.network.HTTPResource;
@@ -21,12 +23,17 @@ public class Channel extends VirtualFolder {
 	private ChannelCred cred;
 	private ChannelLogin logObj;
 	
+	private int searchId;
+	private HashMap<String,SearchObj> searchFolders;
+	
 	public Channel(String name) {
 		super(name,null);
 		Ok=false;
 		this.name=name;
 		format=Format.VIDEO;
 		folders=new ArrayList<ChannelFolder>();
+		searchId=0;
+		searchFolders=new HashMap<String,SearchObj>();
 		Ok=true;
 	}
 	
@@ -81,6 +88,10 @@ public class Channel extends VirtualFolder {
 		}
 	}
 	
+	public String nxtSearchId() {
+		return String.valueOf(searchId++);
+	}
+	
 	public ChannelMacro getMacro(String macro) {
 		return ChannelUtil.findMacro(macros, macro);
 	}
@@ -106,6 +117,8 @@ public class Channel extends VirtualFolder {
 			ChannelFolder cf=folders.get(i);
 			if(cf.isATZ()) 
 				addChild(new ChannelATZ(cf));
+			else if(cf.isSearch())
+				addChild(new SearchFolder(cf.getName(),cf));
 			else
 				try {
 					cf.match(this);
@@ -163,6 +176,32 @@ public class Channel extends VirtualFolder {
 		if(ChannelUtil.empty(cred.pwd))
 			return null;
 		return logObj.getAuthStr(cred.user, cred.pwd);
+	}
+	
+	public void addSearcher(String id,SearchObj obj) {
+		searchFolders.put(id,obj);
+	}
+	
+	public void research(String str,String id,DLNAResource res) {
+		debug("id "+id);
+		if(id.startsWith("navix:")) {
+			id=id.substring(6);
+			ChannelFolder holder=folders.get(0);
+			if(holder!=null) {
+				if(holder.isNaviX()) {
+					ChannelNaviX nx=new ChannelNaviX(this,"",ChannelUtil.getThumb(null,null, this),
+							  	id,holder.getPropList(),holder.getSubs());
+					ChannelNaviXSearch ns=new ChannelNaviXSearch(nx,id);
+					debug("perform navix search");
+					ns.search(str, res);
+					return;
+				}
+			}
+		}
+		SearchObj obj=searchFolders.get(id);
+		if(obj==null)
+			return;
+		obj.search(str, res);
 	}
 	
 }

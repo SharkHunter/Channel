@@ -82,7 +82,9 @@ public class ChannelSubs implements ChannelProps {
 	private String zipFile(File f) {
 		boolean concat=ChannelUtil.getProperty(prop, "zip_concat");
 		boolean keep=ChannelUtil.getProperty(prop, "zip_keep");
+		boolean rename=!ChannelUtil.getProperty(prop, "zip_norename");
 		boolean first=true;
+		int id=1;
 		ZipInputStream zis;
 		try {
 			zis = new ZipInputStream(new FileInputStream(f));
@@ -95,7 +97,7 @@ public class ChannelSubs implements ChannelProps {
 			String firstName=null;
 			OutputStream dest=null;
 			while((entry = zis.getNextEntry()) != null) {
-				//  Channels.debug("Extracting: " +entry);
+				Channels.debug("Extracting: " +entry);
 				int count;
 				final int BUFFER = 2048;
 				byte data[] = new byte[BUFFER];
@@ -103,16 +105,25 @@ public class ChannelSubs implements ChannelProps {
 				String fName=dPath+File.separator+entry.getName();
 				if(!entry.getName().contains(".srt")) // no .srt ignore
 					continue;
-				FileOutputStream fos1 = new FileOutputStream(fName);
+				if(rename) {
+					String i=first?"":"_"+String.valueOf(id++);
+					fName=(f.getAbsolutePath()+i+".srt").replace(".zip", "");
+				}
 				if(concat) {
 					if(first) {
+						fName=(f.getAbsolutePath()+".srt").replace(".zip", "");
+						FileOutputStream fos1 = new FileOutputStream(fName);		
 						dest = new BufferedOutputStream(fos1, BUFFER);
-						first=false;
-						firstName=fName;
 					}
 				}
-				else
+				else {
+					FileOutputStream fos1 = new FileOutputStream(fName);
 					dest=new BufferedOutputStream(fos1, BUFFER);
+				}
+				if(first) {
+					first=false;
+					firstName=fName;
+				}
 				while ((count = zis.read(data, 0, BUFFER)) != -1) {
 					dest.write(data, 0, count);
 				}
@@ -154,7 +165,7 @@ public class ChannelSubs implements ChannelProps {
 		Channels.debug("subUrl "+subUrl);
 		if(ChannelUtil.empty(subUrl))
 			return null;
-		boolean zip=subUrl.endsWith(".zip");
+		boolean zip=ChannelUtil.getProperty(prop, "zip_force")||subUrl.contains("zip");
 		subUrl=subUrl.replace("&amp;", "&");
 		if(zip)
 			f=new File(path+".zip");

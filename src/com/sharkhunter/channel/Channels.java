@@ -2,6 +2,7 @@ package com.sharkhunter.channel;
 
 import java.io.BufferedReader;
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.FileReader;
 import java.io.IOException;
@@ -21,7 +22,7 @@ import no.geosoft.cc.io.FileMonitor;
 public class Channels extends VirtualFolder implements FileListener {
 
 	// Version string
-	public static final String VERSION="1.07";
+	public static final String VERSION="1.08";
 	
 	// Constants for RTMP string constructions
 	public static final int RTMP_MAGIC_TOKEN=1;
@@ -48,6 +49,7 @@ public class Channels extends VirtualFolder implements FileListener {
     private ChannelOffHour oh;
     private ChannelCfg cfg;
     private HashMap<String,ChannelAuth> cookies;
+    private ChannelSearch searchDb;
     
     public Channels(String path,long poll) {
     	super("Channels",null);
@@ -64,11 +66,13 @@ public class Channels extends VirtualFolder implements FileListener {
     	savePath="";
     	oh=null;
     	appendTS=false;
+    	searchDb=new ChannelSearch(new File(dataPath()+File.separator+"search.txt"));
     	//rtmp=Channels.RTMP_MAGIC_TOKEN;
     	rtmp=Channels.RTMP_DUMP;
     	PMS.minimal("Start channel "+VERSION);
     	dbg=new ChannelDbg(new File(path+File.separator+"channel.log"));
     	addChild(cache);
+    	addChild(searchDb);
     	fileMonitor=null;
     	if(poll>0)
     		fileMonitor=new FileMonitor(poll);
@@ -76,6 +80,12 @@ public class Channels extends VirtualFolder implements FileListener {
     	if(poll>0) {
     		fileMonitor.addFile(file);
     		fileMonitor.addListener(this);
+    	}
+    	try {
+    		initSearch(new File(dataPath()+File.separator+"search.txt"));
+    	}
+    	catch (Exception e) {
+    		debug("Error reading search db "+e);
     	}
     }
     
@@ -539,4 +549,39 @@ public class Channels extends VirtualFolder implements FileListener {
 	public static ChannelAuth getCookie(String url) {
 		return inst.cookies.get(url);
 	}
+	
+	////////////////////////////////////////////////
+	// Handle search db
+	/////////////////////////////////////////////////
+	
+	private void initSearch(File f) throws Exception {
+		if(!f.exists())
+			return;
+		BufferedReader in=new BufferedReader(new FileReader(f));
+    	String str;
+    	while ((str = in.readLine()) != null) {
+    		if(ChannelUtil.ignoreLine(str)) 
+    			continue;
+    		str=str.trim();
+    		String[] line=str.split(",");
+    		if(line.length<3) // bad line skip it
+    			continue;
+    		String chStr=line[0];
+    		String id=line[1];
+    		String search=line[2];
+    		Channel ch=find(chStr);
+    		if(ch==null) // no channel?!
+    			continue;
+    		searchDb.addSearch(ch,id,search);
+    	}
+    	in.close();
+    	searchDb.dump();
+	}
+	
+	public static void addSearch(Channel ch,String id,String str) {
+		debug("add search entry "+ch.name()+" "+id+" "+str);
+		inst.searchDb.addSearch(ch, id, str);
+		inst.searchDb.dump();
+	}
+	
 }

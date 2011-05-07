@@ -5,6 +5,7 @@ import java.io.FileOutputStream;
 import java.io.UnsupportedEncodingException;
 import java.net.HttpURLConnection;
 import java.net.URL;
+import java.net.URLConnection;
 import java.net.URLEncoder;
 import java.util.ArrayList;
 
@@ -16,6 +17,7 @@ public class ChannelLogin {
 	
 	public static final int STD=0;
 	public static final int COOKIE=1;
+	public static final int APIKEY=2;
 	
 	private Channel parent;
 	private String user;
@@ -64,6 +66,8 @@ public class ChannelLogin {
 			if(keyval[0].equalsIgnoreCase("type")) {
 				if(keyval[1].equalsIgnoreCase("cookie"))
 					type=ChannelLogin.COOKIE;
+				if(keyval[1].equalsIgnoreCase("apikey"))
+					type=ChannelLogin.APIKEY;
 				if(keyval[1].equalsIgnoreCase("standard")||
 				   keyval[1].equalsIgnoreCase("std"))
 					type=ChannelLogin.STD;
@@ -91,12 +95,21 @@ public class ChannelLogin {
 	private ChannelAuth stdLogin(String usr,String pass) throws Exception {
 		String query=params+"&"+user+"="+URLEncoder.encode(usr,"UTF-8")+
 		"&"+pwd+"="+URLEncoder.encode(pass,"UTF-8");
+		//Channels.debug("url "+url+" query "+query);
 		URL u=new URL(url);
-		//PMS.debug("url "+url+" query "+query);
-		HttpsURLConnection connection = (HttpsURLConnection) u.openConnection();
-		HttpsURLConnection.setFollowRedirects(true);   
-		connection.setInstanceFollowRedirects(true);   
-		connection.setRequestMethod("POST");  
+		URLConnection connection;
+		if(url.startsWith("https")) {
+			connection = (HttpsURLConnection) u.openConnection();
+			HttpsURLConnection.setFollowRedirects(true);
+			((HttpURLConnection) connection).setInstanceFollowRedirects(true);   
+			((HttpURLConnection) connection).setRequestMethod("POST");  
+		}
+		else {
+			connection = (HttpURLConnection) u.openConnection();
+			HttpURLConnection.setFollowRedirects(true);
+			((HttpURLConnection) connection).setInstanceFollowRedirects(true);   
+			((HttpURLConnection) connection).setRequestMethod("POST");  
+		}
 		String page=ChannelUtil.postPage(connection, query);
 		//PMS.debug("got page after post "+page);
 		auth.startMatch(page);
@@ -182,20 +195,20 @@ public class ChannelLogin {
 	}
 	
 	public ChannelAuth getAuthStr(String usr,String pass,boolean media) {
-		Channels.debug("login on channel "+parent.getName()+" type "+type);
+		Channels.debug("login on channel "+parent.getName()+" type "+type+" on "+loggedOn);
 		if(loggedOn)
 			return mkResult();
 		if(!media&&mediaOnly)
 			return null;
 		try {
-			if(type==ChannelLogin.STD)
+			if((type==ChannelLogin.STD)||(type==ChannelLogin.APIKEY))
 				return stdLogin(usr,pass);
 			else if(type==ChannelLogin.COOKIE)
 				return cookieLogin(usr,pass);
 			return null;
 		}
 		catch (Exception e) {
-			PMS.debug("could not fetch token "+e);
+			Channels.debug("could not fetch token "+e);
 			return null;
 		}
 	}

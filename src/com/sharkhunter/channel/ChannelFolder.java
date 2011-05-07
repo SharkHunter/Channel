@@ -9,7 +9,7 @@ import org.apache.commons.lang.StringEscapeUtils;
 import net.pms.PMS;
 import net.pms.dlna.DLNAResource;
 
-public class ChannelFolder implements ChannelProps{
+public class ChannelFolder implements ChannelProps, SearchObj{
 	public static final int TYPE_NORMAL=0;
 	public static final int TYPE_ATZ=1;
 	public static final int TYPE_EMPTY=2;
@@ -17,6 +17,8 @@ public class ChannelFolder implements ChannelProps{
 	public static final int TYPE_ATZ_LINK=4;
 	public static final int TYPE_NAVIX=5;
 	public static final int TYPE_RECURSE=6;
+	public static final int TYPE_SEARCH=7;
+	public static final int TYPE_NAVIX_SEARCH=8;
 	
 	public boolean Ok;
 	
@@ -38,6 +40,8 @@ public class ChannelFolder implements ChannelProps{
 	private boolean contAll;
 	
 	private String[] sub;
+	
+	private String searchId;
 	
 	public ChannelFolder(ArrayList<String> data,Channel parent) {
 		this(data,parent,null);
@@ -74,7 +78,16 @@ public class ChannelFolder implements ChannelProps{
 		continues=ChannelUtil.calcCont(prop);
 		if(continues<0)
 			contAll=true;
+		if(isSearch())
+			setSearchId();
 		Ok=true;
+	}
+	
+	private void setSearchId() {
+		searchId=ChannelUtil.getPropertyValue(prop, "search_id");
+		if(ChannelUtil.empty(searchId))
+			searchId=parent.nxtSearchId();
+		parent.addSearcher(searchId, this);
 	}
 	
 	public void parse(ArrayList<String> data) {
@@ -161,11 +174,23 @@ public class ChannelFolder implements ChannelProps{
 	}
 	
 	public boolean isNaviX() {
-		return (type==ChannelFolder.TYPE_NAVIX);
+		return (type==ChannelFolder.TYPE_NAVIX)||(type==ChannelFolder.TYPE_NAVIX_SEARCH);
+	}
+	
+	public boolean isSearch() {
+		return (type==ChannelFolder.TYPE_SEARCH);
 	}
 	
 	public String getProp(String p) {
 		return ChannelUtil.getPropertyValue(prop, p);
+	}
+	
+	public String[] getPropList() {
+		return prop;
+	}
+	
+	public String[] getSubs() {
+		return sub;
 	}
 	
 	private int parseType(String t) {
@@ -179,6 +204,10 @@ public class ChannelFolder implements ChannelProps{
 			return ChannelFolder.TYPE_NAVIX;
 		if(t.compareToIgnoreCase("recurse")==0)
 			return ChannelFolder.TYPE_RECURSE;
+		if(t.compareToIgnoreCase("search")==0)
+			return ChannelFolder.TYPE_SEARCH;
+		if(t.compareToIgnoreCase("navix_search")==0)
+			return ChannelFolder.TYPE_NAVIX_SEARCH;
 		return ChannelFolder.TYPE_NORMAL;
 	}
 	
@@ -268,17 +297,32 @@ public class ChannelFolder implements ChannelProps{
 			res.addChild(new ChannelPMSFolder(this,name));
 			return;
 		}
-		String realUrl=ChannelUtil.concatURL(url,urlEnd);			
+		boolean post=false;
+		String methodProp=ChannelUtil.getPropertyValue(prop, "http_method");
+		if(methodProp!=null&&methodProp.equalsIgnoreCase("post"))
+			post=true;
+		String realUrl=url;		
 		if(isNaviX()) { // i'm navix special handling
+			realUrl=ChannelUtil.concatURL(url,urlEnd);	
 			res.addChild(new ChannelNaviX(parent,name,ChannelUtil.getThumb(null,pThumb, parent),
 										  realUrl,prop,sub));
 			return;
 		}
+		if(isSearch()) {
+			post=true;
+			if(methodProp!=null&&!methodProp.equalsIgnoreCase("post"))
+				post=false;
+		}
+		if(!post)
+			realUrl=ChannelUtil.concatURL(url,urlEnd);	
 		if(!ChannelUtil.empty(realUrl)) {
 			URL urlobj=new URL(realUrl);
-			parent.debug("folder match url "+urlobj.toString()+" type "+type);
+			parent.debug("folder match url "+urlobj.toString()+" type "+type+" post "+post+" "+urlEnd);
 			try {
-				page=ChannelUtil.fetchPage(urlobj.openConnection(),parent.getAuth(),null);
+				if(post) 
+					page=ChannelUtil.postPage(urlobj.openConnection(), urlEnd);
+				else
+					page=ChannelUtil.fetchPage(urlobj.openConnection(),parent.getAuth(),null);
 			} catch (Exception e) {
 				page="";
 			}
@@ -359,6 +403,11 @@ public class ChannelFolder implements ChannelProps{
     			res.addChild(new ChannelATZ(cf,urlEnd));
     			continue;
     		}
+	    	if(cf.isSearch()) { // search folder
+	    		Channels.debug("search folder");
+	    		res.addChild(new SearchFolder(cf.name,cf));
+	    		continue;
+	    	}
 	    	if(m==null) {
 	    		parent.debug("nested static folder");
 	    		res.addChild(new ChannelPMSFolder(cf,cf.name));
@@ -409,6 +458,16 @@ public class ChannelFolder implements ChannelProps{
 	
 	public boolean onlyFirst() {
 		return ChannelUtil.getProperty(prop, "only_first");
+	}
+
+	@Override
+	public void search(String searchString, DLNAResource searcher) {
+		try {
+			Channels.debug("do search "+searchString);
+			Channels.addSearch(parent, searchId, searchString);
+			match(searcher,null,searchString,"","");
+		} catch (MalformedURLException e) {
+		}
 	}
 			
 }

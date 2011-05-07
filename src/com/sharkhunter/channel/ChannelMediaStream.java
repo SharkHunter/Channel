@@ -103,13 +103,10 @@ public class ChannelMediaStream extends DLNAResource {
     }
     
     public InputStream getInputStream(long low, long high, double timeseek, RendererConfiguration mediarenderer) throws IOException {
-    	if(!scraped) {
-    		scraped=true;
-    		if(scraper!=null)
-    			realUrl=scraper.scrape(ch,url,processor,format,this);
-    		else
-    			realUrl=ChannelUtil.parseASX(url, ASX);
-    	}
+    	if(scraper!=null)
+    		realUrl=scraper.scrape(ch,url,processor,format,this);
+    	else
+    		realUrl=ChannelUtil.parseASX(url, ASX);
     	if(ChannelUtil.empty(realUrl))
     		return null;
     	updateStreamDetails();
@@ -152,14 +149,11 @@ public class ChannelMediaStream extends DLNAResource {
 
 
     public InputStream getInputStream() {
-    	Channels.debug("cms getinp/0 scrape "+scraper+" sc "+scraped);
-    	if(!scraped) {
-    		scraped=true;
-    		if(scraper!=null)
-    			realUrl=scraper.scrape(ch,url,processor,format,this);
-    		else
-    			realUrl=ChannelUtil.parseASX(url, ASX);
-    	}
+    	Channels.debug("cms getinp/0 scrape "+scraper);
+    	if(scraper!=null)
+    		realUrl=scraper.scrape(ch,url,processor,format,this);
+    	else
+    		realUrl=ChannelUtil.parseASX(url, ASX);
     	if(ChannelUtil.empty(realUrl))
     		return null;
     	return getStream();

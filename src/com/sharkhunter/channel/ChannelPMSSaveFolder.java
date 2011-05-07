@@ -28,6 +28,10 @@ public class ChannelPMSSaveFolder extends VirtualFolder {
 		this.type=type;
 	}
 	
+	public boolean refreshChildren() { // Always update
+		return true;
+	}
+	
 	public void discoverChildren() {
 		ChannelMediaStream cms=new ChannelMediaStream(ch,"SAVE&PLAY",url,thumb,proc,type,asx,scraper,name,name);
 		addChild(cms);

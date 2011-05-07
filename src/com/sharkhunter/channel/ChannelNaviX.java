@@ -32,11 +32,12 @@ public class ChannelNaviX extends VirtualFolder implements ChannelScraper {
 	
 	
 	
-	private void addMedia(String name,String nextUrl,String thumb,String proc,String type,String pp) {
+	private void addMedia(String name,String nextUrl,String thumb,String proc,String type,String pp,
+			DLNAResource res) {
 		if(type!=null) {
 			if(pp!=null)
 				nextUrl=nextUrl+pp;
-			parent.debug("url "+nextUrl+" type "+type+" processor "+proc);
+			parent.debug("url "+nextUrl+" type "+type+" processor "+proc+" name "+name);
 			if(type.equalsIgnoreCase("playlist")) {
 				String cn=ChannelUtil.getPropertyValue(props, "continue_name");
 				String cu=ChannelUtil.getPropertyValue(props, "continue_url");
@@ -45,7 +46,7 @@ public class ChannelNaviX extends VirtualFolder implements ChannelScraper {
 					if(name.matches(cn)) {
 						continues--;
 						if((contAll||continues>0)&&(continues>Channels.ContSafetyVal)) {
-							readPlx(nextUrl);
+							readPlx(nextUrl,res);
 							return;
 						}
 					}
@@ -54,12 +55,17 @@ public class ChannelNaviX extends VirtualFolder implements ChannelScraper {
 					if(nextUrl.matches(cu)) {
 						continues--;
 						if((contAll||continues>0)&&(continues>Channels.ContSafetyVal)) {
-							readPlx(nextUrl);
+							readPlx(nextUrl,res);
 							return;
 						}
 					}
 				}
-				addChild(new ChannelNaviX(parent,name,thumb,nextUrl,props,subtitle));
+				res.addChild(new ChannelNaviX(parent,name,thumb,nextUrl,props,subtitle));
+			}
+			else if(type.equalsIgnoreCase("search")) {
+				ChannelNaviXSearch sobj=new ChannelNaviXSearch(this,nextUrl);
+				parent.addSearcher(nextUrl, sobj);
+				res.addChild(new SearchFolder(name,sobj));
 			}
 			else {
 				int f=ChannelUtil.getFormat(type);
@@ -74,17 +80,17 @@ public class ChannelNaviX extends VirtualFolder implements ChannelScraper {
 				if(Channels.save()) {
 					ChannelPMSSaveFolder sf=new ChannelPMSSaveFolder(parent,name,nextUrl,thumb,proc,
 							asx,f,this);
-					addChild(sf);
+					res.addChild(sf);
 				}
 				else {
-					addChild(new ChannelMediaStream(parent,name,nextUrl,thumb,proc,
+					res.addChild(new ChannelMediaStream(parent,name,nextUrl,thumb,proc,
 							f,asx,this));
 				}
 			}
 		}
 	}
 	
-	private void readPlx(String str) {
+	public void readPlx(String str,DLNAResource res) {
 		// The URL found in the cf points to a NaviX playlist
 		// (or similar) fetch and parse
 		URL urlobj=null;
@@ -111,7 +117,7 @@ public class ChannelNaviX extends VirtualFolder implements ChannelScraper {
 		for(int i=0;i<lines.length;i++) {
 			String line=lines[i].trim();
 			if(ChannelUtil.ignoreLine(line)) { // new block
-				addMedia(name,nextUrl,thumb,proc,type,playpath);
+				addMedia(name,nextUrl,thumb,proc,type,playpath,res);
 				name=null;
 				nextUrl=null;
 				thumb=null;
@@ -134,11 +140,11 @@ public class ChannelNaviX extends VirtualFolder implements ChannelScraper {
 				playpath=line.substring(9);
 		}
 		// add last item
-		addMedia(name,nextUrl,thumb,proc,type,playpath);
+		addMedia(name,nextUrl,thumb,proc,type,playpath,res);
 	}
 	
 	public void discoverChildren() {
-		readPlx(url);
+		readPlx(url,this);
 	}
 	
 	public String subCb(String realName) {
@@ -164,6 +170,10 @@ public class ChannelNaviX extends VirtualFolder implements ChannelScraper {
 	@Override
 	public String scrape(Channel ch, String url, String processorUrl,int format,DLNAResource start) {
 		return ChannelNaviXProc.parse(url,processorUrl,format,this,start);
+	}
+	
+	public Channel getChannel() {
+		return parent;
 	}
 		
 }
