@@ -1,11 +1,14 @@
 package com.sharkhunter.channel;
 
+import java.io.InputStream;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import net.pms.PMS;
 import net.pms.dlna.DLNAResource;
 import net.pms.dlna.virtual.VirtualFolder;
 import net.pms.formats.Format;
@@ -152,13 +155,16 @@ public class ChannelNaviX extends VirtualFolder implements ChannelScraper {
 			return null;
 		for(int i=0;i<subtitle.length;i++) {
 			ChannelSubs subs=Channels.getSubs(subtitle[i]);
-			if(subs==null) 
+			if(subs==null)
+				continue;
+			if(!subs.langSupported())
 				continue;
 			// Maybe we should mangle the name?
 			String nameMangle=ChannelUtil.getPropertyValue(props, "name_mangle");
 			realName=ChannelUtil.mangle(nameMangle, realName);
 			parent.debug("backtracked name "+realName);
-			String subFile=subs.getSubs(realName);
+			HashMap<String,String> subName=parent.getSubMap(realName);
+			String subFile=subs.getSubs(subName);
 			parent.debug("subs "+subFile);
 			if(ChannelUtil.empty(subFile))
 				continue;
@@ -174,6 +180,15 @@ public class ChannelNaviX extends VirtualFolder implements ChannelScraper {
 	
 	public Channel getChannel() {
 		return parent;
+	}
+	
+	public InputStream getThumbnailInputStream() {
+		try {
+			return downloadAndSend(thumbnailIcon,true);
+		}
+		catch (Exception e) {
+			return super.getThumbnailInputStream();
+		}
 	}
 		
 }

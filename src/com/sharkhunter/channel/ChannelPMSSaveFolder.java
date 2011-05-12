@@ -1,5 +1,7 @@
 package com.sharkhunter.channel;
 
+import java.io.InputStream;
+
 import net.pms.dlna.virtual.VirtualFolder;
 import net.pms.dlna.virtual.VirtualVideoAction;
 
@@ -51,6 +53,15 @@ public class ChannelPMSSaveFolder extends VirtualFolder {
 					return add;
 				}
 			});
+		}
+	}
+	
+	public InputStream getThumbnailInputStream() {
+		try {
+			return downloadAndSend(thumbnailIcon,true);
+		}
+		catch (Exception e) {
+			return super.getThumbnailInputStream();
 		}
 	}
 }

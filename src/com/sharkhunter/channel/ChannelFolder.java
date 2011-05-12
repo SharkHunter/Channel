@@ -42,6 +42,7 @@ public class ChannelFolder implements ChannelProps, SearchObj{
 	private String[] sub;
 	
 	private String searchId;
+	private String urlScript;
 	
 	public ChannelFolder(ArrayList<String> data,Channel parent) {
 		this(data,parent,null);
@@ -154,6 +155,9 @@ public class ChannelFolder implements ChannelProps, SearchObj{
 			if(keyval[0].equalsIgnoreCase("subtitle")) {
 				sub=keyval[1].split(",");
 			}
+			if(keyval[0].equalsIgnoreCase("url_script")) {
+				urlScript=keyval[1];
+			}
 		}
 	}
 	
@@ -234,13 +238,31 @@ public class ChannelFolder implements ChannelProps, SearchObj{
 		return false;
 	}
 	
-	public boolean peek(String urlEnd,String[] props) {
-		if(type!=ChannelFolder.TYPE_NORMAL) // non normal folders are not peekable
-			return true;
+	private class PeekRes {
+		boolean res;
+		String thumbUrl;
+	}
+	
+	private PeekRes mkPeekRes(boolean b) {
+		return mkPeekRes(b,"");
+	}
+	
+	private PeekRes mkPeekRes(boolean b,String url) {
+		PeekRes r=new PeekRes();
+		r.res=b;
+		r.thumbUrl=url;
+		return r;
+	}
+	
+	private PeekRes peek(String urlEnd,String[] props) {
+		if((type!=ChannelFolder.TYPE_NORMAL)&&
+		   (type!=ChannelFolder.TYPE_EMPTY)) // non normal folders are not peekable
+			return mkPeekRes(true);
 		if(!ChannelUtil.getProperty(props, "peek")) // no peek prop
-			return true;
+			return mkPeekRes(true);
 		if(matcher==null) // static folders are not peekable
-			return true;
+			return mkPeekRes(true);
+		Channels.debug("peek3");
 		String realUrl=ChannelUtil.concatURL(url,urlEnd);
 		String page="";
 		if(!ChannelUtil.empty(realUrl)) {
@@ -253,35 +275,42 @@ public class ChannelFolder implements ChannelProps, SearchObj{
 			}
 			parent.debug("page "+page);
 			if(ChannelUtil.empty(page)) // no page found
-				return true;
+				return mkPeekRes(true);
 		}
 		for(int i=0;i<medias.size();i++) {
 	    	ChannelMedia m1=medias.get(i);
 	    	ChannelMatcher m=m1.getMatcher();
 	    	m.startMatch(page);
-	    	if(m.match()) // match found
-	    		return true;
+	    	if(m.match()) { // match found
+	    		String thumb=m.getMatch("thumb",false);
+	    		return mkPeekRes(true,thumb);
+	    	}
 		}
 		for(int i=0;i<items.size();i++) {
 	    	ChannelItem item=items.get(i);
 	    	ChannelMatcher m=item.getMatcher();
 	    	m.startMatch(page);
 	    	if(m.match()) 
-	    		return true;
+	    	{ // match found
+	    		String thumb=m.getMatch("thumb",false);
+	    		return mkPeekRes(true,thumb);
+	    	}
 		}
 		for(int i=0;i<subfolders.size();i++) {
 	    	ChannelFolder cf=subfolders.get(i);
 	    	ChannelMatcher m=cf.matcher;
 	    	if(cf.isATZ()) 
-	    		return true;
+	    		return mkPeekRes(true);
 	    	if(m==null) 
-	    		return true;
+	    		return mkPeekRes(true);
 	    	m.startMatch(page);
-	    	if(m.match())
-	    		return true;
+	    	if(m.match()) { // match found
+	    		String thumb=m.getMatch("thumb",false);
+	    		return mkPeekRes(true,thumb);
+	    	}
 		}
 		// if we made it here there are no matches so we say peek failed
-		return false;
+		return mkPeekRes(false);
 	}
 	
 	public void match(DLNAResource res) throws MalformedURLException {
@@ -430,8 +459,12 @@ public class ChannelFolder implements ChannelProps, SearchObj{
 	    				someName=cf.name;
 	    		if(ChannelUtil.getProperty(cf.prop, "prepend_parenturl"))
 	    			fUrl=ChannelUtil.concatURL(realUrl,fUrl);
-	    		if(!cf.peek(fUrl,prop))
+	    		fUrl=ChannelNaviXProc.simple(fUrl, urlScript);
+	    		PeekRes pr=cf.peek(fUrl,prop);
+	    		if(!pr.res)
 	    			continue;
+	    		if(!ChannelUtil.empty(pr.thumbUrl))
+	    			thumb=pr.thumbUrl;
 	    		if(doContinue(someName,fUrl)) {
 	    			cf.match(res,null,fUrl,thumb,someName);
 	    			return;

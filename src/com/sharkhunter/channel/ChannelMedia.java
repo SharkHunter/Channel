@@ -195,12 +195,15 @@ public class ChannelMedia implements ChannelProps,ChannelScraper {
 				ChannelSubs subs=Channels.getSubs(subtitle[i]);
 				if(subs==null)
 					continue;
+				if(!subs.langSupported())
+					continue;
 				String realName=ChannelUtil.backTrack(start,ChannelUtil.getNameIndex(prop));
 				// Maybe we should mangle the name?
 				String nameMangle=ChannelUtil.getPropertyValue(prop, "name_mangle");
 				realName=ChannelUtil.mangle(nameMangle, realName);
 				parent.debug("backtracked name "+realName);
-				subFile=subs.getSubs(realName);
+				HashMap<String,String> subName=parent.getSubMap(realName);
+				subFile=subs.getSubs(subName);
 				parent.debug("subs "+subFile);
 				params.put("subtitle",subFile);
 				if(!ChannelUtil.empty(subFile))
@@ -227,7 +230,7 @@ public class ChannelMedia implements ChannelProps,ChannelScraper {
 			params.put("url", url);
 			return ChannelUtil.createMediaUrl(params,format,ch);
 		}
-		HashMap<String,String> res=ChannelNaviXProc.lite(url,sData,format,asx);
+		HashMap<String,String> res=ChannelNaviXProc.lite(url,sData,asx);
 		res.put("subtitle", subFile);
 		if(res==null) {
 			ch.debug("Bad script result");

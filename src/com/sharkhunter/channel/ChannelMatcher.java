@@ -12,10 +12,10 @@ public class ChannelMatcher implements ChannelProps{
 	 ChannelMatcher(String reg,
 			 		String order,
 			 		ChannelProps prop) {
-		 if(order==null||order.length()==0) //  no order configured, use default
+		 if(ChannelUtil.empty(order)) //  no order configured, use default
 			 order="url,name,thumb";
 		 if(reg!=null)
-			 this.regexp=Pattern.compile(reg,Pattern.MULTILINE);
+			 this.regexp=Pattern.compile(reg,Pattern.MULTILINE|Pattern.DOTALL);
 		 this.order=order.split(",");
 		 this.properties=prop;
 	  }

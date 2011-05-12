@@ -13,11 +13,13 @@ import java.net.URL;
 import java.net.URLConnection;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.Locale;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
 
+import net.pms.PMS;
 import net.pms.dlna.DLNAResource;
 import net.pms.formats.Format;
 
@@ -32,6 +34,7 @@ public class ChannelSubs implements ChannelProps {
 	private File dPath;
 	private String script;
 	private String nameScript;
+	private String[] lang;
 
 	public ChannelSubs(String name,ArrayList<String> data,File dPath) {
 		best=1;
@@ -39,6 +42,7 @@ public class ChannelSubs implements ChannelProps {
 		nameScript=null;
 		this.dPath=new File(dPath.getAbsolutePath()+File.separator+"data");
 		this.name=name;
+		lang=null;
 		for(int i=0;i<data.size();i++) {
 			String line=data.get(i).trim();
 			String[] keyval=line.split("\\s*=\\s*",2);
@@ -76,6 +80,9 @@ public class ChannelSubs implements ChannelProps {
 			if(keyval[0].equalsIgnoreCase("script")) {
 				script=keyval[1];
 			}	
+			if(keyval[0].equalsIgnoreCase("lang")) {
+				lang=keyval[1].trim().split(",");
+			}
 		}
 	}
 	
@@ -153,15 +160,31 @@ public class ChannelSubs implements ChannelProps {
 	}
 	
 	public String getSubs(String mediaName) {
+		HashMap<String,String> map=new HashMap<String,String>();
+		map.put("url", mediaName);
+		return getSubs(map);
+	}
+	
+	public String getSubs(HashMap<String,String> map) {
+		String mediaName=map.get("url");
 		Channels.debug("get subs "+mediaName);
 		if(ChannelUtil.empty(mediaName))
 			return null;
+		String lang=langPrefered();
+		int iso=3;
+		if(ChannelUtil.getProperty(prop, "iso2"))
+			iso=2;
+		lang=ChannelISO.iso(lang, iso);
 		mediaName=mediaName.trim();
 		String path=dPath.getAbsolutePath()+File.separator+mediaName;
+		path=ChannelUtil.append(path, "_", map.get("season"));
+		path=ChannelUtil.append(path, "", map.get("episode"));
+		path=ChannelUtil.append(path, "_", lang);
 		File f=new File(path+".srt");
 		if(f.exists())
 			return cacheFile(f);
-		String subUrl=fetchSubsUrl(mediaName);
+		map.put("lang", lang);
+		String subUrl=fetchSubsUrl(map);
 		Channels.debug("subUrl "+subUrl);
 		if(ChannelUtil.empty(subUrl))
 			return null;
@@ -176,11 +199,12 @@ public class ChannelSubs implements ChannelProps {
 		return cacheFile(f);
 	}
 	
-	public String fetchSubsUrl(String mediaName) {
+	public String fetchSubsUrl(HashMap<String,String> map) {
+		String mediaName=map.get("url").trim();
 		if(!ChannelUtil.empty(nameScript)) {
 			ArrayList<String> s=Channels.getScript(nameScript);
 			if(s!=null) {
-				HashMap<String,String> res=ChannelNaviXProc.lite(mediaName, s, Format.AUDIO);
+				HashMap<String,String> res=ChannelNaviXProc.lite(mediaName, s,map);
 				mediaName=res.get("url");
 			}
 			else
@@ -199,7 +223,7 @@ public class ChannelSubs implements ChannelProps {
 			if(!ChannelUtil.empty(script)) { // we got a script, we'll use it 
 				ArrayList<String> s=Channels.getScript(script);
 				if(s!=null) {
-					HashMap<String,String> res=ChannelNaviXProc.lite(page, s, Format.AUDIO);
+					HashMap<String,String> res=ChannelNaviXProc.lite(page, s);
 					return res.get("url");
 				}
 			}
@@ -221,6 +245,19 @@ public class ChannelSubs implements ChannelProps {
 		return null;
 	}
 	
+	public boolean langSupported() {
+		return !ChannelUtil.empty(langPrefered());
+	}
+	
+	public String langPrefered() {
+		String[] langCode=PMS.getConfiguration().getMencoderSubLanguages().split(",");
+		for(int j=0;j<langCode.length;j++) 
+			for(int i=0;i<lang.length;i++) 
+				if(ChannelISO.equal(langCode[j],lang[i]))
+					return lang[i];
+		return null;
+	}
+	
 	
 	@Override
 	public boolean onlyFirst() {
@@ -231,5 +268,4 @@ public class ChannelSubs implements ChannelProps {
 	public String separator(String base) {
 		return null;
 	}
-	
 }

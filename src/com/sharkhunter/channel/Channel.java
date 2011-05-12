@@ -26,6 +26,8 @@ public class Channel extends VirtualFolder {
 	private int searchId;
 	private HashMap<String,SearchObj> searchFolders;
 	
+	private String subScript;
+	
 	public Channel(String name) {
 		super(name,null);
 		Ok=false;
@@ -85,6 +87,10 @@ public class Channel extends VirtualFolder {
 				else
 					thumbnailContentType = HTTPResource.JPEG_TYPEMIME;
 			}
+			if(keyval[0].equalsIgnoreCase("subscript")) {
+				subScript=keyval[1];
+			}
+			
 		}
 	}
 	
@@ -202,6 +208,15 @@ public class Channel extends VirtualFolder {
 		if(obj==null)
 			return;
 		obj.search(str, res);
+	}
+	
+	public HashMap<String,String> getSubMap(String realName) {
+		HashMap<String,String> res=new HashMap<String,String>();
+		res.put("url", realName);
+		ArrayList<String> s=Channels.getScript(subScript);
+		if(s==null)
+			return res;
+		return ChannelNaviXProc.lite(realName,s,res);
 	}
 	
 }

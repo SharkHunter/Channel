@@ -522,28 +522,79 @@ public class ChannelNaviXProc {
 		return rUrl;
 	}
 	
-	public static HashMap<String,String> lite(String url,ArrayList<String> lines,int format,int asx) {
+	//////////////////////////////////////
+	// lite versions 
+	//////////////////////////////////////
+	
+	// lite with ArrayList as line arg
+	
+	public static HashMap<String,String> lite(String url,ArrayList<String> lines,int asx,
+			      HashMap<String,String> initStash) {
 		String[] arr=lines.toArray(new String[lines.size()]);
-		return lite(url,arr,format,asx);
+		return lite(url,arr,asx,initStash);
 	}
 	
-	public static HashMap<String,String> lite(String url,ArrayList<String> lines,int format) {
-		return lite(url,lines,format,ChannelUtil.ASXTYPE_AUTO);
+	public static HashMap<String,String> lite(String url,ArrayList<String> lines,int asx) {
+		return lite(url,lines,asx,null);
 	}
 	
-	public static HashMap<String,String> lite(String url,String[] lines,int format,int asx) {
+	public static HashMap<String,String> lite(String url,ArrayList<String> lines) {
+		return lite(url,lines,ChannelUtil.ASXTYPE_AUTO);
+	}
+	
+	public static HashMap<String,String> lite(String url,ArrayList<String> lines,
+			      HashMap<String,String> initStash) {
+		return lite(url,lines,ChannelUtil.ASXTYPE_AUTO,initStash);
+	}
+	
+	// Lite with array as line arg
+	public static HashMap<String,String> lite(String url,String[] lines) {
+		return lite(url,lines,ChannelUtil.ASXTYPE_AUTO);
+	}
+	
+	public static HashMap<String,String> lite(String url,String[] lines,int asx) {
+		return lite(url,lines,asx,null);
+	}
+	
+	public static HashMap<String,String> lite(String url,String[] lines,
+			HashMap<String,String> initStash) {
+		return lite(url,lines,ChannelUtil.ASXTYPE_AUTO,initStash);
+	}
+	
+	// The actual work of lite is done here
+	
+	public static HashMap<String,String> lite(String url,String[] lines,int asx,
+			                  HashMap<String,String> initStash) {
 		try {
 			vars.clear();
+			if(initStash!=null)
+				vars.putAll(initStash);
 			if(parseV2(lines,0,url))
 				Channels.debug("found report statement in NIPL lite script. Hopefully script worked anyway.");
 			String rUrl=ChannelUtil.parseASX(vars.get("url"),asx);
 			vars.put("url", rUrl);
-			HashMap<String,String> res=new HashMap(vars);
+			HashMap<String,String> res=new HashMap<String, String>(vars);
 			return res;
 		}
 		catch (Exception e) {
 			Channels.debug("error during NIPL lite parse "+e);
 			return null;
 		}
+	}
+	
+	//////////////////////////////////
+	// simple versions 
+	//////////////////////////////////
+	
+	public static String simple(String str,String script) {
+		ArrayList<String> sData=Channels.getScript(script);
+		return simple(str,sData);
+	}
+	
+	public static String simple(String str,ArrayList<String> script) {
+		if(script==null)
+			return str;
+		HashMap<String,String> res=lite(str,script);
+		return res.get("url");
 	}
 }
