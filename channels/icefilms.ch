@@ -116,7 +116,8 @@ macrodef tvMacro {
          folder {
             # First link fetch
             #<a href="/components/com_iceplayer/video.php?h=374&w=631&vid=21739&img=http://www.icefilms.info/images/vid_images/thesimpsons.jpg&ttl=The+Simpsons+1x01+Simpsons+Roasting+on+an+Open+Fire+%281989%29" 
-            matcher=<a href=\"(/comp[^\"]+)\" .*?<iframe src=/noref\.php\?url=([^ ]+)
+            matcher=<a href=\"(/comp[^\"]+)\" 
+			#.*?<iframe src=/noref\.php\?url=([^ ]+)
             order=url,thumb
             url=http://www.icefilms.info
             type=empty
@@ -141,7 +142,8 @@ macrodef movieMacro {
 		url=http://www.icefilms.info
 		
 		folder {
-			matcher=<a href=\"(/comp[^\"]+)\" .*?<iframe src=/noref\.php\?url=([^ ]+) 
+			matcher=<a href=\"(/comp[^\"]+)\" 
+			#.*?<iframe src=/noref\.php\?url=([^ ]+) 
             order=url,thumb
             url=http://www.icefilms.info
 			type=empty

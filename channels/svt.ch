@@ -1,4 +1,4 @@
-version=0.23
+version=0.24
 channel SVTPlay {
 	img=http://svtplay.se/img/brand/svt-play.png
 	folder {
@@ -6,16 +6,16 @@ channel SVTPlay {
 		type=ATZ
 		url=http://svtplay.se/alfabetisk
 		folder {
-			 matcher=<a href=\"(/t/.*)\">(.*)</a>
+			 matcher=<a href=\"(/t/[^\"]+)\">([^<]+)</a>
 			 order=url,name
 			 url=http://svtplay.se
 			 item {
 				url=http://svtplay.se
-		  		matcher=<a href=\"(/v/.*)\?.*\" title=\"(.*)\" .*?>[^<]*<img class=\"thumbnail\" src=\"([^\"]+)\" [^>]+>[^<]+<span >([^<]+)</span>
-			  	order=url,name,thumb,name
+		  		matcher=<a href=\"(/v/[^\?]+)[^\"]+\" title=\"([^\"]+)\" [^>]+>[^<]*<img class=\"thumbnail\" src=\"([^\"]+)\"
+			  	order=url,name,thumb
 		  		prop=auto_media
 				media {
-		  			matcher=url:(rtmp.*),bitrate:2400
+		  			matcher=url:(rtmp[^,]+),bitrate:2400
 					prop=only_first,
 				}
 			}

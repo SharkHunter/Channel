@@ -33,7 +33,7 @@ public class ChannelSubs implements ChannelProps {
 	private String[] prop;
 	private File dPath;
 	private String script;
-	private String nameScript;
+	private String[] nameScript;
 	private String[] lang;
 
 	public ChannelSubs(String name,ArrayList<String> data,File dPath) {
@@ -75,7 +75,7 @@ public class ChannelSubs implements ChannelProps {
 			if(keyval[0].equalsIgnoreCase("prop"))	
 				prop=keyval[1].trim().split(",");	
 			if(keyval[0].equalsIgnoreCase("name_script")) {
-				nameScript=keyval[1];
+				nameScript=keyval[1].split(",");
 			}
 			if(keyval[0].equalsIgnoreCase("script")) {
 				script=keyval[1];
@@ -201,11 +201,15 @@ public class ChannelSubs implements ChannelProps {
 	
 	public String fetchSubsUrl(HashMap<String,String> map) {
 		String mediaName=map.get("url").trim();
-		if(!ChannelUtil.empty(nameScript)) {
-			ArrayList<String> s=Channels.getScript(nameScript);
+		if(nameScript!=null) {
+			String nScript=nameScript[0];
+			ArrayList<String> s=Channels.getScript(nScript);
 			if(s!=null) {
 				HashMap<String,String> res=ChannelNaviXProc.lite(mediaName, s,map);
 				mediaName=res.get("url");
+				if(nameScript.length>1)
+					if(nameScript[1].equalsIgnoreCase("full")) // full script
+						return mediaName;
 			}
 			else
 				mediaName=ChannelUtil.escape(mediaName);
