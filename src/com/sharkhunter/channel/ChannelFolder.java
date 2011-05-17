@@ -44,6 +44,9 @@ public class ChannelFolder implements ChannelProps, SearchObj{
 	private String searchId;
 	private String urlScript;
 	
+	private String hook;
+	private String tag;
+	
 	public ChannelFolder(ArrayList<String> data,Channel parent) {
 		this(data,parent,null);
 	}
@@ -157,6 +160,12 @@ public class ChannelFolder implements ChannelProps, SearchObj{
 			}
 			if(keyval[0].equalsIgnoreCase("url_script")) {
 				urlScript=keyval[1];
+			}
+			if(keyval[0].equalsIgnoreCase("tag")) {
+				tag=keyval[1];
+			}
+			if(keyval[0].equalsIgnoreCase("hook")) {
+				hook=keyval[1];
 			}
 		}
 	}

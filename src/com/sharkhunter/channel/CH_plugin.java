@@ -16,6 +16,9 @@ public class CH_plugin implements AdditionalFolderAtRoot {
 	public CH_plugin() {
 		try {
 			File chFolder=new File("channels");
+			String pluginName=(String)PMS.getConfiguration().getCustomProperty("channels.name");
+			if(ChannelUtil.empty(pluginName))
+				pluginName="Channels";
 			String confPath=(String)PMS.getConfiguration().getCustomProperty("channels.path");
 			String path;
 			if(confPath==null) {
@@ -25,7 +28,7 @@ public class CH_plugin implements AdditionalFolderAtRoot {
 			else 
 				path=confPath;
 			String save=(String)PMS.getConfiguration().getCustomProperty("channels.save");
-			chRoot=new Channels(path,getInterval());
+			chRoot=new Channels(path,getInterval(),pluginName);
 			cfg=new ChannelCfg(chRoot);
 			cfg.init();
 			chRoot.setCfg(cfg);

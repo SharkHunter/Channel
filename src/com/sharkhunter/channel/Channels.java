@@ -22,7 +22,7 @@ import no.geosoft.cc.io.FileMonitor;
 public class Channels extends VirtualFolder implements FileListener {
 
 	// Version string
-	public static final String VERSION="1.11";
+	public static final String VERSION="1.12";
 	
 	// Constants for RTMP string constructions
 	public static final int RTMP_MAGIC_TOKEN=1;
@@ -51,8 +51,8 @@ public class Channels extends VirtualFolder implements FileListener {
     private HashMap<String,ChannelAuth> cookies;
     private ChannelSearch searchDb;
     
-    public Channels(String path,long poll) {
-    	super("Channels",null);
+    public Channels(String path,long poll,String name) {
+    	super(name,null);
     	this.file=new File(path);
     	inst=this;
     	subs=true;
