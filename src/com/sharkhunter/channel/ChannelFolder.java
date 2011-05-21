@@ -271,14 +271,13 @@ public class ChannelFolder implements ChannelProps, SearchObj{
 			return mkPeekRes(true);
 		if(matcher==null) // static folders are not peekable
 			return mkPeekRes(true);
-		Channels.debug("peek3");
 		String realUrl=ChannelUtil.concatURL(url,urlEnd);
 		String page="";
 		if(!ChannelUtil.empty(realUrl)) {
 			URL urlobj;
 			try {
 				urlobj=new URL(realUrl);
-				page=ChannelUtil.fetchPage(urlobj.openConnection(),parent.getAuth(),null);
+				page=ChannelUtil.fetchPage(urlobj.openConnection(),parent.prepareCom(),null);
 			} catch (Exception e) {
 				page="";
 			}
@@ -357,16 +356,18 @@ public class ChannelFolder implements ChannelProps, SearchObj{
 			URL urlobj=new URL(realUrl);
 			parent.debug("folder match url "+urlobj.toString()+" type "+type+" post "+post+" "+urlEnd);
 			try {
+				ChannelAuth a=parent.prepareCom();
 				if(post) 
-					page=ChannelUtil.postPage(urlobj.openConnection(), urlEnd);
+					page=ChannelUtil.postPage(urlobj.openConnection(a.proxy), urlEnd);
 				else
-					page=ChannelUtil.fetchPage(urlobj.openConnection(),parent.getAuth(),null);
+					page=ChannelUtil.fetchPage(urlobj.openConnection(a.proxy),a,null);
 			} catch (Exception e) {
 				page="";
 			}
 			parent.debug("page "+page);
-			if(ChannelUtil.empty(page))
+			if(ChannelUtil.empty(page)) {
 				return;
+			}
 		}
 		ArrayList<ChannelMedia> med=medias;
 		ArrayList<ChannelItem> ite=items;

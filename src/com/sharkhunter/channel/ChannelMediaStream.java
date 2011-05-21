@@ -110,6 +110,7 @@ public class ChannelMediaStream extends DLNAResource {
     	if(ChannelUtil.empty(realUrl))
     		return null;
     	updateStreamDetails();
+    	ch.prepareCom();
     	InputStream is=super.getInputStream(low,high,timeseek,mediarenderer);
     	if((saveName!=null)||Channels.cache()) {
     		return startSave(is);
@@ -124,7 +125,7 @@ public class ChannelMediaStream extends DLNAResource {
 			Channels.debug("Retrieving " + urlobj.toString());
 			URLConnection conn = urlobj.openConnection();
 			conn.setRequestProperty("User-Agent",ChannelUtil.defAgentString);
-			ChannelAuth auth=ch.getAuth();
+			ChannelAuth auth=ch.prepareCom();
 			String cookie="";
 			if(auth!=null) {
 				if(auth.method==ChannelLogin.STD)

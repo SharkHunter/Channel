@@ -96,13 +96,15 @@ public class ChannelItem implements ChannelProps{
 		parent.debug("item match url "+urlobj.toString());
 		String page;
 		try {
-			page = ChannelUtil.fetchPage(urlobj.openConnection(),parent.getAuth(),null);
+			ChannelAuth a=parent.prepareCom();
+			page = ChannelUtil.fetchPage(urlobj.openConnection(a.proxy),a,null);
 		} catch (Exception e) {
 			page="";
 		}
 	    parent.debug("page "+page);
-	    if(ChannelUtil.empty(page))
+	    if(ChannelUtil.empty(page)) {
 	    	return;
+	    }
 	    for(int i=0;i<mediaURL.size();i++) {
 	    	ChannelMedia m1=mediaURL.get(i);
 	    	ChannelMatcher m=m1.getMatcher();

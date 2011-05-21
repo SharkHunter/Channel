@@ -420,7 +420,7 @@ public class ChannelNaviXProc {
 		vars.put("subtitle",subFile);
 		vars.put("url", url);
 		if(ch!=null) {
-			ChannelAuth auth=ch.getAuth();
+			ChannelAuth auth=ch.prepareCom();
 			if((auth!=null)&&(auth.method==ChannelLogin.COOKIE))
 				vars.put("s_cookie", auth.authStr);
 		}

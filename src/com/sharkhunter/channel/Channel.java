@@ -2,6 +2,7 @@ package com.sharkhunter.channel;
 
 import java.io.InputStream;
 import java.net.MalformedURLException;
+import java.net.Proxy;
 import java.util.ArrayList;
 import java.util.HashMap;
 
@@ -28,6 +29,9 @@ public class Channel extends VirtualFolder {
 	
 	private String subScript;
 	
+	private String[] proxies;
+	private ChannelProxy activeProxy;
+	
 	public Channel(String name) {
 		super(name,null);
 		Ok=false;
@@ -35,6 +39,7 @@ public class Channel extends VirtualFolder {
 		format=Format.VIDEO;
 		folders=new ArrayList<ChannelFolder>();
 		searchId=0;
+		activeProxy=null;
 		searchFolders=new HashMap<String,SearchObj>();
 		Ok=true;
 	}
@@ -89,6 +94,9 @@ public class Channel extends VirtualFolder {
 			}
 			if(keyval[0].equalsIgnoreCase("subscript")) {
 				subScript=keyval[1];
+			}
+			if(keyval[0].equalsIgnoreCase("proxy")) {
+				proxies=keyval[1].trim().split(",");
 			}
 			
 		}
@@ -172,16 +180,36 @@ public class Channel extends VirtualFolder {
 		return null;
 	}
 	
-	public ChannelAuth getAuth() {
+	private ChannelAuth getAuth(Proxy p) {
+		ChannelAuth a=new ChannelAuth();
+		a.proxy=p;
 		if(logObj==null)
-			return null;
+			return a;
 		if(cred==null)
-			return null;
+			return a;
 		if(ChannelUtil.empty(cred.user))
-			return null;
+			return a;
 		if(ChannelUtil.empty(cred.pwd))
-			return null;
-		return logObj.getAuthStr(cred.user, cred.pwd);
+			return a;
+		return logObj.getAuthStr(cred.user, cred.pwd,a);
+	}
+	
+	public ChannelAuth prepareCom() {
+		if(proxies==null) // no proxy, just regular login
+			return getAuth(Proxy.NO_PROXY);
+		if(activeProxy!=null&&activeProxy.isUp()) {
+			return getAuth(activeProxy.getProxy());
+		}
+		for(int i=0;i<proxies.length;i++) {
+			ChannelProxy p=Channels.getProxy(proxies[i]);
+			if(p==null)
+				continue;
+			if(!p.isUp())
+				continue;
+			activeProxy=p;
+			return getAuth(p.getProxy());
+		}
+		return getAuth(Proxy.NO_PROXY);		
 	}
 	
 	public void addSearcher(String id,SearchObj obj) {

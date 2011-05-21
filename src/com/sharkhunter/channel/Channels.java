@@ -6,6 +6,8 @@ import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.FileReader;
 import java.io.IOException;
+import java.io.InputStream;
+import java.net.UnknownHostException;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -50,32 +52,39 @@ public class Channels extends VirtualFolder implements FileListener {
     private ChannelCfg cfg;
     private HashMap<String,ChannelAuth> cookies;
     private ChannelSearch searchDb;
+    private HashMap<String,ChannelProxy> proxies;
     
-    public Channels(String path,long poll,String name) {
-    	super(name,null);
+    public Channels(String path,long poll,String name,String img) {
+    	super(name,img);
+    	// First the simple fields
     	this.file=new File(path);
     	inst=this;
     	subs=true;
     	doCache=false;
+    	savePath="";
+    	oh=null;
+    	appendTS=false;
+    	// Setup list and tables
     	chFiles=new ArrayList<File>();
     	cred=new ArrayList<ChannelCred>();
     	scripts=new HashMap<String,ChannelMacro>();
     	subtitles=new HashMap<String,ChannelSubs>();
     	cookies=new HashMap<String,ChannelAuth>();
+    	proxies=new HashMap<String,ChannelProxy>();
     	cache=new ChannelCache(path);
-    	savePath="";
-    	oh=null;
-    	appendTS=false;
     	searchDb=new ChannelSearch(new File(dataPath()+File.separator+"search.txt"));
     	//rtmp=Channels.RTMP_MAGIC_TOKEN;
     	rtmp=Channels.RTMP_DUMP;
     	PMS.minimal("Start channel "+VERSION);
     	dbg=new ChannelDbg(new File(path+File.separator+"channel.log"));
+    	// Add std folders
     	addChild(cache);
     	addChild(searchDb);
+    	// Start filemonitoring
     	fileMonitor=null;
     	if(poll>0)
     		fileMonitor=new FileMonitor(poll);
+    	// Parse the files for the first time
     	fileChanged(file);
     	if(poll>0) {
     		fileMonitor.addFile(file);
@@ -186,6 +195,19 @@ public class Channels extends VirtualFolder implements FileListener {
     	    	if(subtitles.get(sName)!=null)
     	    		continue;
     	    	subtitles.put(sName, new ChannelSubs(sName,sData,file));
+    	    	continue;
+    	    }
+    	    if(str.startsWith("proxydef ")) {
+    	    	String sName=str.substring(9,str.lastIndexOf('{')).trim();
+    	    	ArrayList<String> sData=ChannelUtil.gatherBlock(lines, i+1);
+    	    	i+=sData.size();
+    	    	if(proxies.get(sName)!=null)
+    	    		continue;
+    	    	try {
+					proxies.put(sName, new ChannelProxy(sName,sData,file));
+				} catch (UnknownHostException e) {
+					debug("bad proxydef for "+sName);
+				}
     	    	continue;
     	    }
     	}
@@ -433,6 +455,15 @@ public class Channels extends VirtualFolder implements FileListener {
 			return getPath()+File.separator+"data"+File.separator+fName;
 	}
 	
+	public InputStream getThumbnailInputStream() {
+		try {
+			return downloadAndSend(thumbnailIcon,true);
+		}
+		catch (Exception e) {
+			return super.getThumbnailInputStream();
+		}
+	}
+	
 	///////////////////////////////////////////
 	// Path handling
 	///////////////////////////////////////////
@@ -586,4 +617,11 @@ public class Channels extends VirtualFolder implements FileListener {
 		inst.searchDb.dump();
 	}
 	
+	////////////////////////////////////////////////////
+	// Proxy handling
+	////////////////////////////////////////////////////
+	
+	public static ChannelProxy getProxy(String name) {
+		return inst.proxies.get(name);
+	}
 }

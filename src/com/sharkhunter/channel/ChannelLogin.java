@@ -4,6 +4,7 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.io.UnsupportedEncodingException;
 import java.net.HttpURLConnection;
+import java.net.Proxy;
 import java.net.URL;
 import java.net.URLConnection;
 import java.net.URLEncoder;
@@ -84,15 +85,16 @@ public class ChannelLogin {
 		}
 	}
 	
-	private ChannelAuth mkResult() {
-		ChannelAuth a=new ChannelAuth();
+	private ChannelAuth mkResult(ChannelAuth a) {
+		if(a==null)
+			a=new ChannelAuth();
 		a.method=type;
 		a.authStr=tokenStr;
 		a.ttd=ttd;
 		return a;
 	}
 	
-	private ChannelAuth stdLogin(String usr,String pass) throws Exception {
+	private ChannelAuth stdLogin(String usr,String pass,ChannelAuth a) throws Exception {
 		String query=params+"&"+user+"="+URLEncoder.encode(usr,"UTF-8")+
 		"&"+pwd+"="+URLEncoder.encode(pass,"UTF-8");
 		//Channels.debug("url "+url+" query "+query);
@@ -120,7 +122,7 @@ public class ChannelLogin {
 			if(token!=null&&token.length()>0) {
 				loggedOn=true;
 				tokenStr=authStr+token;
-				return mkResult();
+				return mkResult(a);
 			}
 		}
 		return null;
@@ -137,10 +139,10 @@ public class ChannelLogin {
 		return u1;
 	}
 	
-	private ChannelAuth updateCookieDb(String cookie) {
+	private ChannelAuth updateCookieDb(String cookie,ChannelAuth a) {
 		String u=trimUrl(url);
 		Channels.debug("update cookie db "+u+" "+cookie);
-		ChannelAuth a=mkResult();
+		a=mkResult(a);
 		boolean update=Channels.addCookie(u,a);
 		if(associated!=null)
 			for(int i=0;i<associated.length;i++) {
@@ -152,20 +154,25 @@ public class ChannelLogin {
 		return a;
 	}
 	
-	private ChannelAuth cookieLogin(String usr,String pass) throws Exception {
-		ChannelAuth a=Channels.getCookie(trimUrl(url));
-		if(a!=null) { // found some in hash
+	private ChannelAuth cookieLogin(String usr,String pass,ChannelAuth a) throws Exception {
+		ChannelAuth a1=Channels.getCookie(trimUrl(url));
+		if(a1!=null) { // found some in hash
 			if(a.ttd<System.currentTimeMillis()) {
 				loggedOn=true;
 				tokenStr=a.authStr;
 				ttd=a.ttd;
-				return a;
+				a1.proxy=a.proxy;
+				return a1;
 			}
 		}
 		String query=params+"&"+user+"="+URLEncoder.encode(usr,"UTF-8")+
 		"&"+pwd+"="+URLEncoder.encode(pass,"UTF-8");
 		URL u=new URL(url);
-		HttpURLConnection connection = (HttpURLConnection) u.openConnection();
+		HttpURLConnection connection;
+		if(a.proxy==null)
+			connection= (HttpURLConnection) u.openConnection();
+		else
+			connection= (HttpURLConnection) u.openConnection(a.proxy);
 		HttpURLConnection.setFollowRedirects(true);   
 		connection.setInstanceFollowRedirects(false);   
 		connection.setRequestMethod("POST");  
@@ -185,31 +192,31 @@ public class ChannelLogin {
 	        tokenStr=cookie;
 	        loggedOn=true;
 	        ttd=System.currentTimeMillis()+(24*60*60*2);
-	        return updateCookieDb(cookie);
+	        return updateCookieDb(cookie,a);
 		}
 		return null;
 	}
 	
-	public ChannelAuth getAuthStr(String usr,String pass) {
-		return getAuthStr(usr,pass,false);
+	public ChannelAuth getAuthStr(String usr,String pass,ChannelAuth a) {
+		return getAuthStr(usr,pass,false,a);
 	}
 	
-	public ChannelAuth getAuthStr(String usr,String pass,boolean media) {
+	public ChannelAuth getAuthStr(String usr,String pass,boolean media,ChannelAuth a) {
 		Channels.debug("login on channel "+parent.getName()+" type "+type+" on "+loggedOn);
 		if(loggedOn)
-			return mkResult();
+			return mkResult(a);
 		if(!media&&mediaOnly)
-			return null;
+			return a;
 		try {
 			if((type==ChannelLogin.STD)||(type==ChannelLogin.APIKEY))
-				return stdLogin(usr,pass);
+				return stdLogin(usr,pass,a);
 			else if(type==ChannelLogin.COOKIE)
-				return cookieLogin(usr,pass);
-			return null;
+				return cookieLogin(usr,pass,a);
+			return a;
 		}
 		catch (Exception e) {
 			Channels.debug("could not fetch token "+e);
-			return null;
+			return a;
 		}
 	}
 	
