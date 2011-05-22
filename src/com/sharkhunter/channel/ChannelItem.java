@@ -1,6 +1,7 @@
 package com.sharkhunter.channel;
 
 import java.net.MalformedURLException;
+import java.net.Proxy;
 import java.net.URL;
 import java.util.ArrayList;
 
@@ -97,7 +98,12 @@ public class ChannelItem implements ChannelProps{
 		String page;
 		try {
 			ChannelAuth a=parent.prepareCom();
-			page = ChannelUtil.fetchPage(urlobj.openConnection(a.proxy),a,null);
+			Proxy p=null;
+			if(a!=null)
+				p=a.proxy;
+			if(p==null)
+				p=Proxy.NO_PROXY;
+			page = ChannelUtil.fetchPage(urlobj.openConnection(p),a,null);
 		} catch (Exception e) {
 			page="";
 		}

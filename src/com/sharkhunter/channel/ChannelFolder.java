@@ -1,6 +1,7 @@
 package com.sharkhunter.channel;
 
 import java.net.MalformedURLException;
+import java.net.Proxy;
 import java.net.URL;
 import java.util.ArrayList;
 
@@ -357,11 +358,17 @@ public class ChannelFolder implements ChannelProps, SearchObj{
 			parent.debug("folder match url "+urlobj.toString()+" type "+type+" post "+post+" "+urlEnd);
 			try {
 				ChannelAuth a=parent.prepareCom();
+				Proxy p=null;
+				if(a!=null)
+					p=a.proxy;
+				if(p==null)
+					p=Proxy.NO_PROXY;
 				if(post) 
-					page=ChannelUtil.postPage(urlobj.openConnection(a.proxy), urlEnd);
+					page=ChannelUtil.postPage(urlobj.openConnection(p), urlEnd);
 				else
-					page=ChannelUtil.fetchPage(urlobj.openConnection(a.proxy),a,null);
+					page=ChannelUtil.fetchPage(urlobj.openConnection(p),a,"");
 			} catch (Exception e) {
+				Channels.debug("fetch exception "+e);
 				page="";
 			}
 			parent.debug("page "+page);

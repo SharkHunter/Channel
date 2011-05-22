@@ -183,7 +183,6 @@ public class Channel extends VirtualFolder {
 	private ChannelAuth getAuth(Proxy p) {
 		ChannelAuth a=new ChannelAuth();
 		a.proxy=p;
-		Channels.debug("use proxy "+p.address().toString());
 		if(logObj==null)
 			return a;
 		if(cred==null)
