@@ -254,7 +254,11 @@ public class ChannelSubs implements ChannelProps {
 	}
 	
 	public String langPrefered() {
+		if(lang==null)
+			return null;
 		String[] langCode=PMS.getConfiguration().getMencoderSubLanguages().split(",");
+		if(lang[0].equals("all"))
+			return langCode[0];
 		for(int j=0;j<langCode.length;j++) 
 			for(int i=0;i<lang.length;i++) 
 				if(ChannelISO.equal(langCode[j],lang[i]))

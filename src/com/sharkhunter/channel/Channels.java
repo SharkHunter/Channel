@@ -24,7 +24,7 @@ import no.geosoft.cc.io.FileMonitor;
 public class Channels extends VirtualFolder implements FileListener {
 
 	// Version string
-	public static final String VERSION="1.12";
+	public static final String VERSION="1.14";
 	
 	// Constants for RTMP string constructions
 	public static final int RTMP_MAGIC_TOKEN=1;
@@ -33,6 +33,9 @@ public class Channels extends VirtualFolder implements FileListener {
 	
 	public static final int DeafultContLim=5;
 	public static final int ContSafetyVal=-100;
+	
+	// Define keywords
+	private static final String[] defWords={"macrodef","scriptdef","subdef","proxydef"};
 	
     private File file;
     private FileMonitor fileMonitor;
@@ -77,6 +80,7 @@ public class Channels extends VirtualFolder implements FileListener {
     	rtmp=Channels.RTMP_DUMP;
     	PMS.minimal("Start channel "+VERSION);
     	dbg=new ChannelDbg(new File(path+File.separator+"channel.log"));
+    	dbg.start();
     	// Add std folders
     	addChild(cache);
     	addChild(searchDb);
@@ -201,6 +205,7 @@ public class Channels extends VirtualFolder implements FileListener {
     	    	String sName=str.substring(9,str.lastIndexOf('{')).trim();
     	    	ArrayList<String> sData=ChannelUtil.gatherBlock(lines, i+1);
     	    	i+=sData.size();
+    	    	debug("add proxy "+sName);
     	    	if(proxies.get(sName)!=null)
     	    		continue;
     	    	try {
@@ -228,6 +233,8 @@ public class Channels extends VirtualFolder implements FileListener {
     	    if(str.trim().startsWith("scriptdef"))
     	    	defines=true;
     	    if(str.trim().startsWith("subdef"))
+    	    	defines=true;
+    	    if(str.trim().startsWith("proxydef"))
     	    	defines=true;
     	    if(str.trim().startsWith("version")) {
     	    	String[] v=str.split("\\s*=\\s*");

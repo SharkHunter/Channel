@@ -42,11 +42,12 @@ public class ChannelProxy {
 		long now=System.currentTimeMillis();
 		if(now<(lastCheck+VerifyInterval))
 			return state;
-		try {
+/*		try {
 			state=ia.isReachable(7000);
 		} catch (IOException e) {
 			state=false;
-		}
+		}*/
+		state=true;	
 		lastCheck=System.currentTimeMillis();
 		return state;
 	}

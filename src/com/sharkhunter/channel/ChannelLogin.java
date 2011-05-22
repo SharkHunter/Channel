@@ -129,7 +129,7 @@ public class ChannelLogin {
 	}
 	
 	private String trimUrl(String u) {
-		String u1=u.replace("http://", "");
+		String u1=u.replace("http://", "").replace("https://", "");
 		int p=u1.indexOf("/");
 		if(p!=-1)
 			u1=u1.substring(0,p);
@@ -168,14 +168,25 @@ public class ChannelLogin {
 		String query=params+"&"+user+"="+URLEncoder.encode(usr,"UTF-8")+
 		"&"+pwd+"="+URLEncoder.encode(pass,"UTF-8");
 		URL u=new URL(url);
-		HttpURLConnection connection;
-		if(a.proxy==null)
-			connection= (HttpURLConnection) u.openConnection();
-		else
-			connection= (HttpURLConnection) u.openConnection(a.proxy);
-		HttpURLConnection.setFollowRedirects(true);   
-		connection.setInstanceFollowRedirects(false);   
-		connection.setRequestMethod("POST");  
+		URLConnection connection;
+		if(url.startsWith("https")) {
+			if(a.proxy==null)
+				connection = (HttpsURLConnection) u.openConnection();
+			else
+				connection = (HttpsURLConnection) u.openConnection(a.proxy);
+			HttpsURLConnection.setFollowRedirects(true);
+			((HttpURLConnection) connection).setInstanceFollowRedirects(true);   
+			((HttpURLConnection) connection).setRequestMethod("POST");  
+		}
+		else {
+			if(a.proxy==null)
+				connection = (HttpURLConnection) u.openConnection();
+			else
+				connection = (HttpURLConnection) u.openConnection(a.proxy);
+			HttpURLConnection.setFollowRedirects(true);
+			((HttpURLConnection) connection).setInstanceFollowRedirects(true);   
+			((HttpURLConnection) connection).setRequestMethod("POST"); 
+		}
 		String page=ChannelUtil.postPage(connection, query);
 		String hName="";
 		//Channels.debug("result "+connection.getResponseCode()+" page "+page);
@@ -189,12 +200,13 @@ public class ChannelLogin {
 	 		int pos;
 	 		if((pos=cookie.indexOf(";"))!=-1)
 	 			cookie = cookie.substring(0, pos);
-	        tokenStr=cookie;
+	        tokenStr=ChannelUtil.append(tokenStr,"&", cookie);
 	        loggedOn=true;
 	        ttd=System.currentTimeMillis()+(24*60*60*2);
-	        return updateCookieDb(cookie,a);
 		}
-		return null;
+		if(!loggedOn)
+			return null;
+		return updateCookieDb(tokenStr,a);
 	}
 	
 	public ChannelAuth getAuthStr(String usr,String pass,ChannelAuth a) {

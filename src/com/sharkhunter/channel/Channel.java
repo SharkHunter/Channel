@@ -183,6 +183,7 @@ public class Channel extends VirtualFolder {
 	private ChannelAuth getAuth(Proxy p) {
 		ChannelAuth a=new ChannelAuth();
 		a.proxy=p;
+		Channels.debug("use proxy "+p.address().toString());
 		if(logObj==null)
 			return a;
 		if(cred==null)
@@ -197,6 +198,7 @@ public class Channel extends VirtualFolder {
 	public ChannelAuth prepareCom() {
 		if(proxies==null) // no proxy, just regular login
 			return getAuth(Proxy.NO_PROXY);
+		Channels.debug("activeProxy "+activeProxy);
 		if(activeProxy!=null&&activeProxy.isUp()) {
 			return getAuth(activeProxy.getProxy());
 		}
@@ -206,6 +208,7 @@ public class Channel extends VirtualFolder {
 				continue;
 			if(!p.isUp())
 				continue;
+			Channels.debug("use proxy "+p.getProxy().address());
 			activeProxy=p;
 			return getAuth(p.getProxy());
 		}
