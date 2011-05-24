@@ -56,6 +56,7 @@ public class Channels extends VirtualFolder implements FileListener {
     private HashMap<String,ChannelAuth> cookies;
     private ChannelSearch searchDb;
     private HashMap<String,ChannelProxy> proxies;
+    private HashMap<String,HashMap<String,String>> stash;
     
     public Channels(String path,long poll,String name,String img) {
     	super(name,img);
@@ -74,6 +75,7 @@ public class Channels extends VirtualFolder implements FileListener {
     	subtitles=new HashMap<String,ChannelSubs>();
     	cookies=new HashMap<String,ChannelAuth>();
     	proxies=new HashMap<String,ChannelProxy>();
+    	stash=new HashMap<String,HashMap<String,String>>();
     	cache=new ChannelCache(path);
     	searchDb=new ChannelSearch(new File(dataPath()+File.separator+"search.txt"));
     	//rtmp=Channels.RTMP_MAGIC_TOKEN;
@@ -81,6 +83,7 @@ public class Channels extends VirtualFolder implements FileListener {
     	PMS.minimal("Start channel "+VERSION);
     	dbg=new ChannelDbg(new File(path+File.separator+"channel.log"));
     	dbg.start();
+    	stash.put("default", new HashMap<String,String>());
     	// Add std folders
     	addChild(cache);
     	addChild(searchDb);
@@ -214,6 +217,20 @@ public class Channels extends VirtualFolder implements FileListener {
 				}
     	    	continue;
     	    }
+    	    if(str.startsWith("stash ")) {
+    	    	String sName=str.substring(6,str.lastIndexOf('{')).trim();
+    	    	ArrayList<String> sData=ChannelUtil.gatherBlock(lines, i+1);
+    	    	i+=sData.size();
+    	    	HashMap<String,String> newStash=new HashMap<String,String>();
+    	    	for(int j=0;j<sData.size();j++) {
+    	    		String[] s=sData.get(j).split(",",2);
+    	    		String v="";
+    	    		if(s.length>1)
+    	    			v=s[1];
+    	    		newStash.put(s[0], v);
+    	    	}
+    	    	stash.put(sName, newStash);
+    	    }
     	}
     }
     
@@ -234,6 +251,8 @@ public class Channels extends VirtualFolder implements FileListener {
     	    if(str.trim().startsWith("subdef"))
     	    	defines=true;
     	    if(str.trim().startsWith("proxydef"))
+    	    	defines=true;
+    	    if(str.trim().startsWith("stash"))
     	    	defines=true;
     	    if(str.trim().startsWith("version")) {
     	    	String[] v=str.split("\\s*=\\s*");
@@ -629,5 +648,42 @@ public class Channels extends VirtualFolder implements FileListener {
 	
 	public static ChannelProxy getProxy(String name) {
 		return inst.proxies.get(name);
+	}
+	
+	//////////////////////////////////////////////
+	// Find stuff in the stash
+	/////////////////////////////////////////////
+	
+	public static HashMap<String,String> getStash(String key) {
+		return inst.stash.get(key);
+	}
+	
+	public static String getStashData(String key,String stashKey) {
+		return getStashData(key,stashKey,null);
+	}	
+	
+	public static String getStashData(String key,String stashKey,String def) {
+		HashMap<String,String> s=getStash(key);
+		if(s==null)
+			return def;
+		String res=s.get(stashKey);
+		if(res==null)
+			return def;
+		return res;
+	}
+	
+	public static void putStash(String stash,String key,String val) {
+		putStash(stash,key,val,false);
+	}
+	
+	public static void putStash(String stash,String key,String val,boolean create) {
+		HashMap<String,String> s=getStash(stash);
+		if(s!=null)
+			s.put(key, val);
+		else if(create){
+			s=new HashMap<String,String>();
+			s.put(key, val);
+			inst.stash.put(stash, s);
+		}		
 	}
 }

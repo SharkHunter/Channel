@@ -43,7 +43,7 @@ macrodef mediaMacro {
 			name=MegaVideo
 		    matcher=<a href=\"([^\"]+)\"\s+class=\"down_links_mv\"
 			order=url
-			subtitle=s4u,allSubs			
+			subtitle=s4u,allSubs,podnapisiMovie			
 			#nscript=http://navix.turner3d.net/proc/megavideo
 			prop=concat_name=rear,name_separator= ,name_index=2
            }
@@ -52,7 +52,7 @@ macrodef mediaMacro {
 			matcher=<div class=\"down_butt_pad1\" style=\"display:none;\" id=\"downloadlink\"><a href="([^\"]+)"
 			name=MegaUpload
 			order=url
-			subtitle=s4u,allSubs
+			subtitle=s4u,allSubs,podnapisiMovie
 			prop=concat_name=rear,name_separator= ,name_index=2
            } 
 		   media {
@@ -60,7 +60,7 @@ macrodef mediaMacro {
 				matcher=<a href="([^\"]+)" class="down_ad_butt1"> 
 				name=MegaUpload Premium
 				order=url
-				subtitle=s4u,allSubs
+				subtitle=s4u,allSubs,podnapisiMovie
 				prop=concat_name=rear,name_separator= ,name_index=2
            }    
       }
@@ -77,7 +77,7 @@ folder {
 			name=MegaVideo
 		    matcher=<a href=\"([^\"]+)\"\s+class=\"down_links_mv\"
 			order=url
-			subtitle=s4u,allSubs
+			subtitle=s4u,allSubs,podnapisiTV
 			#nscript=http://navix.turner3d.net/proc/megavideo
 			prop=concat_name=rear,name_separator= ,name_index=3+2
            }
@@ -86,7 +86,7 @@ folder {
 			matcher=<div class=\"down_butt_pad1\" style=\"display:none;\" id=\"downloadlink\"><a href="([^\"]+)"
 			name=MegaUpload
 			order=url
-			subtitle=s4u,allSubs
+			subtitle=s4u,allSubs,podnapisiTV
 			prop=concat_name=rear,name_separator= ,name_index=3+2
            }   
 		   media {
@@ -94,7 +94,7 @@ folder {
 				matcher=<a href="([^\"]+)" class="down_ad_butt1"> 
 				name=MegaUpload Premium
 				order=url
-				subtitle=s4u,allSubs
+				subtitle=s4u,allSubs,podnapisiTV
 				prop=concat_name=rear,name_separator= ,name_index=3+2
            }    
       }

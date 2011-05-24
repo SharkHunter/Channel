@@ -86,6 +86,40 @@ public class ChannelNaviXProc {
 		return false;
 	}
 	
+	private static String getVar(String key) {
+		if(key.startsWith("pms_stash.")) {
+			// special PMS stash
+			String[] kSplit=key.split(".",3);
+			if(kSplit.length>1) {
+				String stash="default";
+				String sKey=kSplit[1];
+				if(kSplit.length>2) {
+					stash=kSplit[1];
+					sKey=kSplit[2];
+				}
+				return Channels.getStashData(stash, sKey);
+			}
+		}
+		return vars.get(key);
+	}
+	
+	private static void putVar(String key,String val) {
+		if(key.startsWith("pms_stash.")) {
+			// special PMS stash
+			String[] kSplit=key.split(".",3);
+			if(kSplit.length>1) {
+				String stash="default";
+				String sKey=kSplit[1];
+				if(kSplit.length>2) {
+					stash=kSplit[1];
+					sKey=kSplit[2];
+				}
+				Channels.putStash(stash, sKey,val);
+			}
+		}
+		vars.put(key, val);
+	}
+	
 	private static boolean parseV2(String[] lines,int start,String url) throws Exception {
 		Pattern ifparse=Pattern.compile("^([^<>=!]+)\\s*([!<>=]+)\\s*(.*)");
 		boolean if_skip=false;
@@ -192,16 +226,16 @@ public class ChannelNaviXProc {
 				String op=null;
 				String comp=null;
 				if(!im.find()) {
-					var=vars.get(cond);
+					var=getVar(cond);
 				}	
 				else {
-					var=vars.get(im.group(1));
+					var=getVar(im.group(1));
 					Channels.debug("gc "+im.groupCount()+" "+var);
 					if(im.groupCount()>1)
 						op=im.group(2);
 					if(im.groupCount()>2) {
 						String s=im.group(2);
-						comp=fixVar(s.trim(),vars.get(s.trim()));
+						comp=fixVar(s.trim(),getVar(s.trim()));
 					}
 				}
 				Channels.debug("if var "+var+" op "+op+" comp "+comp);
@@ -228,16 +262,16 @@ public class ChannelNaviXProc {
 				String op=null;
 				String comp=null;
 				if(!im.find()) {
-					var=vars.get(cond);
+					var=getVar(cond);
 				}	
 				else {
-					var=vars.get(im.group(1));
+					var=getVar(im.group(1));
 					Channels.debug("gc "+im.groupCount()+" "+var);
 					if(im.groupCount()>1)
 						op=im.group(2);
 					if(im.groupCount()>2) {
 						String s=im.group(2);
-						comp=fixVar(s.trim(),vars.get(s.trim()));
+						comp=fixVar(s.trim(),getVar(s.trim()));
 					}
 				}
 				if(op==null) { // no operator
@@ -268,9 +302,9 @@ public class ChannelNaviXProc {
 			
 			if(line.startsWith("concat ")) {
 				String[] ops=line.substring(7).split(" ",2);
-				String res=ChannelUtil.append(vars.get(ops[0].trim()),"",
-											  fixVar(ops[1],vars.get(ops[1])));
-				vars.put(ops[0].trim(), res);
+				String res=ChannelUtil.append(getVar(ops[0].trim()),"",
+											  fixVar(ops[1],getVar(ops[1])));
+				putVar(ops[0].trim(), res);
 				Channels.debug("concat "+ops[0]+" res "+res);
 				continue;
 			}
@@ -278,7 +312,7 @@ public class ChannelNaviXProc {
 			if(line.startsWith("match ")) {
 				String var=line.substring(6).trim();
 				Pattern re=Pattern.compile(escapeChars(vars.get("regex")));
-				Matcher m=re.matcher(vars.get(var));
+				Matcher m=re.matcher(getVar(var));
 				if(!m.find()) {
 					Channels.debug("no match "+re.pattern());
 					vars.put("nomatch","1");
@@ -294,23 +328,23 @@ public class ChannelNaviXProc {
 			if(line.startsWith("replace ")) {
 				String[] ops=line.substring(8).split(" ",2);
 				Pattern re=Pattern.compile(vars.get("regex"));
-				Matcher m=re.matcher(vars.get(ops[0]));
-				String res=m.replaceAll(fixVar(ops[1],vars.get(ops[1])));
-				vars.put(ops[0], res);
+				Matcher m=re.matcher(getVar(ops[0]));
+				String res=m.replaceAll(fixVar(ops[1],getVar(ops[1])));
+				putVar(ops[0], res);
 				continue;
 			}
 			
 			if(line.startsWith("unescape ")) {
 				String var=line.substring(9).trim();
-				String res=ChannelUtil.unescape(vars.get(var));
-				vars.put(var, res);
+				String res=ChannelUtil.unescape(getVar(var));
+				putVar(var, res);
 				continue;
 			}
 			
 			if(line.startsWith("escape ")) {
 				String var=line.substring(7).trim();
-				String res=ChannelUtil.escape(vars.get(var));
-				vars.put(var, res);
+				String res=ChannelUtil.escape(getVar(var));
+				putVar(var, res);
 				continue;
 			}
 			
@@ -329,9 +363,38 @@ public class ChannelNaviXProc {
 						nookies.put(key.substring(8), realVal);
 						ChannelNaviXNookie.store(key.substring(8),realVal,vars.get("nookie_expires"));
 					}
+					else if(key.startsWith("pms_stash.")) {
+						// special PMS stash
+						String[] kSplit=key.split(".",3);
+						if(kSplit.length>1) {
+							String stash="default";
+							String sKey=kSplit[1];
+							if(kSplit.length>2) {
+								stash=kSplit[1];
+								sKey=kSplit[2];
+							}
+							Channels.putStash(stash, sKey, realVal);
+						}
+					}
 					vars.put(key, realVal);
 					Channels.debug("var ass "+key+"="+realVal);
 				}
+				continue;
+			}
+			
+			if(line.startsWith("call ")) {
+				String nScript=line.substring(5).trim();
+				ArrayList<String> s=Channels.getScript(nScript);
+				if(s==null) {
+					Channels.debug("Calling unknown script "+nScript);
+					continue;
+				}
+				String arg=vars.get("url");
+				if(ChannelUtil.empty(arg))
+					arg=url;
+				String[] arr=s.toArray(new String[s.size()]);
+				Channels.debug("call script "+nScript+" arg "+arg);
+				parseV2(arr,0,arg);
 				continue;
 			}
 			

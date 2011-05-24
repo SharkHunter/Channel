@@ -175,6 +175,9 @@ public class ChannelSubs implements ChannelProps {
 		if(ChannelUtil.getProperty(prop, "iso2"))
 			iso=2;
 		lang=ChannelISO.iso(lang, iso);
+		String stash=ChannelUtil.getPropertyValue(prop, "lang_stash");
+		if(!ChannelUtil.empty(stash))
+			lang=Channels.getStashData(stash, lang	, lang);
 		mediaName=mediaName.trim();
 		String path=dPath.getAbsolutePath()+File.separator+mediaName;
 		path=ChannelUtil.append(path, "_", map.get("season"));
@@ -206,6 +209,8 @@ public class ChannelSubs implements ChannelProps {
 			ArrayList<String> s=Channels.getScript(nScript);
 			if(s!=null) {
 				HashMap<String,String> res=ChannelNaviXProc.lite(mediaName, s,map);
+				if(res==null) // weird stuff, this didn't work anyhow, try another one
+					return null;
 				mediaName=res.get("url");
 				if(nameScript.length>1)
 					if(nameScript[1].equalsIgnoreCase("full")) // full script
@@ -216,6 +221,8 @@ public class ChannelSubs implements ChannelProps {
 		}	
 		else
 			mediaName=ChannelUtil.escape(mediaName);
+		if(ChannelUtil.empty(mediaName))
+			return null;
 		String realUrl=ChannelUtil.concatURL(url,mediaName);
 		Channels.debug("try fecth "+realUrl);
 		try {
