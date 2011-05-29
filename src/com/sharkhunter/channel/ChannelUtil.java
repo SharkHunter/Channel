@@ -11,6 +11,7 @@ import java.io.FileWriter;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.UnsupportedEncodingException;
+import java.net.Proxy;
 import java.net.URI;
 import java.net.URL;
 import java.net.URLConnection;
@@ -64,9 +65,10 @@ public class ChannelUtil {
 				for(String key : hdr.keySet()) 
 					connection.setRequestProperty(key,hdr.get(key));
 			}
-			
+			connection.setConnectTimeout(10000);
+
 			connection.connect();
-			// open up the output stream of the connection   
+			// open up the output stream of the connection
 			DataOutputStream output = new DataOutputStream(connection.getOutputStream());   
 			output.writeBytes(query);   
 			output.flush ();   
@@ -76,7 +78,6 @@ public class ChannelUtil {
 			StringBuilder page=new StringBuilder();
 			String str;
 			while ((str = in.readLine()) != null) {
-				//PMS.debug("reding login reply "+str);
 				//	page.append("\n");
 				page.append(str.trim());
 				page.append("\n");
@@ -85,6 +86,7 @@ public class ChannelUtil {
 			return page.toString();
 		}
 		catch (Exception e) {
+			Channels.debug("post error "+e);
 			return "";
 		}
 	}
@@ -134,7 +136,7 @@ public class ChannelUtil {
 		    return page.toString();
 		}
 		catch (Exception e) {
-			PMS.debug("fetch exception "+e.toString());
+			Channels.debug("fetch exception "+e.toString());
 		    return "";
 		}
 	}
@@ -460,8 +462,10 @@ public class ChannelUtil {
 			case Channels.RTMP_DUMP:
 				Channels.debug("rtmpdump method");
 				rUrl="rtmpdump://channel?-r="+escape(rUrl);
+				if(!empty(vars.get("live")))
+					rUrl=append(rUrl,"","&-v");
 				rUrl=ChannelUtil.append(rUrl, "&-y=", escape(vars.get("playpath")));
-				rUrl=ChannelUtil.append(rUrl, "&-W=", escape(vars.get("swfVfy")));
+				rUrl=ChannelUtil.append(rUrl, "&--swfVfy=", escape(vars.get("swfVfy")));
 				rUrl=ChannelUtil.append(rUrl, "&-s=", escape(vars.get("swfplayer")));
 				rUrl=ChannelUtil.append(rUrl, "&-a=", escape(vars.get("app")));
 				rUrl=ChannelUtil.append(rUrl, "&-p=", escape(vars.get("pageurl")));
@@ -699,5 +703,13 @@ public class ChannelUtil {
 		if(type.equalsIgnoreCase("audio"))
 			return Format.AUDIO;
 		return -1;
+	}
+ 
+	public static Proxy proxy(ChannelAuth a) {
+		if(a==null)
+			return Proxy.NO_PROXY;
+		if(a.proxy==null)
+			return Proxy.NO_PROXY;
+		return a.proxy;
 	}
 }

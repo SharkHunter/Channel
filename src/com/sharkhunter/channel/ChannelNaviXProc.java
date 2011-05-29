@@ -3,6 +3,7 @@ package com.sharkhunter.channel;
 import java.io.UnsupportedEncodingException;
 import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
+import java.net.Proxy;
 import java.net.URL;
 import java.net.URLConnection;
 import java.net.URLDecoder;
@@ -13,6 +14,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import net.pms.dlna.DLNAResource;
+
 
 public class ChannelNaviXProc {
 	
@@ -121,6 +123,10 @@ public class ChannelNaviXProc {
 	}
 	
 	private static boolean parseV2(String[] lines,int start,String url) throws Exception {
+		return parseV2(lines,start,url,null);
+	}
+	
+	private static boolean parseV2(String[] lines,int start,String url,ChannelAuth a) throws Exception {
 		Pattern ifparse=Pattern.compile("^([^<>=!]+)\\s*([!<>=]+)\\s*(.*)");
 		boolean if_skip=false;
 		boolean if_true=false;
@@ -146,9 +152,10 @@ public class ChannelNaviXProc {
 				String sUrl=vars.get((String)"s_url");
 				URLConnection u=null;
 				String action=vars.get("s_action");
+				Proxy p=ChannelUtil.proxy(a);
 				if(action!=null&&action.equalsIgnoreCase("geturl")) { 
 					// YUCK!! this sucks, we need to get the location out of the redirect...
-					HttpURLConnection h=(HttpURLConnection)new URL(sUrl).openConnection();
+					HttpURLConnection h=(HttpURLConnection)new URL(sUrl).openConnection(p);
 					h.setInstanceFollowRedirects(false);
 					h.connect();
 					String hName="";
@@ -161,7 +168,7 @@ public class ChannelNaviXProc {
 					h.disconnect();
 					continue;
 				}
-				u=new URL(sUrl).openConnection();
+				u=new URL(sUrl).openConnection(p);
 				String method=vars.get("s_method");
 				String sPage;
 				HashMap<String,String> hdr=new HashMap<String,String>();
@@ -592,13 +599,17 @@ public class ChannelNaviXProc {
 	// lite with ArrayList as line arg
 	
 	public static HashMap<String,String> lite(String url,ArrayList<String> lines,int asx,
-			      HashMap<String,String> initStash) {
+			      HashMap<String,String> initStash,Channel ch) {
 		String[] arr=lines.toArray(new String[lines.size()]);
-		return lite(url,arr,asx,initStash);
+		return lite(url,arr,asx,initStash,ch);
 	}
 	
 	public static HashMap<String,String> lite(String url,ArrayList<String> lines,int asx) {
 		return lite(url,lines,asx,null);
+	}
+	
+	public static HashMap<String,String> lite(String url,ArrayList<String> lines,int asx,Channel ch) {
+		return lite(url,lines,asx,null,ch);
 	}
 	
 	public static HashMap<String,String> lite(String url,ArrayList<String> lines) {
@@ -607,32 +618,40 @@ public class ChannelNaviXProc {
 	
 	public static HashMap<String,String> lite(String url,ArrayList<String> lines,
 			      HashMap<String,String> initStash) {
-		return lite(url,lines,ChannelUtil.ASXTYPE_AUTO,initStash);
+		return lite(url,lines,ChannelUtil.ASXTYPE_AUTO,initStash,null);
 	}
 	
 	// Lite with array as line arg
 	public static HashMap<String,String> lite(String url,String[] lines) {
-		return lite(url,lines,ChannelUtil.ASXTYPE_AUTO);
+		return lite(url,lines,ChannelUtil.ASXTYPE_AUTO,null);
 	}
 	
-	public static HashMap<String,String> lite(String url,String[] lines,int asx) {
-		return lite(url,lines,asx,null);
+	public static HashMap<String,String> lite(String url,String[] lines,int asx,Channel ch) {
+		return lite(url,lines,asx,null,ch);
 	}
 	
 	public static HashMap<String,String> lite(String url,String[] lines,
 			HashMap<String,String> initStash) {
-		return lite(url,lines,ChannelUtil.ASXTYPE_AUTO,initStash);
+		return lite(url,lines,ChannelUtil.ASXTYPE_AUTO,initStash,null);
 	}
 	
 	// The actual work of lite is done here
 	
 	public static HashMap<String,String> lite(String url,String[] lines,int asx,
-			                  HashMap<String,String> initStash) {
+			                  HashMap<String,String> initStash,Channel ch) {
 		try {
 			vars.clear();
 			if(initStash!=null)
 				vars.putAll(initStash);
-			if(parseV2(lines,0,url))
+			ChannelAuth a=null;
+			if(ch!=null) { 
+				a=ch.prepareCom();
+				Channels.debug("a "+a+" cookie "+a.authStr);
+				if(a!=null&&a.method==ChannelLogin.COOKIE)
+					vars.put("s_cookie", a.authStr);
+				Channels.debug("cookie "+vars.get("s_cookie"));
+			}
+			if(parseV2(lines,0,url,a))
 				Channels.debug("found report statement in NIPL lite script. Hopefully script worked anyway.");
 			String rUrl=ChannelUtil.parseASX(vars.get("url"),asx);
 			vars.put("url", rUrl);

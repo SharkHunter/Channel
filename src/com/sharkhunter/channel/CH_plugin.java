@@ -77,7 +77,7 @@ public class CH_plugin implements AdditionalFolderAtRoot {
 	}
 
 	public String name() {
-		return "Channels";
+		return chRoot.getDisplayName();
 	}
 
     //@Override

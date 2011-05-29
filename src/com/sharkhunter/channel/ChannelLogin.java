@@ -141,7 +141,7 @@ public class ChannelLogin {
 	
 	private ChannelAuth updateCookieDb(String cookie,ChannelAuth a) {
 		String u=trimUrl(url);
-		Channels.debug("update cookie db "+u+" "+cookie);
+		Channels.debug("update cookie db "+u);
 		a=mkResult(a);
 		boolean update=Channels.addCookie(u,a);
 		if(associated!=null)
@@ -157,15 +157,21 @@ public class ChannelLogin {
 	private ChannelAuth getCookie(URLConnection connection,ChannelAuth a) throws Exception {
 		String hName="";
 		for (int j=1; (hName = connection.getHeaderFieldKey(j))!=null; j++) {
-			Channels.debug("hdr "+hName);
-		 	if (!hName.equals("Set-Cookie")) 
-		 		continue;
 		 	String cStr=connection.getHeaderField(j);
+			Channels.debug("hdr "+hName);
+		 	if (!hName.equalsIgnoreCase("Set-Cookie")) 
+		 		continue;
+
 		 	String[] fields = cStr.split(";\\s*");
 	 		String cookie=fields[0];
 	 		int pos;
 	 		if((pos=cookie.indexOf(";"))!=-1)
 	 			cookie = cookie.substring(0, pos);
+	 		if(auth!=null) {
+	 			auth.startMatch(cookie);
+	 			if(!auth.match())
+	 				continue;
+	 		}
 	        tokenStr=cookie;
 	        loggedOn=true;
 	        ttd=System.currentTimeMillis()+(24*60*60*2);
@@ -181,6 +187,8 @@ public class ChannelLogin {
 				loggedOn=true;
 				tokenStr=a1.authStr;
 				ttd=a1.ttd;
+				a1.proxy=a.proxy;
+				a1.method=type;
 				return a1;
 			}
 		}
@@ -188,17 +196,17 @@ public class ChannelLogin {
 		"&"+pwd+"="+URLEncoder.encode(pass,"UTF-8");
 		URL u=new URL(url);
 		//URLConnection connection;
-		Proxy p=null;
-		if(a!=null)
-			p=a.proxy;
-		if(p==null)
-			p=Proxy.NO_PROXY;
+		Proxy p=ChannelUtil.proxy(a);
 		if(url.startsWith("https")) {
+			Channels.debug("https login "+p.toString());
 			HttpsURLConnection connection = (HttpsURLConnection) u.openConnection(p);
 			 HttpsURLConnection.setFollowRedirects(true);
 			((HttpsURLConnection) connection).setInstanceFollowRedirects(true);   
-			((HttpsURLConnection) connection).setRequestMethod("POST");  
+			((HttpsURLConnection) connection).setRequestMethod("POST");
+			Channels.debug("post page");
 			String page=ChannelUtil.postPage(connection, query);
+			if(ChannelUtil.empty(page))
+				return null;
 			return getCookie(connection,a);
 		}
 		else {
@@ -207,6 +215,8 @@ public class ChannelLogin {
 			connection.setInstanceFollowRedirects(false);   
 			connection.setRequestMethod("POST");
 			String page=ChannelUtil.postPage(connection, query);
+			if(ChannelUtil.empty(page))
+				return null;
 			return getCookie(connection,a);
 		}
 	}

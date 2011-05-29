@@ -24,7 +24,7 @@ import no.geosoft.cc.io.FileMonitor;
 public class Channels extends VirtualFolder implements FileListener {
 
 	// Version string
-	public static final String VERSION="1.15";
+	public static final String VERSION="1.16";
 	
 	// Constants for RTMP string constructions
 	public static final int RTMP_MAGIC_TOKEN=1;
@@ -596,6 +596,7 @@ public class Channels extends VirtualFolder implements FileListener {
 			out.close();
 		}
 		catch (Exception e) {
+			debug("Error writing cookie file "+e);
 		}
 
 	}

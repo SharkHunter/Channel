@@ -153,7 +153,7 @@ public class ChannelMedia implements ChannelProps,ChannelScraper {
 			url=ChannelUtil.unescape(url);
 		thumb=ChannelUtil.pendData(thumb, prop, "thumb");
 		url=ChannelUtil.pendData(url,prop,"url");
-		if(ChannelUtil.empty(url))
+		if(ChannelUtil.empty(url)&&!scriptOnly())
 			return;
 		if(ChannelUtil.empty(nName))
 			nName="Unknown";
@@ -185,6 +185,9 @@ public class ChannelMedia implements ChannelProps,ChannelScraper {
 		String realUrl;
 		ch.debug("scrape sub "+subtitle);
 		String subFile="";
+		boolean live=ChannelUtil.getProperty(prop, "live");
+		if(live)
+			params.put("live", "true");
 		int asx=ChannelUtil.ASXTYPE_NONE;
 		if(ChannelUtil.getProperty(prop, "auto_asx"))
 			asx=ChannelUtil.ASXTYPE_AUTO;
@@ -230,12 +233,18 @@ public class ChannelMedia implements ChannelProps,ChannelScraper {
 			params.put("url", url);
 			return ChannelUtil.createMediaUrl(params,format,ch);
 		}
-		HashMap<String,String> res=ChannelNaviXProc.lite(url,sData,asx);
-		res.put("subtitle", subFile);
+		HashMap<String,String> res=ChannelNaviXProc.lite(url,sData,asx,ch);
 		if(res==null) {
 			ch.debug("Bad script result");
 			return null;
 		}
+		res.put("subtitle", subFile);
+		if(live)
+			res.put("live", "true");
 		return ChannelUtil.createMediaUrl(res,format,ch);
+	}
+	
+	public boolean scriptOnly() {
+		return !ChannelUtil.empty(script)&&(matcher==null);
 	}
 }

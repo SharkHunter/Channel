@@ -43,7 +43,7 @@ public class ChannelFolder implements ChannelProps, SearchObj{
 	private String[] sub;
 	
 	private String searchId;
-	private String urlScript;
+	private String script;
 	
 	private String hook;
 	private String tag;
@@ -66,6 +66,7 @@ public class ChannelFolder implements ChannelProps, SearchObj{
 		medias=cf.medias;
 		continues=ChannelUtil.calcCont(prop);
 		contAll=cf.contAll;
+		script=cf.script;
 	}
 	
 	public ChannelFolder(ArrayList<String> data,Channel parent,ChannelFolder pf) {
@@ -79,6 +80,7 @@ public class ChannelFolder implements ChannelProps, SearchObj{
 		medias=new ArrayList<ChannelMedia>();
 		contAll=false;
 		continues=Channels.DeafultContLim;
+		script=null;
 		parse(data);
 		continues=ChannelUtil.calcCont(prop);
 		if(continues<0)
@@ -160,7 +162,7 @@ public class ChannelFolder implements ChannelProps, SearchObj{
 				sub=keyval[1].split(",");
 			}
 			if(keyval[0].equalsIgnoreCase("url_script")) {
-				urlScript=keyval[1];
+				script=keyval[1];
 			}
 			if(keyval[0].equalsIgnoreCase("tag")) {
 				tag=keyval[1];
@@ -329,6 +331,10 @@ public class ChannelFolder implements ChannelProps, SearchObj{
 	public void match(DLNAResource res,ChannelFilter filter,String urlEnd,
 			String pThumb,String nName) throws MalformedURLException {
 		String page="";
+		if(ChannelUtil.getProperty(prop, "test_login")) {
+			parent.prepareCom();
+			return;
+		}
 		if(filter==null&&matcher==null&&type==ChannelFolder.TYPE_NORMAL) { // static folder
 			// static folders are not subject to filter
 			parent.debug("static folder");
@@ -351,18 +357,19 @@ public class ChannelFolder implements ChannelProps, SearchObj{
 			if(methodProp!=null&&!methodProp.equalsIgnoreCase("post"))
 				post=false;
 		}
+		boolean dummy=false;
+		if(url!=null)
+			dummy=url.equals("dummy_url");
 		if(!post)
-			realUrl=ChannelUtil.concatURL(url,urlEnd);	
-		if(!ChannelUtil.empty(realUrl)) {
+			realUrl=ChannelUtil.concatURL(url,urlEnd);
+		if(dummy)
+			realUrl=urlEnd;
+		if(!ChannelUtil.empty(realUrl)&&!dummy) {
 			URL urlobj=new URL(realUrl);
 			parent.debug("folder match url "+urlobj.toString()+" type "+type+" post "+post+" "+urlEnd);
 			try {
 				ChannelAuth a=parent.prepareCom();
-				Proxy p=null;
-				if(a!=null)
-					p=a.proxy;
-				if(p==null)
-					p=Proxy.NO_PROXY;
+				Proxy p=ChannelUtil.proxy(a);
 				if(post) 
 					page=ChannelUtil.postPage(urlobj.openConnection(p), urlEnd);
 				else
@@ -385,13 +392,17 @@ public class ChannelFolder implements ChannelProps, SearchObj{
 			fol=parentFolder.subfolders;
 		}
 		// 1st Media
-		 //PMS.debug("matching media "+medias.size());
+		// Channels.debug("matching media "+medias.size());
 	    for(int i=0;i<med.size();i++) {
 	    	ChannelMedia m1=med.get(i);
 	    	ChannelMatcher m=m1.getMatcher();
+	    	Channels.debug("media "+m+" sc "+m1.scriptOnly());
 	    	if(m==null) { // no matcher => static media
 	    		String thumb=ChannelUtil.getThumb(null, pThumb, parent);
-	    		m1.add(res,nName,null,thumb,ChannelUtil.getProperty(prop, "auto_asx"));
+	    		if(m1.scriptOnly())
+	    			m1.add(res, nName, realUrl, thumb, ChannelUtil.getProperty(prop, "auto_asx"));
+	    		else
+	    			m1.add(res,nName,null,thumb,ChannelUtil.getProperty(prop, "auto_asx"));
 	    		continue;
 	    	}
 	    	m.startMatch(page);
@@ -476,7 +487,7 @@ public class ChannelFolder implements ChannelProps, SearchObj{
 	    				someName=cf.name;
 	    		if(ChannelUtil.getProperty(cf.prop, "prepend_parenturl"))
 	    			fUrl=ChannelUtil.concatURL(realUrl,fUrl);
-	    		fUrl=ChannelNaviXProc.simple(fUrl, urlScript);
+	    		fUrl=ChannelNaviXProc.simple(fUrl, script);
 	    		PeekRes pr=cf.peek(fUrl,prop);
 	    		if(!pr.res)
 	    			continue;
