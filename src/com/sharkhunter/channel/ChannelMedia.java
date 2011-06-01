@@ -32,6 +32,7 @@ public class ChannelMedia implements ChannelProps,ChannelScraper {
 	private String[] subtitle;
 	private int format;
 	private String staticUrl;
+	private String proxy;
 	
 	public ChannelMedia(ArrayList<String> data,Channel parent) {
 		Ok=false;
@@ -43,6 +44,7 @@ public class ChannelMedia implements ChannelProps,ChannelScraper {
 		scriptType=ChannelMedia.SCRIPT_LOCAL;
 		params=new HashMap<String,String>();
 		format=-1;
+		proxy=null;
 		parse(data);
 		if(format==-1)
 			format=parent.getFormat();
@@ -114,6 +116,9 @@ public class ChannelMedia implements ChannelProps,ChannelScraper {
 			}
 			if(keyval[0].equalsIgnoreCase("url")) {
 				staticUrl=keyval[1];
+			}
+			if(keyval[0].equalsIgnoreCase("proxy")) {
+				proxy=keyval[1];
 			}
 		}
 	}

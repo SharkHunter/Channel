@@ -48,6 +48,8 @@ public class ChannelFolder implements ChannelProps, SearchObj{
 	private String hook;
 	private String tag;
 	
+	private String proxy;
+	
 	public ChannelFolder(ArrayList<String> data,Channel parent) {
 		this(data,parent,null);
 	}
@@ -67,6 +69,7 @@ public class ChannelFolder implements ChannelProps, SearchObj{
 		continues=ChannelUtil.calcCont(prop);
 		contAll=cf.contAll;
 		script=cf.script;
+		proxy=cf.proxy;
 	}
 	
 	public ChannelFolder(ArrayList<String> data,Channel parent,ChannelFolder pf) {
@@ -81,6 +84,7 @@ public class ChannelFolder implements ChannelProps, SearchObj{
 		contAll=false;
 		continues=Channels.DeafultContLim;
 		script=null;
+		proxy=null;
 		parse(data);
 		continues=ChannelUtil.calcCont(prop);
 		if(continues<0)
@@ -169,6 +173,9 @@ public class ChannelFolder implements ChannelProps, SearchObj{
 			}
 			if(keyval[0].equalsIgnoreCase("hook")) {
 				hook=keyval[1];
+			}
+			if(keyval[0].equalsIgnoreCase("proxy")) {
+				proxy=keyval[1];
 			}
 		}
 	}
@@ -369,6 +376,11 @@ public class ChannelFolder implements ChannelProps, SearchObj{
 			parent.debug("folder match url "+urlobj.toString()+" type "+type+" post "+post+" "+urlEnd);
 			try {
 				ChannelAuth a=parent.prepareCom();
+				if(!ChannelUtil.empty(proxy))  {// override channel proxy
+					ChannelProxy p0=Channels.getProxy(proxy);
+					if(p0!=null) // update if we found a proxy leave it other
+						a.proxy=p0;
+				}
 				Proxy p=ChannelUtil.proxy(a);
 				if(post) 
 					page=ChannelUtil.postPage(urlobj.openConnection(p), urlEnd);

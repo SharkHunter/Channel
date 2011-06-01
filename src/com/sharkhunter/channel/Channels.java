@@ -24,7 +24,7 @@ import no.geosoft.cc.io.FileMonitor;
 public class Channels extends VirtualFolder implements FileListener {
 
 	// Version string
-	public static final String VERSION="1.16";
+	public static final String VERSION="1.17";
 	
 	// Constants for RTMP string constructions
 	public static final int RTMP_MAGIC_TOKEN=1;
@@ -576,20 +576,62 @@ public class Channels extends VirtualFolder implements FileListener {
 				fileMonitor.addFile(f);
 			handleCred(f);
 		}
+		readCookieFile(cfg.getCookiePath());
+		writeCookieFile(cfg.getCookiePath());
 	}
 	
 	//////////////////////////////////////////
 	// Cookie mgmt
 	//////////////////////////////////////////
 	
-	public static void mkCookieFile() {
+	public static void readCookieFile(String file) {
+		readCookieFile(file,inst.cookies);
+	}
+	
+	public static void readCookieFile(String file,HashMap<String,ChannelAuth> map) {
 		try {
-			String file=cfg().getCookiePath();
+			BufferedReader in=new BufferedReader(new FileReader(file));
+			String str;
+	    	while ((str = in.readLine()) != null) {
+	    		if(ChannelUtil.ignoreLine(str)) 
+	    			continue;
+	    		str=str.trim();
+	    		String[] line=str.split("\t");
+	    		if(line.length<7) // bad line skip it
+	    			continue;
+	    		String url=line[0];
+	    		String ttd0=line[4];
+	    		String key=line[5];
+	    		String val=line[6];
+	    		long ttd=0;
+	    		try {
+	    			ttd=Long.parseLong(ttd0);
+	    		}
+	    		catch (NumberFormatException e1) {
+	    		}
+	    		if(ttd<System.currentTimeMillis()) // ignore old cookies
+	    			continue;
+	    		ChannelAuth a=new ChannelAuth();
+	    		a.authStr=key+"="+val;
+	    		a.method=ChannelLogin.COOKIE;
+	    		a.ttd=ttd;
+	    		a.proxy=null;
+	    		debug("adding to cookie jar "+url);
+	    		map.put(url, a);
+	    	}	
+		} catch (Exception e) {
+		}	
+	}
+	
+	private static void writeCookieFile(String file) {
+		try {
 			FileOutputStream out=new FileOutputStream(file);
+			String data="# Cookie file\n"; // write a dummy line to make sure the file exists
+			out.write(data.getBytes(), 0, data.length());
 			for(String key : inst.cookies.keySet()) {
 				ChannelAuth a=inst.cookies.get(key);
-				String data=key+"\tTRUE\t/\tFALSE\t"+String.valueOf(a.ttd)+"\t"+a.authStr.replace('=', '\t')+
-					"\n";
+				data=key+"\tTRUE\t/\tFALSE\t"+String.valueOf(a.ttd)+"\t"+a.authStr.replace('=', '\t')+
+				"\n";
 				out.write(data.getBytes(), 0, data.length());
 			}	
 			out.flush();
@@ -598,7 +640,46 @@ public class Channels extends VirtualFolder implements FileListener {
 		catch (Exception e) {
 			debug("Error writing cookie file "+e);
 		}
-
+	}
+	
+	public static void mkCookieFile() {
+		String file=cfg().getCookiePath();
+		File f=new File(file);
+		// The logic here:
+		// Create a new HashMap (=map) as a sandbox
+		// If a cookie file exists read that and store the cookies in the sandbox
+		// Move all cookie from the internal jar to the sandbox UNLESS
+		// the sandbox is newer.
+		// Finally rewrite the sandbox.
+		HashMap<String,ChannelAuth> map=null;
+		if(f.exists()) { // life is full of troubles, first we must fix stuff here
+			map=new HashMap<String,ChannelAuth>();
+			readCookieFile(file,map);
+		}
+		if(map!=null) { // we got a new map (we reread the cookie file)
+			for(String key : inst.cookies.keySet()) {
+				ChannelAuth a=inst.cookies.get(key);
+				ChannelAuth b=map.get(key);
+				if(b!=null) { // cookie file contain this key
+					// if it's newer or lives longer we'll use it
+					if(!a.authStr.equals(b.authStr)&&b.ttd>a.ttd)
+						a=b;
+					else if(b.ttd>a.ttd)
+						a=b;
+				}
+				if(a.ttd<System.currentTimeMillis()) // cookie expired skip it
+					map.remove(key);
+				else
+					map.put(key, a);
+			}
+			// map now contains all keys from file + our internal
+			// NOTE!! Cookies in the sandbox that are "new"
+			// don't need to be checked for age since no old
+			// cookies makes it in to the jar
+			inst.cookies=map;
+		}
+		f.delete(); // clear the file and the rewrite it
+		writeCookieFile(file);
 	}
 	
 	public static boolean addCookie(String url,ChannelAuth a) {

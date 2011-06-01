@@ -6,5 +6,5 @@ public class ChannelAuth {
 	public int method;
 	public String authStr;
 	public long ttd;
-	public Proxy proxy;
+	public ChannelProxy proxy;
 }

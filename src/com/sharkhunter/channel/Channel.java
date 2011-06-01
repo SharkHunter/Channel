@@ -180,7 +180,7 @@ public class Channel extends VirtualFolder {
 		return null;
 	}
 	
-	private ChannelAuth getAuth(Proxy p) {
+	private ChannelAuth getAuth(ChannelProxy p) {
 		ChannelAuth a=new ChannelAuth();
 		a.proxy=p;
 		a.method=-1;
@@ -197,10 +197,10 @@ public class Channel extends VirtualFolder {
 	
 	public ChannelAuth prepareCom() {
 		if(proxies==null) // no proxy, just regular login
-			return getAuth(Proxy.NO_PROXY);
+			return getAuth(ChannelProxy.NULL_PROXY);
 		Channels.debug("activeProxy "+activeProxy);
 		if(activeProxy!=null&&activeProxy.isUp()) {
-			return getAuth(activeProxy.getProxy());
+			return getAuth(activeProxy);
 		}
 		for(int i=0;i<proxies.length;i++) {
 			ChannelProxy p=Channels.getProxy(proxies[i]);
@@ -210,9 +210,9 @@ public class Channel extends VirtualFolder {
 				continue;
 			Channels.debug("use proxy "+p.getProxy().toString());
 			activeProxy=p;
-			return getAuth(p.getProxy());
+			return getAuth(p);
 		}
-		return getAuth(Proxy.NO_PROXY);		
+		return getAuth(ChannelProxy.NULL_PROXY);		
 	}
 	
 	public void addSearcher(String id,SearchObj obj) {

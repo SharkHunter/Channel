@@ -8,6 +8,9 @@ import java.net.Proxy;
 import java.net.URL;
 import java.net.URLConnection;
 import java.net.URLEncoder;
+import java.sql.Date;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 
 import javax.net.ssl.HttpsURLConnection;
@@ -154,6 +157,17 @@ public class ChannelLogin {
 		return a;
 	}
 	
+	private long parseTTD(String expStr) {
+		SimpleDateFormat sdfDate = new SimpleDateFormat("dd-MMM-yyyy HH:mm:ss");
+		java.util.Date d;
+		try {
+			d = sdfDate.parse(expStr);
+			return d.getTime();
+		} catch (ParseException e) {
+			return ttd;
+		}
+	}
+	
 	private ChannelAuth getCookie(URLConnection connection,ChannelAuth a) throws Exception {
 		String hName="";
 		for (int j=1; (hName = connection.getHeaderFieldKey(j))!=null; j++) {
@@ -161,7 +175,6 @@ public class ChannelLogin {
 			Channels.debug("hdr "+hName);
 		 	if (!hName.equalsIgnoreCase("Set-Cookie")) 
 		 		continue;
-
 		 	String[] fields = cStr.split(";\\s*");
 	 		String cookie=fields[0];
 	 		int pos;
@@ -172,9 +185,15 @@ public class ChannelLogin {
 	 			if(!auth.match())
 	 				continue;
 	 		}
+	        ttd=System.currentTimeMillis()+(24*60*60*2*1000);
+	 		if(fields.length>1)
+	 			if(fields[1].contains("expires")) {
+	 				String[] exp=fields[1].split(",");
+	 				if(exp.length>1)
+	 					ttd=parseTTD(exp[1]);
+	 			}
 	        tokenStr=cookie;
 	        loggedOn=true;
-	        ttd=System.currentTimeMillis()+(24*60*60*2);
 	        return updateCookieDb(tokenStr,a);
 		}
 		return null;
@@ -183,7 +202,7 @@ public class ChannelLogin {
 	private ChannelAuth cookieLogin(String usr,String pass,ChannelAuth a) throws Exception {
 		ChannelAuth a1=Channels.getCookie(trimUrl(url));
 		if(a1!=null) { // found some in hash
-			if(a1.ttd<System.currentTimeMillis()) {
+			if(a1.ttd>System.currentTimeMillis()) {
 				loggedOn=true;
 				tokenStr=a1.authStr;
 				ttd=a1.ttd;
@@ -192,13 +211,16 @@ public class ChannelLogin {
 				return a1;
 			}
 		}
+		ChannelProxy proxy=a.proxy;
+		if(proxy==null)
+			proxy=ChannelProxy.NULL_PROXY;
 		String query=params+"&"+user+"="+URLEncoder.encode(usr,"UTF-8")+
 		"&"+pwd+"="+URLEncoder.encode(pass,"UTF-8");
 		URL u=new URL(url);
+		Proxy p=proxy.getProxy();
 		//URLConnection connection;
-		Proxy p=ChannelUtil.proxy(a);
-		if(url.startsWith("https")) {
-			Channels.debug("https login "+p.toString());
+		Channels.debug("url "+u.toString()+" query "+query);
+		if(u.toString().startsWith("https")) {
 			HttpsURLConnection connection = (HttpsURLConnection) u.openConnection(p);
 			 HttpsURLConnection.setFollowRedirects(true);
 			((HttpsURLConnection) connection).setInstanceFollowRedirects(true);   

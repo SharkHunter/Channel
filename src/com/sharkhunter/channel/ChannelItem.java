@@ -98,11 +98,7 @@ public class ChannelItem implements ChannelProps{
 		String page;
 		try {
 			ChannelAuth a=parent.prepareCom();
-			Proxy p=null;
-			if(a!=null)
-				p=a.proxy;
-			if(p==null)
-				p=Proxy.NO_PROXY;
+			Proxy p=ChannelUtil.proxy(a);
 			page = ChannelUtil.fetchPage(urlobj.openConnection(p),a,null);
 		} catch (Exception e) {
 			page="";

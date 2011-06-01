@@ -710,6 +710,16 @@ public class ChannelUtil {
 			return Proxy.NO_PROXY;
 		if(a.proxy==null)
 			return Proxy.NO_PROXY;
-		return a.proxy;
+		return a.proxy.getProxy();
+	}
+	
+	public static String separatorToken(String str) {
+		if(str==null)
+			return null;
+		if(str.equals("###0")) // this is space :)
+			return " ";
+		if(str.equals("###n")) // this is newline
+			return "\n\r";
+		return str;
 	}
 }

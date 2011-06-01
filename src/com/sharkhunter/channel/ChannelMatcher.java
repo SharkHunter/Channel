@@ -80,9 +80,9 @@ public class ChannelMatcher implements ChannelProps{
 					 if(order[i].charAt(order[i].length()-1)=='+') { 
 						 // special hack here. if it ends with a '+' then we 
 						 // add all matches left to one big chunk
-						 return concatAll(i+1,res,properties.separator(field));
+						 return concatAll(i+1,res,fixSep(properties.separator(field)));
 					 }
-					 res=ChannelUtil.append(res,properties.separator(field),
+					 res=ChannelUtil.append(res,fixSep(properties.separator(field)),
 	    						  				matcher.group(i+1));
 				 }
 			 }
@@ -93,6 +93,10 @@ public class ChannelMatcher implements ChannelProps{
 			 return this.matcher.group(1);
 		 else
 			 return def;
+	 }
+	 
+	 private String fixSep(String s) {
+		 return ChannelUtil.separatorToken(s);
 	 }
 	      
 	 private String concatAll(int start,String res,String sep) {
