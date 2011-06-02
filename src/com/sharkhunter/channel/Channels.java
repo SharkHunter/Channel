@@ -24,7 +24,7 @@ import no.geosoft.cc.io.FileMonitor;
 public class Channels extends VirtualFolder implements FileListener {
 
 	// Version string
-	public static final String VERSION="1.17";
+	public static final String VERSION="1.18";
 	
 	// Constants for RTMP string constructions
 	public static final int RTMP_MAGIC_TOKEN=1;
@@ -576,19 +576,20 @@ public class Channels extends VirtualFolder implements FileListener {
 				fileMonitor.addFile(f);
 			handleCred(f);
 		}
-		readCookieFile(cfg.getCookiePath());
-		writeCookieFile(cfg.getCookiePath());
+		if(readCookieFile(cfg.getCookiePath())) // only need to write back if we removed some
+			writeCookieFile(cfg.getCookiePath());
 	}
 	
 	//////////////////////////////////////////
 	// Cookie mgmt
 	//////////////////////////////////////////
 	
-	public static void readCookieFile(String file) {
-		readCookieFile(file,inst.cookies);
+	public static boolean readCookieFile(String file) {
+		return readCookieFile(file,inst.cookies);
 	}
 	
-	public static void readCookieFile(String file,HashMap<String,ChannelAuth> map) {
+	public static boolean readCookieFile(String file,HashMap<String,ChannelAuth> map) {
+		boolean skipped=false;
 		try {
 			BufferedReader in=new BufferedReader(new FileReader(file));
 			String str;
@@ -609,8 +610,10 @@ public class Channels extends VirtualFolder implements FileListener {
 	    		}
 	    		catch (NumberFormatException e1) {
 	    		}
-	    		if(ttd<System.currentTimeMillis()) // ignore old cookies
+	    		if(ttd<System.currentTimeMillis()) { // ignore old cookies
+	    			skipped=true;
 	    			continue;
+	    		}
 	    		ChannelAuth a=new ChannelAuth();
 	    		a.authStr=key+"="+val;
 	    		a.method=ChannelLogin.COOKIE;
@@ -621,6 +624,7 @@ public class Channels extends VirtualFolder implements FileListener {
 	    	}	
 		} catch (Exception e) {
 		}	
+		return skipped;
 	}
 	
 	private static void writeCookieFile(String file) {

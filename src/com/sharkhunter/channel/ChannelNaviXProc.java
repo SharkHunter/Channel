@@ -449,12 +449,12 @@ public class ChannelNaviXProc {
 			String sep="";
 			String v="";
 			for(int j=1;j<=m.groupCount();j++) {
-				v=v+sep+"v"+String.valueOf(j)+"="+m.group(j);
+				v=v+sep+"v"+String.valueOf(j)+"="+ChannelUtil.escape(m.group(j));
 				sep="&";
 			}
 			URLConnection u1=new URL(res+v).openConnection();
 			String sPage2=ChannelUtil.fetchPage(u1);
-			Channels.debug("res "+res+v);
+			Channels.debug("res "+res+v+" spage2 "+sPage2);
 			if(ChannelUtil.empty(sPage2))
 				throw new Exception("Empty scrap page");
 			String[] l=sPage2.split("\n");
