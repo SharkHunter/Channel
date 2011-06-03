@@ -1,4 +1,4 @@
-version=0.27
+version=0.28
 ## NOTE!!
 ## 
 ## We match out both the megavideo play link and megaupload link
@@ -159,6 +159,7 @@ macrodef movieMacro {
 channel IceFilms {
    img=http://img.icefilms.info/logo.png
    subscript=iceSubs
+   hdr=Referer=http:/www.icefilms.info
   login {
 		# Login data
 		url=http://www.megaupload.com/?c=

@@ -4,6 +4,7 @@ import java.net.MalformedURLException;
 import java.net.Proxy;
 import java.net.URL;
 import java.util.ArrayList;
+import java.util.HashMap;
 
 import org.apache.commons.lang.StringEscapeUtils;
 
@@ -50,6 +51,8 @@ public class ChannelFolder implements ChannelProps, SearchObj{
 	
 	private String proxy;
 	
+	private HashMap<String,String> hdrs;
+	
 	public ChannelFolder(ArrayList<String> data,Channel parent) {
 		this(data,parent,null);
 	}
@@ -70,6 +73,7 @@ public class ChannelFolder implements ChannelProps, SearchObj{
 		contAll=cf.contAll;
 		script=cf.script;
 		proxy=cf.proxy;
+		hdrs=cf.hdrs;
 	}
 	
 	public ChannelFolder(ArrayList<String> data,Channel parent,ChannelFolder pf) {
@@ -85,6 +89,11 @@ public class ChannelFolder implements ChannelProps, SearchObj{
 		continues=Channels.DeafultContLim;
 		script=null;
 		proxy=null;
+		hdrs=new HashMap<String,String>();
+		if(pf!=null)
+			hdrs.putAll(pf.hdrs);
+		else
+			hdrs.putAll(parent.getHdrs());
 		parse(data);
 		continues=ChannelUtil.calcCont(prop);
 		if(continues<0)
@@ -176,6 +185,12 @@ public class ChannelFolder implements ChannelProps, SearchObj{
 			}
 			if(keyval[0].equalsIgnoreCase("proxy")) {
 				proxy=keyval[1];
+			}
+			if(keyval[0].equalsIgnoreCase("hdr")) {
+				String[] k1=keyval[1].split("=");
+				if(k1.length<2)
+					continue;
+				hdrs.put(k1[0], k1[1]);
 			}
 		}
 	}
@@ -383,9 +398,9 @@ public class ChannelFolder implements ChannelProps, SearchObj{
 				}
 				Proxy p=ChannelUtil.proxy(a);
 				if(post) 
-					page=ChannelUtil.postPage(urlobj.openConnection(p), urlEnd);
+					page=ChannelUtil.postPage(urlobj.openConnection(p), urlEnd,"",hdrs);
 				else
-					page=ChannelUtil.fetchPage(urlobj.openConnection(p),a,"");
+					page=ChannelUtil.fetchPage(urlobj.openConnection(p),a,"",hdrs);
 			} catch (Exception e) {
 				Channels.debug("fetch exception "+e);
 				page="";

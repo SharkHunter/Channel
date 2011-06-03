@@ -33,6 +33,7 @@ public class ChannelMedia implements ChannelProps,ChannelScraper {
 	private int format;
 	private String staticUrl;
 	private String proxy;
+	private HashMap<String,String> hdrs;
 	
 	public ChannelMedia(ArrayList<String> data,Channel parent) {
 		Ok=false;
@@ -45,6 +46,8 @@ public class ChannelMedia implements ChannelProps,ChannelScraper {
 		params=new HashMap<String,String>();
 		format=-1;
 		proxy=null;
+		hdrs=new HashMap<String,String>();	
+		hdrs.putAll(parent.getHdrs());
 		parse(data);
 		if(format==-1)
 			format=parent.getFormat();
@@ -119,6 +122,12 @@ public class ChannelMedia implements ChannelProps,ChannelScraper {
 			}
 			if(keyval[0].equalsIgnoreCase("proxy")) {
 				proxy=keyval[1];
+			}
+			if(keyval[0].equalsIgnoreCase("hdr")) {
+				String[] k1=keyval[1].split("=");
+				if(k1.length<2)
+					continue;
+				hdrs.put(k1[0], k1[1]);
 			}
 		}
 	}

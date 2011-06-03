@@ -32,6 +32,8 @@ public class Channel extends VirtualFolder {
 	private String[] proxies;
 	private ChannelProxy activeProxy;
 	
+	private HashMap<String,String> hdrs;
+	
 	public Channel(String name) {
 		super(name,null);
 		Ok=false;
@@ -40,6 +42,7 @@ public class Channel extends VirtualFolder {
 		folders=new ArrayList<ChannelFolder>();
 		searchId=0;
 		activeProxy=null;
+		hdrs=new HashMap<String,String>();
 		searchFolders=new HashMap<String,SearchObj>();
 		Ok=true;
 	}
@@ -98,6 +101,12 @@ public class Channel extends VirtualFolder {
 			if(keyval[0].equalsIgnoreCase("proxy")) {
 				proxies=keyval[1].trim().split(",");
 			}
+			if(keyval[0].equalsIgnoreCase("hdr")) {
+				String[] k1=keyval[1].split("=");
+				if(k1.length<2)
+					continue;
+				hdrs.put(k1[0], k1[1]);
+			}
 			
 		}
 	}
@@ -116,6 +125,10 @@ public class Channel extends VirtualFolder {
 	
 	public String getThumb() {
 		return thumbnailIcon;
+	}
+	
+	public HashMap<String,String> getHdrs() {
+		return hdrs;
 	}
 	
 	public boolean refreshChildren() {
