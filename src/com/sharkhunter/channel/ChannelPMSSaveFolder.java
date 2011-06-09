@@ -15,6 +15,9 @@ public class ChannelPMSSaveFolder extends VirtualFolder {
 	private int asx;
 	private ChannelScraper scraper;
 	private int type;
+	private long childDone;
+	
+	private static final long AUTO_PLAY_FACTOR=(1000*15);
 	
 	public ChannelPMSSaveFolder(Channel ch,String name,String url,String thumb,
 								String proc,int asx,int type,
@@ -28,6 +31,7 @@ public class ChannelPMSSaveFolder extends VirtualFolder {
 		this.asx=asx;
 		this.scraper=scraper;
 		this.type=type;
+		childDone=0;
 	}
 	
 	public boolean refreshChildren() { // Always update
@@ -63,5 +67,15 @@ public class ChannelPMSSaveFolder extends VirtualFolder {
 		catch (Exception e) {
 			return super.getThumbnailInputStream();
 		}
+	}
+	
+	public void childDone() {
+		childDone=System.currentTimeMillis();
+	}
+	
+	public boolean preventAutoPlay() {
+		// Normally childDone is 0 and 0+15000 is never larger
+		// then now.
+		return (childDone+AUTO_PLAY_FACTOR)>System.currentTimeMillis();
 	}
 }

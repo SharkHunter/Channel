@@ -59,8 +59,13 @@ public class ChannelPMSFolder extends VirtualFolder implements ChannelFilter{
 			return (thumbnailIcon);
 		}
 		
+		public ChannelFolder getFolder() {
+			return cf;
+		}
+		
 		public InputStream getThumbnailInputStream() {
 			try {
+				thumbnailIcon=ChannelNaviXProc.simple(thumbnailIcon, cf.thumbScript());
 				return downloadAndSend(thumbnailIcon,true);
 			}
 			catch (Exception e) {

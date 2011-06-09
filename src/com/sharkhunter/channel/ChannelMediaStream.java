@@ -37,6 +37,7 @@ public class ChannelMediaStream extends DLNAResource {
 	private String dispName;
 	private Thread saver;
 	private boolean scraped;
+	private long startTime;
 	
 	public ChannelMediaStream(Channel ch,String name,String nextUrl,
 			  String thumb,String proc,int type,int asx,
@@ -66,6 +67,7 @@ public class ChannelMediaStream extends DLNAResource {
 		this.dispName=dispName;
 		saver=null;
 		scraped=false;
+		startTime=0;
 	}
 	
 	
@@ -103,6 +105,9 @@ public class ChannelMediaStream extends DLNAResource {
     }
     
     public InputStream getInputStream(long low, long high, double timeseek, RendererConfiguration mediarenderer) throws IOException {
+    	if(parent instanceof ChannelPMSSaveFolder)
+    		if(((ChannelPMSSaveFolder)parent).preventAutoPlay())
+    			return null;
     	if(scraper!=null)
     		realUrl=scraper.scrape(ch,url,processor,format,this);
     	else
@@ -206,6 +211,15 @@ public class ChannelMediaStream extends DLNAResource {
 	public boolean isValid() {
 		checktype();
 		return true;
+	}
+	
+	public void donePlaying() {
+		if(parent instanceof ChannelPMSSaveFolder)
+			((ChannelPMSSaveFolder)parent).childDone();
+	}
+	
+	public void nowPlaying() {
+		startTime=System.currentTimeMillis();
 	}
 
 

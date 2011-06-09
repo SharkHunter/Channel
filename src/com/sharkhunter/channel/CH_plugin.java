@@ -1,12 +1,14 @@
 package com.sharkhunter.channel;
 import net.pms.PMS;
+import net.pms.dlna.DLNAMediaInfo;
 import net.pms.dlna.DLNAResource;
 import net.pms.external.AdditionalFolderAtRoot;
+import net.pms.external.StartStopListener;
 
 import javax.swing.*;
 import java.io.*;
 
-public class CH_plugin implements AdditionalFolderAtRoot {
+public class CH_plugin implements AdditionalFolderAtRoot, StartStopListener {
 
 	private static final long DEFAULT_POLL_INTERVAL=20000;
 	private Channels chRoot;
@@ -85,6 +87,18 @@ public class CH_plugin implements AdditionalFolderAtRoot {
 		//JFrame frame=new JFrame("Configure Channels");
 		cfg.init();
 		return gui.draw();
+	}
+
+	@Override
+	public void donePlaying(DLNAMediaInfo arg0, DLNAResource arg1) {
+		if(arg1 instanceof ChannelMediaStream)
+			((ChannelMediaStream)arg1).donePlaying();
+	}
+
+	@Override
+	public void nowPlaying(DLNAMediaInfo arg0, DLNAResource arg1) {
+		if(arg1 instanceof ChannelMediaStream)
+			((ChannelMediaStream)arg1).nowPlaying();
 	}
 	
 }

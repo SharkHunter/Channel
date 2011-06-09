@@ -420,6 +420,8 @@ public class ChannelUtil {
 			if(empty(agent))
 				agent=ChannelUtil.defAgentString;
 			rUrl=append(rUrl,"&agent=",escape(agent));	
+			if(!empty(vars.get("referer")))
+				rUrl=append(rUrl,"&referer=",escape(vars.get("referer")));
 			String sub=vars.get("subtitle");
 			if(!empty(sub)) { // we got subtitles
 				rUrl="subs://"+rUrl;

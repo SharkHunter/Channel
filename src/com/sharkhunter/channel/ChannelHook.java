@@ -2,19 +2,11 @@ package com.sharkhunter.channel;
 
 public abstract class ChannelHook {
 	
-	public static final int URL=0x01;
-	public static final int NAME=0x02;
-	public static final int THUMB=0x04;
-	public static final int SCRAPED=0x08;
+	public final static int NONE=0;
+	public final static int ALL=1;
+	public final static int PART=2;
 	
-	public static final int DONE=URL|SCRAPED;
+	public abstract int pre(String tag,String baseUrl);
 	
-	public String url;
-	public String name;
-	public String thumb;
-	public int result;
-	
-	public abstract int pre(String script,String tag,String baseUrl);
-	
-	public abstract int post(String script,String tag,String baseUrl);	
+	public abstract int post(String tag,String baseUrl);	
 }

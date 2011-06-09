@@ -183,9 +183,10 @@ public class ChannelCfg {
 		
 		// Other
 		String dbg=(String)PMS.getConfiguration().getCustomProperty("channels.debug");
-		String sub=(String) PMS.getConfiguration().getCustomProperty("channels.subtitle");
+		String sub=(String) PMS.getConfiguration().getCustomProperty("channels.subtitles");
 		String cacheStr=(String) PMS.getConfiguration().getCustomProperty("channels.cache");
 		String rtmpMode=(String)PMS.getConfiguration().getCustomProperty("channels.rtmp");
+		String group=(String)PMS.getConfiguration().getCustomProperty("channels.group_folder");
 		if(rtmpMode!=null) {
 			if(rtmpMode.trim().equalsIgnoreCase("1"))
 				Channels.rtmpMethod(Channels.RTMP_MAGIC_TOKEN);
@@ -225,6 +226,8 @@ public class ChannelCfg {
 		}
 		if(ChannelUtil.empty(credPath)) // defaults to channel path
 			credPath=chPath;
+		if(!ChannelUtil.empty(group)&&group.equalsIgnoreCase("true"))
+			Channels.setGroup(true);
 	}
 	
 	private void configPath(String key,String val) {
@@ -257,6 +260,7 @@ public class ChannelCfg {
 				configPath("cred.path",credPath);
 			PMS.getConfiguration().setCustomProperty("channels.debug",String.valueOf(Channels.debugStatus()));
 			PMS.getConfiguration().setCustomProperty("channels.subtitles",String.valueOf(Channels.doSubs()));
+			PMS.getConfiguration().setCustomProperty("channels.group_folder",String.valueOf(Channels.useGroupFolder()));
 			PMS.getConfiguration().save();
 		} catch (Exception e) {
 		}

@@ -4,6 +4,7 @@ import java.net.MalformedURLException;
 import java.net.Proxy;
 import java.net.URL;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 
 import org.apache.commons.lang.StringEscapeUtils;
@@ -44,7 +45,9 @@ public class ChannelFolder implements ChannelProps, SearchObj{
 	private String[] sub;
 	
 	private String searchId;
-	private String script;
+	private String pre_script;
+	private String post_script;
+	private String thumb_script;
 	
 	private String hook;
 	private String tag;
@@ -52,6 +55,8 @@ public class ChannelFolder implements ChannelProps, SearchObj{
 	private String proxy;
 	
 	private HashMap<String,String> hdrs;
+	
+	private String group;
 	
 	public ChannelFolder(ArrayList<String> data,Channel parent) {
 		this(data,parent,null);
@@ -71,9 +76,12 @@ public class ChannelFolder implements ChannelProps, SearchObj{
 		medias=cf.medias;
 		continues=ChannelUtil.calcCont(prop);
 		contAll=cf.contAll;
-		script=cf.script;
+		pre_script=cf.pre_script;
+		post_script=cf.post_script;
+		thumb_script=cf.thumb_script;
 		proxy=cf.proxy;
 		hdrs=cf.hdrs;
+		group=cf.group;
 	}
 	
 	public ChannelFolder(ArrayList<String> data,Channel parent,ChannelFolder pf) {
@@ -87,7 +95,8 @@ public class ChannelFolder implements ChannelProps, SearchObj{
 		medias=new ArrayList<ChannelMedia>();
 		contAll=false;
 		continues=Channels.DeafultContLim;
-		script=null;
+		pre_script=null;
+		post_script=null;
 		proxy=null;
 		hdrs=new HashMap<String,String>();
 		if(pf!=null)
@@ -174,8 +183,14 @@ public class ChannelFolder implements ChannelProps, SearchObj{
 			if(keyval[0].equalsIgnoreCase("subtitle")) {
 				sub=keyval[1].split(",");
 			}
-			if(keyval[0].equalsIgnoreCase("url_script")) {
-				script=keyval[1];
+			if(keyval[0].equalsIgnoreCase("pre_script")) {
+				pre_script=keyval[1];
+			}
+			if(keyval[0].equalsIgnoreCase("post_script")) {
+				post_script=keyval[1];
+			}
+			if(keyval[0].equalsIgnoreCase("thumb_script")) {
+				thumb_script=keyval[1];
 			}
 			if(keyval[0].equalsIgnoreCase("tag")) {
 				tag=keyval[1];
@@ -386,6 +401,7 @@ public class ChannelFolder implements ChannelProps, SearchObj{
 			realUrl=ChannelUtil.concatURL(url,urlEnd);
 		if(dummy)
 			realUrl=urlEnd;
+		realUrl=ChannelNaviXProc.simple(realUrl, pre_script);
 		if(!ChannelUtil.empty(realUrl)&&!dummy) {
 			URL urlobj=new URL(realUrl);
 			parent.debug("folder match url "+urlobj.toString()+" type "+type+" post "+post+" "+urlEnd);
@@ -499,14 +515,16 @@ public class ChannelFolder implements ChannelProps, SearchObj{
 	    	}	
 	    	m.startMatch(page);
 	    	parent.debug("folder matching using expr "+m.getRegexp().pattern());
+	    	HashMap<String,ArrayList<ChannelPMSFolder>> groups=new HashMap<String,ArrayList<ChannelPMSFolder>>();
 	    	while(m.match()) {
 	    		String someName=m.getMatch("name",false);
 	    		if(filter!=null&&!filter.filter(someName))
 	    			continue;
 	    		String fUrl=m.getMatch("url",true);
 	    		String thumb=m.getMatch("thumb",false);
+	    		cf.group=m.getMatch("group",false);
 	    		thumb=ChannelUtil.getThumb(thumb, pThumb, parent);
-	    		parent.debug("matching "+someName+" url "+fUrl+" thumb "+thumb);
+	    		parent.debug("matching "+someName+" url "+fUrl+" thumb "+thumb+" group "+group);
 	    		if(ChannelUtil.empty(someName))
 	    				someName=nName;//(!ChannelUtil.empty(cf.name)?cf.name:nName);
 	    		parent.debug("cf.name "+cf.name+" ignore "+ChannelUtil.getProperty(cf.prop, "ignore_match"));
@@ -514,12 +532,21 @@ public class ChannelFolder implements ChannelProps, SearchObj{
 	    				someName=cf.name;
 	    		if(ChannelUtil.getProperty(cf.prop, "prepend_parenturl"))
 	    			fUrl=ChannelUtil.concatURL(realUrl,fUrl);
-	    		fUrl=ChannelNaviXProc.simple(fUrl, script);
+	    		fUrl=ChannelNaviXProc.simple(fUrl, post_script);
 	    		PeekRes pr=cf.peek(fUrl,prop);
 	    		if(!pr.res)
 	    			continue;
 	    		if(!ChannelUtil.empty(pr.thumbUrl))
 	    			thumb=pr.thumbUrl;
+	    		if(!ChannelUtil.empty(cf.group)&&Channels.useGroupFolder()) {
+	    			ChannelPMSFolder cpf=new ChannelPMSFolder(cf,someName,null,fUrl,thumb);
+	    			ArrayList<ChannelPMSFolder> groupData=groups.get(cf.group);
+	    			if(groupData==null) 
+	    				groupData=new ArrayList<ChannelPMSFolder>();
+	    			groupData.add(cpf);
+	    			groups.put(cf.group, groupData);
+	    			continue;
+	    		}
 	    		if(doContinue(someName,fUrl)) {
 	    			cf.match(res,null,fUrl,thumb,someName);
 	    			return;
@@ -530,6 +557,23 @@ public class ChannelFolder implements ChannelProps, SearchObj{
 	    			res.addChild(new ChannelPMSFolder(cf,someName,null,fUrl,thumb));
 	    		if(cf.onlyFirst())
 	    			break;
+	    	}
+	    	if(!groups.isEmpty()) { // we got groups
+	    		Object[] keySet=groups.keySet().toArray();
+	    		Arrays.sort(keySet);  
+	            for(int j=0;j<keySet.length;j++)   {  
+	            	String key=(String) keySet[j];
+	    			ArrayList<ChannelPMSFolder> groupData=groups.get(key);
+	    			ChannelPMSFolder pfold=groupData.get(0);
+	    			String thumb=pfold.getThumb();
+	    			if(groupData.size()==1) { // only one, thats not a group
+	    				ChannelFolder cf1=pfold.getFolder();
+	    				cf1.group=null; // clear group
+	    				res.addChild(pfold);
+	    			}
+	    			else 
+	    				res.addChild(new ChannelGroupFolder(nName+" #"+key,groupData,thumb));
+	    		}
 	    	}
 	    }
 	}
@@ -556,6 +600,10 @@ public class ChannelFolder implements ChannelProps, SearchObj{
 			match(searcher,null,searchString,"","");
 		} catch (MalformedURLException e) {
 		}
+	}
+	
+	public String thumbScript() {
+		return thumb_script;
 	}
 			
 }

@@ -24,7 +24,7 @@ import no.geosoft.cc.io.FileMonitor;
 public class Channels extends VirtualFolder implements FileListener {
 
 	// Version string
-	public static final String VERSION="1.19";
+	public static final String VERSION="1.20";
 	
 	// Constants for RTMP string constructions
 	public static final int RTMP_MAGIC_TOKEN=1;
@@ -57,6 +57,7 @@ public class Channels extends VirtualFolder implements FileListener {
     private ChannelSearch searchDb;
     private HashMap<String,ChannelProxy> proxies;
     private HashMap<String,HashMap<String,String>> stash;
+    private boolean groupFolder;
     
     public Channels(String path,long poll,String name,String img) {
     	super(name,img);
@@ -68,6 +69,7 @@ public class Channels extends VirtualFolder implements FileListener {
     	savePath="";
     	oh=null;
     	appendTS=false;
+    	groupFolder=false;
     	// Setup list and tables
     	chFiles=new ArrayList<File>();
     	cred=new ArrayList<ChannelCred>();
@@ -771,5 +773,17 @@ public class Channels extends VirtualFolder implements FileListener {
 			s.put(key, val);
 			inst.stash.put(stash, s);
 		}		
+	}
+	
+	/////////////////////////////////
+	// Groupfolder
+	/////////////////////////////////
+	
+	public static void setGroup(boolean b) {
+		inst.groupFolder=b;
+	}
+	
+	public static boolean useGroupFolder() {
+		return inst.groupFolder;
 	}
 }

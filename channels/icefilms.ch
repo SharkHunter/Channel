@@ -1,4 +1,4 @@
-version=0.28
+version=0.30
 ## NOTE!!
 ## 
 ## We match out both the megavideo play link and megaupload link
@@ -25,6 +25,22 @@ scriptdef iceSubs {
 	episode=v2
 	regex='(\d+x\d+) .*
 	replace url '
+	play
+}
+
+#############################
+## Thumbnail scrape
+## script using IMDB
+#############################
+
+scriptdef imdbThumb {
+#<link rel='image_src' href='http://ia.media-imdb.com/images/M/MV5BNTUwODQyNjM0NF5BMl5BanBnXkFtZTcwNDMwMTU1Mw@@._V1._SX94_SY140_.jpg'
+	regex='image_src' href='([^']+)'
+	rurl='http://www.imdb.com/title/tt
+	concat rurl s_url
+	s_url=rurl
+	scrape
+	url=v1
 	play
 }
 
@@ -104,9 +120,12 @@ macrodef tvMacro {
    folder {
       # Series
       #<img class=star><a href=/tv/series/1/565>&#x27;Til Death (2006)</a>
-      matcher=<img class=star><a href=([^>]+)>([^<]+)</a>
-      order=url,name
+      matcher=<a name=i id=([^>]+)></a><img class=star><a href=([^>]+)>([^<]+)</a>
+		order=thumb,url,name
+		#matcher=<img class=star><a href=([^>]+)>([^<]+)</a>
+      #order=url,name
       url=http://www.icefilms.info
+	  thumb_script=imdbThumb
       folder {
          # Episodes 
          #img class=star><a href=/ip.php?v=124783&>Jan 31. Bill Gates</a>
@@ -137,19 +156,19 @@ macrodef movieMacro {
 	folder {
 		# Movies
 		#<img class=star><a href=/tv/series/1/565>&#x27;Til Death (2006)</a>
-		matcher=<img class=star><a href=([^>]+)>([^<]+)</a>
-		order=url,name
+		matcher=<a name=i id=([^>]+)></a><img class=star><a href=([^>]+)>([^<]+)</a>
+		order=thumb,url,name
 		url=http://www.icefilms.info
-		
+		thumb_script=imdbThumb
 		folder {
 			matcher=<a href=\"(/comp[^\"]+)\" 
 			#.*?<iframe src=/noref\.php\?url=([^ ]+) 
-            order=url,thumb
+            order=url
             url=http://www.icefilms.info
 			type=empty
 			folder {
-				matcher=;\" href=([^>]+)>([^<]+)<
-				order=url,name
+				matcher=<a rel=([^ ]+) .*?;\" href=([^>]+)>([^<]+)
+				order=group,url,name
 				macro=mediaMacro
 			}
 		}
