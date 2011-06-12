@@ -401,7 +401,8 @@ public class ChannelFolder implements ChannelProps, SearchObj{
 			realUrl=ChannelUtil.concatURL(url,urlEnd);
 		if(dummy)
 			realUrl=urlEnd;
-		realUrl=ChannelNaviXProc.simple(realUrl, pre_script);
+		//realUrl=ChannelNaviXProc.simple(realUrl, pre_script);
+		realUrl=ChannelScriptMgr.runScript(pre_script, realUrl, parent);
 		if(!ChannelUtil.empty(realUrl)&&!dummy) {
 			URL urlobj=new URL(realUrl);
 			parent.debug("folder match url "+urlobj.toString()+" type "+type+" post "+post+" "+urlEnd);
@@ -409,7 +410,7 @@ public class ChannelFolder implements ChannelProps, SearchObj{
 				ChannelAuth a=parent.prepareCom();
 				if(!ChannelUtil.empty(proxy))  {// override channel proxy
 					ChannelProxy p0=Channels.getProxy(proxy);
-					if(p0!=null) // update if we found a proxy leave it other
+					if(p0!=null) // update if we found a proxy leave it otherwise
 						a.proxy=p0;
 				}
 				Proxy p=ChannelUtil.proxy(a);
@@ -532,7 +533,8 @@ public class ChannelFolder implements ChannelProps, SearchObj{
 	    				someName=cf.name;
 	    		if(ChannelUtil.getProperty(cf.prop, "prepend_parenturl"))
 	    			fUrl=ChannelUtil.concatURL(realUrl,fUrl);
-	    		fUrl=ChannelNaviXProc.simple(fUrl, post_script);
+	    		//ChannelNaviXProc.simple(fUrl, post_script);
+	    		fUrl=ChannelScriptMgr.runScript(post_script, fUrl, parent);
 	    		PeekRes pr=cf.peek(fUrl,prop);
 	    		if(!pr.res)
 	    			continue;
@@ -604,6 +606,10 @@ public class ChannelFolder implements ChannelProps, SearchObj{
 	
 	public String thumbScript() {
 		return thumb_script;
+	}
+	
+	public Channel getChannel() {
+		return parent;
 	}
 			
 }

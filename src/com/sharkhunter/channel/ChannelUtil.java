@@ -556,6 +556,15 @@ public class ChannelUtil {
 		}
 	}
 	
+	public static String execute(String script,String url,int format) {
+		return execute(script,url,format2str(format));
+	}
+	
+	public static String execute(String script,String url,String format) {
+		ProcessBuilder pb=new ProcessBuilder(script,url,format);
+		return execute(pb);
+	}
+	
 	public static String execute(ProcessBuilder pb) {
 		return execute(pb,false);
 	}

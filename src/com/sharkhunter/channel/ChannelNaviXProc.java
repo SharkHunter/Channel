@@ -155,11 +155,16 @@ public class ChannelNaviXProc {
 				Proxy p=ChannelUtil.proxy(a);
 				if(action!=null&&action.equalsIgnoreCase("geturl")) { 
 					// YUCK!! this sucks, we need to get the location out of the redirect...
+					Channels.debug("geturl called "+sUrl);
 					HttpURLConnection h=(HttpURLConnection)new URL(sUrl).openConnection(p);
 					h.setInstanceFollowRedirects(false);
 					h.connect();
+					Channels.debug("connect return");
 					String hName="";
+					vars.put("geturl", h.getURL().toString());
+					Channels.debug("put "+h.getURL().toString());
 					for (int j=1; (hName = h.getHeaderFieldKey(j))!=null; j++) {
+						Channels.debug("hdr "+hName+" val "+h.getHeaderField(j));
 						if(hName.equalsIgnoreCase("location")) {
 							vars.put("v1", h.getHeaderField(j));
 							break;
@@ -389,6 +394,19 @@ public class ChannelNaviXProc {
 				continue;
 			}
 			
+			//////////////////////////////////////
+			// These ones are channel specific
+			//////////////////////////////////////
+			
+			if(line.startsWith("prepend ")) {
+				String[] ops=line.substring(8).split(" ",2);
+				String res=ChannelUtil.append(fixVar(ops[1],getVar(ops[1])),"",
+											  getVar(ops[0].trim()));
+				putVar(ops[0].trim(), res);
+				Channels.debug("prepend "+ops[0]+" res "+res);
+				continue;
+			}
+			
 			if(line.startsWith("call ")) {
 				String nScript=line.substring(5).trim();
 				ArrayList<String> s=Channels.getScript(nScript);
@@ -404,6 +422,10 @@ public class ChannelNaviXProc {
 				parseV2(arr,0,arg);
 				continue;
 			}
+			
+			//////////////////////
+			// Exit form here
+			//////////////////////
 			
 			if(line.startsWith("report")) {
 				Channels.debug("report found take another spin");
