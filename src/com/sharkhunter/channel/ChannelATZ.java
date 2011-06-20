@@ -8,6 +8,7 @@ public class ChannelATZ extends VirtualFolder {
 	
 	private ChannelFolder folder;
 	private String url;
+	private String locals;
 	
 	public ChannelATZ(ChannelFolder cf) {
 		this(cf,"");
@@ -17,6 +18,7 @@ public class ChannelATZ extends VirtualFolder {
 		super(cf.getName()==null?"A-Z":cf.getName(),cf.getThumb());
 		folder=cf;
 		this.url=url;
+		locals=cf.getProp("locals");
 	}
 	
 	public void discoverChildren() {
@@ -28,12 +30,19 @@ public class ChannelATZ extends VirtualFolder {
 						   "/"+String.valueOf(i),folder.getThumb()));
 			}
 		}
+		if(folder.getType()==ChannelFolder.TYPE_ATZ) {
+			if(!ChannelUtil.empty(locals)) {
+				for(int j=0;j<locals.length();j++)
+					addChild(new ChannelPMSFolder(folder,locals.charAt(j),url));
+			}
+		}
+		String otherStr=folder.getProp("other_string");
+		if(ChannelUtil.empty(otherStr))
+			otherStr="#";
 		if(folder.getType()==ChannelFolder.TYPE_ATZ)
-			addChild(new ChannelPMSFolder(folder,'#',url));
+			addChild(new ChannelPMSFolder(folder,"#",url,otherStr,folder.getThumb()));
 		else if(folder.getType()==ChannelFolder.TYPE_ATZ_LINK) {
-			String otherStr=folder.getProp("other_string");
-			otherStr=(otherStr==null?"/#":"/"+otherStr);
-			addChild(new ChannelPMSFolder(folder,"#",null,otherStr,folder.getThumb()));
+			addChild(new ChannelPMSFolder(folder,"#",null,"/"+otherStr,folder.getThumb()));
 		}
 	}
 	

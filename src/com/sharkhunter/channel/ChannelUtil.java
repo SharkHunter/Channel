@@ -69,10 +69,12 @@ public class ChannelUtil {
 
 			connection.connect();
 			// open up the output stream of the connection
-			DataOutputStream output = new DataOutputStream(connection.getOutputStream());   
-			output.writeBytes(query);   
-			output.flush ();   
-			output.close();   
+			if(!empty(query)) {
+				DataOutputStream output = new DataOutputStream(connection.getOutputStream());   
+				output.writeBytes(query);   
+				output.flush ();   
+				output.close();
+			}
 
 			BufferedReader in = new BufferedReader(new InputStreamReader(connection.getInputStream()));
 			StringBuilder page=new StringBuilder();

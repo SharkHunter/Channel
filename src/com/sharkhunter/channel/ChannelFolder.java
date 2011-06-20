@@ -611,5 +611,15 @@ public class ChannelFolder implements ChannelProps, SearchObj{
 	public Channel getChannel() {
 		return parent;
 	}
+	
+	public boolean otherChar(char c) {
+		String p=getProp("locals");
+		if(!ChannelUtil.empty(p)) {
+			for(int j=0;j<p.length();j++)
+				if(p.charAt(j)==c)
+					return true;
+		}
+		return ((c >= 'A' && c <= 'Z')||(c >= 'a' && c <= 'z'));
+	}
 			
 }

@@ -22,6 +22,7 @@ public class ChannelLogin {
 	public static final int STD=0;
 	public static final int COOKIE=1;
 	public static final int APIKEY=2;
+	public static final int SIMPLE_COOKIE=3;
 	
 	private Channel parent;
 	private String user;
@@ -72,6 +73,8 @@ public class ChannelLogin {
 					type=ChannelLogin.COOKIE;
 				if(keyval[1].equalsIgnoreCase("apikey"))
 					type=ChannelLogin.APIKEY;
+				if(keyval[1].equalsIgnoreCase("simple_cookie"))
+					type=ChannelLogin.SIMPLE_COOKIE;
 				if(keyval[1].equalsIgnoreCase("standard")||
 				   keyval[1].equalsIgnoreCase("std"))
 					type=ChannelLogin.STD;
@@ -91,7 +94,7 @@ public class ChannelLogin {
 	private ChannelAuth mkResult(ChannelAuth a) {
 		if(a==null)
 			a=new ChannelAuth();
-		a.method=type;
+		a.method=(type==SIMPLE_COOKIE?COOKIE:type);
 		a.authStr=tokenStr;
 		a.ttd=ttd;
 		return a;
@@ -214,8 +217,13 @@ public class ChannelLogin {
 		ChannelProxy proxy=a.proxy;
 		if(proxy==null)
 			proxy=ChannelProxy.NULL_PROXY;
-		String query=params+"&"+user+"="+URLEncoder.encode(usr,"UTF-8")+
-		"&"+pwd+"="+URLEncoder.encode(pass,"UTF-8");
+		String query="";
+		String method="GET";
+		if(!ChannelUtil.empty(usr)) {
+			query=params+"&"+user+"="+URLEncoder.encode(usr,"UTF-8")+
+				  "&"+pwd+"="+URLEncoder.encode(pass,"UTF-8");
+			method="POST";
+		}
 		URL u=new URL(url);
 		Proxy p=proxy.getProxy();
 		//URLConnection connection;
@@ -224,7 +232,7 @@ public class ChannelLogin {
 			HttpsURLConnection connection = (HttpsURLConnection) u.openConnection(p);
 			 HttpsURLConnection.setFollowRedirects(true);
 			((HttpsURLConnection) connection).setInstanceFollowRedirects(true);   
-			((HttpsURLConnection) connection).setRequestMethod("POST");
+			((HttpsURLConnection) connection).setRequestMethod(method);
 			Channels.debug("post page");
 			String page=ChannelUtil.postPage(connection, query);
 			if(ChannelUtil.empty(page))
@@ -235,7 +243,7 @@ public class ChannelLogin {
 			HttpURLConnection connection = (HttpURLConnection) u.openConnection();
 			HttpURLConnection.setFollowRedirects(true);   
 			connection.setInstanceFollowRedirects(false);   
-			connection.setRequestMethod("POST");
+			connection.setRequestMethod(method);
 			String page=ChannelUtil.postPage(connection, query);
 			if(ChannelUtil.empty(page))
 				return null;
@@ -254,6 +262,10 @@ public class ChannelLogin {
 		if(!media&&mediaOnly)
 			return a;
 		try {
+			if(type==ChannelLogin.SIMPLE_COOKIE)
+				return cookieLogin(null,null,a);
+			if(ChannelUtil.empty(usr)||ChannelUtil.empty(pass))
+				return a;
 			if((type==ChannelLogin.STD)||(type==ChannelLogin.APIKEY))
 				return stdLogin(usr,pass,a);
 			else if(type==ChannelLogin.COOKIE)

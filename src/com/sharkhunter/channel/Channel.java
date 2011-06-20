@@ -199,13 +199,7 @@ public class Channel extends VirtualFolder {
 		a.method=-1;
 		if(logObj==null)
 			return a;
-		if(cred==null)
-			return a;
-		if(ChannelUtil.empty(cred.user))
-			return a;
-		if(ChannelUtil.empty(cred.pwd))
-			return a;
-		return logObj.getAuthStr(cred.user, cred.pwd,a);
+		return logObj.getAuthStr(user(),pwd(),a);
 	}
 	
 	public ChannelAuth prepareCom() {

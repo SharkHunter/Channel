@@ -43,14 +43,10 @@ public class ChannelPMSFolder extends VirtualFolder implements ChannelFilter{
 		}
 		
 		public boolean filter(String str) {
-			if(filter==null||filter.length()==0)
+			if(ChannelUtil.empty(filter))
 				return true;
 			if(filter.equalsIgnoreCase("#")) {
-				char first=str.charAt(0);
-				if ((first >= 'A' && first <= 'Z') ||
-					(first >= 'a' && first <= 'z') )
-					return false;
-				return true;
+				return cf.otherChar(str.charAt(0));
 			}
 			return str.startsWith(filter);
 		}
