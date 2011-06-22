@@ -25,6 +25,7 @@ public class ChannelNaviXProc {
 	
 	private static String escapeChars(String str) {
 		StringBuilder sb=new StringBuilder();
+	//	str=str.replaceAll("\\(", "\\\\\\(");
 		for(int i=0;i<str.length();i++) {
 			char ch;
 			switch((ch=str.charAt(i))) {
@@ -33,6 +34,12 @@ public class ChannelNaviXProc {
 					break;
 				case '\'':
 					sb.append("\\\'");
+					break;
+				case '{':
+					sb.append("\\{");
+					break;
+				case '}':
+					sb.append("\\}");
 					break;
 				/*case '\\':
 					sb.append("\\\\");
@@ -122,6 +129,13 @@ public class ChannelNaviXProc {
 		vars.put(key, val);
 	}
 	
+	private static void clearVs(int maxV) {
+		for(int j=1;j<=maxV;j++) {
+			vars.remove("v"+String.valueOf(j));
+			rvars.remove("v"+String.valueOf(j));
+		}
+	}
+	
 	private static boolean parseV2(String[] lines,int start,String url) throws Exception {
 		return parseV2(lines,start,url,null);
 	}
@@ -130,6 +144,7 @@ public class ChannelNaviXProc {
 		Pattern ifparse=Pattern.compile("^([^<>=!]+)\\s*([!<>=]+)\\s*(.*)");
 		boolean if_skip=false;
 		boolean if_true=false;
+		int maxV=0;
 		Channels.debug("parse v2 ");
 		vars.put("s_url", url);
 		for(int i=start;i<lines.length;i++) {
@@ -167,6 +182,7 @@ public class ChannelNaviXProc {
 						Channels.debug("hdr "+hName+" val "+h.getHeaderField(j));
 						if(hName.equalsIgnoreCase("location")) {
 							vars.put("v1", h.getHeaderField(j));
+							maxV=1;
 							break;
 						}
 					}
@@ -181,6 +197,9 @@ public class ChannelNaviXProc {
 					if(!key.startsWith("s_headers."))
 						continue;
 					hdr.put(key.substring(10), vars.get(key));
+				}
+				if(!ChannelUtil.empty(vars.get("s_referer"))) {
+					hdr.put("Referer", vars.get("s_referer"));
 				}
 				if(method!=null&&method.equalsIgnoreCase("post")) {
 					String q=vars.get("s_postdata");					
@@ -217,11 +236,14 @@ public class ChannelNaviXProc {
 				// apply regexp
 				Pattern re=Pattern.compile(escapeChars(vars.get("regex")));
 				Matcher m=re.matcher(sPage);
+				clearVs(maxV);
+				maxV=0;
 				if(m.find()) {			
 					for(int j=1;j<=m.groupCount();j++) {
 						vars.put("v"+String.valueOf(j), m.group(j));
 						rvars.put("v"+String.valueOf(j), m.group(j));
 					}
+					maxV=m.groupCount();
 				}
 				continue;
 			}
@@ -333,6 +355,7 @@ public class ChannelNaviXProc {
 					Channels.debug("match "+m.groupCount());
 					for(int j=1;j<=m.groupCount();j++)	
 						vars.put("v"+String.valueOf(j), m.group(j));
+					maxV=m.groupCount();
 				}
 				continue;
 			}
