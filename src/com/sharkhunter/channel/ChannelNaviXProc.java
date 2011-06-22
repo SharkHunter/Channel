@@ -534,6 +534,7 @@ public class ChannelNaviXProc {
 		rvars.clear();
 		vars.put("subtitle",subFile);
 		vars.put("url", url);
+		vars.put("__type__", "navix");
 		if(ch!=null) {
 			ChannelAuth auth=ch.prepareCom();
 			if((auth!=null)&&(auth.method==ChannelLogin.COOKIE))
@@ -632,6 +633,7 @@ public class ChannelNaviXProc {
 		String rUrl=ChannelUtil.parseASX(vars.get("url"), ChannelUtil.ASXTYPE_AUTO);
 		vars.put("url", rUrl);
 		vars.put("__type__", "navix");
+		Channels.debug("type "+vars.get("__type__"));
 		rUrl=ChannelUtil.createMediaUrl(vars,format,ch);
 		Channels.debug("navix return media url "+rUrl);
 		return rUrl;
