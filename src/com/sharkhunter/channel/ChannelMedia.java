@@ -195,7 +195,8 @@ public class ChannelMedia implements ChannelProps,ChannelScraper {
 	}
 	
 	@Override
-	public String scrape(Channel ch, String url, String scriptName,int format,DLNAResource start) {
+	public String scrape(Channel ch, String url, String scriptName,int format,DLNAResource start
+			             ,boolean noSub) {
 		String realUrl;
 		ch.debug("scrape sub "+subtitle);
 		String subFile="";
@@ -207,7 +208,7 @@ public class ChannelMedia implements ChannelProps,ChannelScraper {
 			asx=ChannelUtil.ASXTYPE_AUTO;
 		if(type==ChannelMedia.TYPE_ASX)
 			asx=ChannelUtil.ASXTYPE_FORCE;
-		if(subtitle!=null&&Channels.doSubs()) {
+		if(subtitle!=null&&Channels.doSubs()&&!noSub) {
 			for(int i=0;i<subtitle.length;i++) {
 				ChannelSubs subs=Channels.getSubs(subtitle[i]);
 				if(subs==null)

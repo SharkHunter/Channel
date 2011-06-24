@@ -38,6 +38,7 @@ public class ChannelMediaStream extends DLNAResource {
 	private Thread saver;
 	private boolean scraped;
 	private long startTime;
+	private boolean noSubs;
 	
 	public ChannelMediaStream(Channel ch,String name,String nextUrl,
 			  String thumb,String proc,int type,int asx,
@@ -68,6 +69,11 @@ public class ChannelMediaStream extends DLNAResource {
 		saver=null;
 		scraped=false;
 		startTime=0;
+		noSubs=false;
+	}
+	
+	public void noSubs() {
+		noSubs=true;
 	}
 	
 	
@@ -109,7 +115,7 @@ public class ChannelMediaStream extends DLNAResource {
     		if(((ChannelPMSSaveFolder)parent).preventAutoPlay())
     			return null;
     	if(scraper!=null)
-    		realUrl=scraper.scrape(ch,url,processor,format,this);
+    		realUrl=scraper.scrape(ch,url,processor,format,this,noSubs);
     	else
     		realUrl=ChannelUtil.parseASX(url, ASX);
     	if(ChannelUtil.empty(realUrl))
@@ -157,7 +163,7 @@ public class ChannelMediaStream extends DLNAResource {
     public InputStream getInputStream() {
     	Channels.debug("cms getinp/0 scrape "+scraper);
     	if(scraper!=null)
-    		realUrl=scraper.scrape(ch,url,processor,format,this);
+    		realUrl=scraper.scrape(ch,url,processor,format,this,noSubs);
     	else
     		realUrl=ChannelUtil.parseASX(url, ASX);
     	if(ChannelUtil.empty(realUrl))

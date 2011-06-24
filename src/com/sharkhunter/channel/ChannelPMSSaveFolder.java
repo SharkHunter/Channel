@@ -43,6 +43,14 @@ public class ChannelPMSSaveFolder extends VirtualFolder {
 		addChild(cms);
 		cms=new ChannelMediaStream(ch,"PLAY",url,thumb,proc,type,asx,scraper,name,null);
 		addChild(cms);
+		if(Channels.doSubs()) {
+			cms=new ChannelMediaStream(ch,"SAVE&PLAY - No Subs",url,thumb,proc,type,asx,scraper,name,name);
+			cms.noSubs();
+			addChild(cms);
+			cms=new ChannelMediaStream(ch,"PLAY - No Subs",url,thumb,proc,type,asx,scraper,name,null);
+			cms.noSubs();
+			addChild(cms);
+		}
 		final ChannelOffHour oh=Channels.getOffHour();
 		if(oh!=null) {
 			final boolean add=!oh.scheduled(url);
@@ -52,7 +60,7 @@ public class ChannelPMSSaveFolder extends VirtualFolder {
 				public boolean enable() {
 					String rUrl=url;
 					if(scraper!=null)
-						rUrl=scraper.scrape(ch, url, proc, type, this);
+						rUrl=scraper.scrape(ch, url, proc, type, this,false);
 					oh.update(rUrl, rName, add);
 					return add;
 				}
