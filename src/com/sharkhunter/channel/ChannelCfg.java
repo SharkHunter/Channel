@@ -195,6 +195,7 @@ public class ChannelCfg {
 		String cacheStr=(String) PMS.getConfiguration().getCustomProperty("channels.cache");
 		String rtmpMode=(String)PMS.getConfiguration().getCustomProperty("channels.rtmp");
 		String group=(String)PMS.getConfiguration().getCustomProperty("channels.group_folder");
+		String mi=(String)PMS.getConfiguration().getCustomProperty("channels.movieinfo");
 		if(rtmpMode!=null) {
 			if(rtmpMode.trim().equalsIgnoreCase("1"))
 				Channels.rtmpMethod(Channels.RTMP_MAGIC_TOKEN);
@@ -236,6 +237,9 @@ public class ChannelCfg {
 			credPath=chPath;
 		if(!ChannelUtil.empty(group)&&group.equalsIgnoreCase("true"))
 			Channels.setGroup(true);
+		if(!ChannelUtil.empty(mi)&&mi.equalsIgnoreCase("true"))
+			Channels.setMovieInfo(true);
+		
 	}
 	
 	private void configPath(String key,String val) {

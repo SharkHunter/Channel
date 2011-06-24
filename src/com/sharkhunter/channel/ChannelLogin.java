@@ -23,6 +23,7 @@ public class ChannelLogin {
 	public static final int COOKIE=1;
 	public static final int APIKEY=2;
 	public static final int SIMPLE_COOKIE=3;
+	public static final int AUTO_COOKIE=4;
 	
 	private Channel parent;
 	private String user;
@@ -75,6 +76,8 @@ public class ChannelLogin {
 					type=ChannelLogin.APIKEY;
 				if(keyval[1].equalsIgnoreCase("simple_cookie"))
 					type=ChannelLogin.SIMPLE_COOKIE;
+				if(keyval[1].equalsIgnoreCase("auto_cookie"))
+					type=ChannelLogin.AUTO_COOKIE;
 				if(keyval[1].equalsIgnoreCase("standard")||
 				   keyval[1].equalsIgnoreCase("std"))
 					type=ChannelLogin.STD;
@@ -262,6 +265,8 @@ public class ChannelLogin {
 		if(!media&&mediaOnly)
 			return a;
 		try {
+			if(type==ChannelLogin.AUTO_COOKIE)
+				return mkResult(a);
 			if(type==ChannelLogin.SIMPLE_COOKIE)
 				return cookieLogin(null,null,a);
 			if(ChannelUtil.empty(usr)||ChannelUtil.empty(pass))
