@@ -16,6 +16,7 @@ public class ChannelPMSSaveFolder extends VirtualFolder {
 	private ChannelScraper scraper;
 	private int type;
 	private long childDone;
+	private String imdb;
 	
 	private static final long AUTO_PLAY_FACTOR=(1000*15);
 	
@@ -32,6 +33,11 @@ public class ChannelPMSSaveFolder extends VirtualFolder {
 		this.scraper=scraper;
 		this.type=type;
 		childDone=0;
+		imdb=null;
+	}
+	
+	public void setImdb(String i) {
+		imdb=i;
 	}
 	
 	public boolean refreshChildren() { // Always update
@@ -40,15 +46,19 @@ public class ChannelPMSSaveFolder extends VirtualFolder {
 	
 	public void discoverChildren() {
 		ChannelMediaStream cms=new ChannelMediaStream(ch,"SAVE&PLAY",url,thumb,proc,type,asx,scraper,name,name);
+		cms.setImdb(imdb);
 		addChild(cms);
 		cms=new ChannelMediaStream(ch,"PLAY",url,thumb,proc,type,asx,scraper,name,null);
+		cms.setImdb(imdb);
 		addChild(cms);
 		if(Channels.doSubs()) {
 			cms=new ChannelMediaStream(ch,"SAVE&PLAY - No Subs",url,thumb,proc,type,asx,scraper,name,name);
 			cms.noSubs();
+			cms.setImdb(imdb);
 			addChild(cms);
 			cms=new ChannelMediaStream(ch,"PLAY - No Subs",url,thumb,proc,type,asx,scraper,name,null);
 			cms.noSubs();
+			cms.setImdb(imdb);
 			addChild(cms);
 		}
 		final ChannelOffHour oh=Channels.getOffHour();
@@ -60,7 +70,7 @@ public class ChannelPMSSaveFolder extends VirtualFolder {
 				public boolean enable() {
 					String rUrl=url;
 					if(scraper!=null)
-						rUrl=scraper.scrape(ch, url, proc, type, this,false);
+						rUrl=scraper.scrape(ch, url, proc, type, this,false,null);
 					oh.update(rUrl, rName, add);
 					return add;
 				}

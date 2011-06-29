@@ -16,9 +16,7 @@ import org.apache.commons.lang.StringEscapeUtils;
 import net.pms.PMS;
 import net.pms.dlna.DLNAResource;
 import net.pms.dlna.virtual.VirtualFolder;
-import net.pms.movieinfo.FileMovieInfoVirtualFolder;
 import net.pms.movieinfo.MovieInfoVirtualFolder;
-import net.pms.movieinfo.ResourceExtension;
 
 public class ChannelFolder implements ChannelProps, SearchObj{
 	public static final int TYPE_NORMAL=0;
@@ -372,11 +370,16 @@ public class ChannelFolder implements ChannelProps, SearchObj{
 	}
 	
 	public void match(DLNAResource res) throws MalformedURLException {
-		match(res,null,"",null,null);
+		match(res,null,"",null,null,null);
 	}
 	
 	public void match(DLNAResource res,ChannelFilter filter,String urlEnd,
 			String pThumb,String nName) throws MalformedURLException {
+		match(res,filter,urlEnd,pThumb,nName,null);
+	}
+	
+	public void match(DLNAResource res,ChannelFilter filter,String urlEnd,
+			String pThumb,String nName,String imdb) throws MalformedURLException {
 		String page="";
 		if(ChannelUtil.getProperty(prop, "test_login")) {
 			parent.prepareCom();
@@ -447,6 +450,7 @@ public class ChannelFolder implements ChannelProps, SearchObj{
 		}
 		// 1st Media
 		// Channels.debug("matching media "+medias.size());
+		Channels.debug("imdb in is "+imdb);
 	    for(int i=0;i<med.size();i++) {
 	    	ChannelMedia m1=med.get(i);
 	    	ChannelMatcher m=m1.getMatcher();
@@ -466,13 +470,17 @@ public class ChannelFolder implements ChannelProps, SearchObj{
 	    			//continue;
 	    		String mUrl=m.getMatch("url",true);
 	    		String thumb=m.getMatch("thumb",false);
+	    		String imdbId=m.getMatch("imdb",false);
 	    		String playpath=m.getMatch("playpath",false);
 	    		String swfplayer=m.getMatch("swfVfy",false);
 	    		thumb=ChannelUtil.getThumb(thumb, pThumb, parent);
 	    		parent.debug("media matching using "+m.getRegexp().pattern());
 	    		if(ChannelUtil.empty(someName))
 	    			someName=nName;
-	    		m1.add(res, someName, mUrl, thumb,ChannelUtil.getProperty(prop, "auto_asx"));
+	    		if(ChannelUtil.empty(imdbId))
+	    			imdbId=imdb;
+	    		Channels.debug("media imdb "+imdbId);
+	    		m1.add(res, someName, mUrl, thumb,ChannelUtil.getProperty(prop, "auto_asx"),imdbId);
 	    		m1.stash("playpath",playpath);
 	    		m1.stash("swfVfy",swfplayer);
 	    		if(m1.onlyFirst())
@@ -533,21 +541,21 @@ public class ChannelFolder implements ChannelProps, SearchObj{
 	    			continue;
 	    		String fUrl=m.getMatch("url",true);
 	    		String thumb=m.getMatch("thumb",false);
-	    		cf.group=m.getMatch("group",false);
-	    		cf.imdbId=m.getMatch("imdb",false);
-	    		if(ChannelUtil.empty(cf.imdbId)) {
-	    			cf.imdbId=imdbId;
+	    		String group=m.getMatch("group",false);
+	    		String imdbId=m.getMatch("imdb",false);
+	    		if(ChannelUtil.empty(imdbId)) {
+	    			imdbId=imdb;
 	    			thumb=pThumb; // we know that will use this thumb so save a scrape here
 	    		}
 	    		if(ChannelUtil.empty(thumb)&&
-	    		   !ChannelUtil.empty(cf.imdbId)) {
-	    			thumb=cf.imdbId;
+	    		   !ChannelUtil.empty(imdbId)) {
+	    			thumb=imdbId;
 	    			cf.thumb_script="imdbThumb";
 	    		}
 	    		else {
 	    			thumb=ChannelUtil.getThumb(thumb, pThumb, parent);
 	    		}
-	    		parent.debug("matching "+someName+" url "+fUrl+" thumb "+thumb+" group "+group+" imdb "+cf.imdbId);
+	    		parent.debug("matching "+someName+" url "+fUrl+" thumb "+thumb+" group "+group+" imdb "+imdbId);
 	    		if(ChannelUtil.empty(someName))
 	    				someName=nName;
 	    		parent.debug("cf.name "+cf.name+" ignore "+ChannelUtil.getProperty(cf.prop, "ignore_match"));
@@ -567,7 +575,7 @@ public class ChannelFolder implements ChannelProps, SearchObj{
 	    			if(groupData==null) 
 	    				groupData=new ArrayList<ChannelPMSFolder>();
 	    			groupData.add(cpf);
-	    			groups.put(cf.group, groupData);
+	    			groups.put(group, groupData);
 	    			continue;
 	    		}
 	    		if(doContinue(someName,fUrl)) {
@@ -575,15 +583,11 @@ public class ChannelFolder implements ChannelProps, SearchObj{
 	    			return;
 	    		}
 	    		if(cf.type==ChannelFolder.TYPE_EMPTY)
-	    			cf.match(res,null,fUrl,thumb,someName);
+	    			cf.match(res,null,fUrl,thumb,someName,imdbId);
 	    		else {
 	    			ChannelPMSFolder cpf=new ChannelPMSFolder(cf,someName,null,fUrl,thumb);
+	    			cpf.setImdb(imdbId);
 	    			res.addChild(cpf);
-	    			if(ChannelUtil.getProperty(cf.prop, "movieinfo")&&
-	    			   Channels.useMovieInfo()&&
-	    			   !ChannelUtil.empty(cf.imdbId)) {
-	    				addMovieInfo(someName,thumb,cf.imdbId,cpf);
-	    			}
 	    		}
 	    		if(cf.onlyFirst())
 	    			break;
@@ -650,15 +654,11 @@ public class ChannelFolder implements ChannelProps, SearchObj{
 		return ((c >= 'A' && c <= 'Z')||(c >= 'a' && c <= 'z'));
 	}
 	
-	////////////////////////////////////////////////////
-	// MovieInfo integration
-	////////////////////////////////////////////////////
-	
-	private void addMovieInfo(String name,String thumb,String imdb,DLNAResource res) {
-		Channels.debug("add movieinfo called "+imdb+" thub "+thumb);
-		MovieInfoVirtualFolder mivf=new MovieInfoVirtualFolder(thumb);
-		res.addChild(mivf);
-		Channels.movieInfo().addFolders(mivf,"tt"+imdb,thumb); // add "tt" since movieinfo wants it
+	public void addMovieInfo(DLNAResource res,String imdb,String thumb) {
+		if(Channels.useMovieInfo()&&
+		   !ChannelUtil.empty(imdb)&&
+		   ChannelUtil.getProperty(prop, "movieinfo")) {
+			res.addChild(new ChannelMovieInfoFolder(imdb,thumb));
+		}
 	}
-			
 }

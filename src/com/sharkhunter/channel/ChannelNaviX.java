@@ -20,6 +20,7 @@ public class ChannelNaviX extends VirtualFolder implements ChannelScraper {
 	private int continues;
 	private boolean contAll;
 	private String[] subtitle;
+	private String imdbId;
 	
 	public ChannelNaviX(Channel ch,String name,String thumb,String url,String[] props,String[] sub) {
 		super(name,ChannelUtil.getThumb(thumb,null,ch));
@@ -151,6 +152,8 @@ public class ChannelNaviX extends VirtualFolder implements ChannelScraper {
 	}
 	
 	public String subCb(String realName) {
+		String imdb=imdbId;
+		imdbId=null; // clear this always
 		if(subtitle==null||!Channels.doSubs())
 			return null;
 		for(int i=0;i<subtitle.length;i++) {
@@ -164,10 +167,13 @@ public class ChannelNaviX extends VirtualFolder implements ChannelScraper {
 			realName=ChannelUtil.mangle(nameMangle, realName);
 			parent.debug("backtracked name "+realName);
 			HashMap<String,String> subName=parent.getSubMap(realName);
+			if(!ChannelUtil.empty(imdb))
+				subName.put("imdb", imdb);
 			String subFile=subs.getSubs(subName);
 			parent.debug("subs "+subFile);
 			if(ChannelUtil.empty(subFile))
 				continue;
+			
 			return subFile;
 		}
 		return null;
@@ -175,7 +181,8 @@ public class ChannelNaviX extends VirtualFolder implements ChannelScraper {
 
 	@Override
 	public String scrape(Channel ch, String url, String processorUrl,int format,DLNAResource start
-			             ,boolean noSub) {
+			             ,boolean noSub,String imdb) {
+		imdbId=imdb;
 		return ChannelNaviXProc.parse(url,processorUrl,format,(noSub?null:this),start);
 	}
 	

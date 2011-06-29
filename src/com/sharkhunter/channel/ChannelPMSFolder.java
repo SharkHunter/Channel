@@ -11,6 +11,7 @@ public class ChannelPMSFolder extends VirtualFolder implements ChannelFilter{
 		private ChannelFolder cf;
 		private String filter;
 		private String url;
+		private String imdb;
 		
 		public ChannelPMSFolder(ChannelFolder cf,char ch) {
 			this(cf,String.valueOf(ch),String.valueOf(ch),"",cf.getThumb());
@@ -31,9 +32,14 @@ public class ChannelPMSFolder extends VirtualFolder implements ChannelFilter{
 			this.url=url;
 		}
 		
+		public void setImdb(String imdb) {
+			this.imdb=imdb;
+		}
+		
 		public void discoverChildren() {
 			try {
-				cf.match(this,this,url,thumbnailIcon,name);
+				cf.match(this,this,url,thumbnailIcon,name,imdb);
+				cf.addMovieInfo(this, imdb,thumbnailIcon);
 			} catch (Exception e) {
 			}
 		}

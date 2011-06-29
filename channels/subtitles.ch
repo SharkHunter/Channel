@@ -1,11 +1,17 @@
-version=0.3
+version=0.4
 ###########################
 ## s4u
 ###########################
 
 scriptdef s4uName {
-   url=s_url
-   escape url
+   if imdb
+	url='/imdb/
+	concat url imdb
+   else
+    escape s_url
+	url='/title/
+	concat url s_url
+   endif
    concat url '/year=
    concat url year
    concat url '&season=
@@ -18,7 +24,7 @@ scriptdef s4uName {
 subdef s4u {
    # http://s4u.se/?film=Airplane!
    #Http://api.s4u.se/ Version / ApiKey / xml | json | serialize / movie | serie | all / imdb | tmdb | tvdb | title | rls | fname / SearchString / 
-   url=http://api.s4u.se/Beta/DemoKey/xml/all/title/
+   url=http://api.s4u.se/Beta/DemoKey/xml/all/
    # <div class="DL_Box"> <a href="dl.php?cat=film&amp;dl=9062">
    matcher=<download_zip>([^<]+)</download_zip>
    best_match=1

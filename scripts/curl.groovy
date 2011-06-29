@@ -8,6 +8,9 @@ script {
 			def CURL = pmsConf['curl.path']
 			def cookie = pmsConf['cookie.path']
 			
+			def tmp = $URI.replaceAll(/\[/,/\\\[/).replaceAll(/\]/,/\\\]/)
+			$URI = tmp
+			
 			$URI = quoteURI($URI)
 			$DOWNLOADER = "$CURL -s -S -b ${cookie} --location-trusted --output $DOWNLOADER_OUT ${$URI}"       
 		}

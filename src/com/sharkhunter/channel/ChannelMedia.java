@@ -147,6 +147,10 @@ public class ChannelMedia implements ChannelProps,ChannelScraper {
 	}
 	
 	public void add(DLNAResource res,String nName,String url,String thumb,boolean autoASX) {
+		add(res,nName,url,thumb,autoASX,null);
+	}
+	
+	public void add(DLNAResource res,String nName,String url,String thumb,boolean autoASX,String imdb) {
 		if(!ChannelUtil.empty(thumbURL)) {
 			if(ChannelUtil.getProperty(prop, "use_conf_thumb"))
 				thumb=thumbURL;
@@ -182,10 +186,12 @@ public class ChannelMedia implements ChannelProps,ChannelScraper {
 		if(Channels.save())  { // Add save version
 			ChannelPMSSaveFolder sf=new ChannelPMSSaveFolder(parent,nName,url,thumb,script,asx,
 					                format,this);
+			sf.setImdb(imdb);
 			res.addChild(sf);
 		}
 		else {
 			ChannelMediaStream cms=new ChannelMediaStream(parent,nName,url,thumb,script,format,asx,this);
+			cms.setImdb(imdb);
 			res.addChild(cms);
 		}
 	}
@@ -196,7 +202,7 @@ public class ChannelMedia implements ChannelProps,ChannelScraper {
 	
 	@Override
 	public String scrape(Channel ch, String url, String scriptName,int format,DLNAResource start
-			             ,boolean noSub) {
+			             ,boolean noSub,String imdb) {
 		String realUrl;
 		ch.debug("scrape sub "+subtitle);
 		String subFile="";
@@ -221,6 +227,8 @@ public class ChannelMedia implements ChannelProps,ChannelScraper {
 				realName=ChannelUtil.mangle(nameMangle, realName);
 				parent.debug("backtracked name "+realName);
 				HashMap<String,String> subName=parent.getSubMap(realName);
+				if(!ChannelUtil.empty(imdb))
+					subName.put("imdb", imdb);
 				subFile=subs.getSubs(subName);
 				parent.debug("subs "+subFile);
 				params.put("subtitle",subFile);

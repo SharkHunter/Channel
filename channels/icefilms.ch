@@ -1,4 +1,4 @@
-version=0.31
+version=0.32
 ## NOTE!!
 ## 
 ## We match out both the megavideo play link and megaupload link
@@ -119,11 +119,11 @@ macrodef tvMacro {
       # Series
       #<img class=star><a href=/tv/series/1/565>&#x27;Til Death (2006)</a>
       matcher=<a name=i id=([^>]+)></a><img class=star><a href=([^>]+)>([^<]+)</a>
-		order=thumb,url,name
+		order=imdb,url,name
 		#matcher=<img class=star><a href=([^>]+)>([^<]+)</a>
       #order=url,name
       url=http://www.icefilms.info
-	  thumb_script=imdbThumb
+	#  thumb_script=imdbThumb
       folder {
          # Episodes 
          #img class=star><a href=/ip.php?v=124783&>Jan 31. Bill Gates</a>
@@ -155,9 +155,10 @@ macrodef movieMacro {
 		# Movies
 		#<img class=star><a href=/tv/series/1/565>&#x27;Til Death (2006)</a>
 		matcher=<a name=i id=([^>]+)></a><img class=star><a href=([^>]+)>([^<]+)</a>
-		order=thumb,url,name
+		order=imdb,url,name
 		url=http://www.icefilms.info
-		thumb_script=imdbThumb
+		#thumb_script=imdbThumb
+		prop=movieinfo
 		folder {
 			matcher=<a href=\"(/comp[^\"]+)\" 
 			#.*?<iframe src=/noref\.php\?url=([^ ]+) 
@@ -176,7 +177,7 @@ macrodef movieMacro {
 channel IceFilms {
    img=http://img.icefilms.info/logo.png
    subscript=iceSubs
-   hdr=Referer=http:/www.icefilms.info
+   hdr=Referer=http:/www.icefilms.info/index
   login {
 		# Login data
 		url=http://www.megaupload.com/?c=
