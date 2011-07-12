@@ -7,6 +7,7 @@ import java.io.InputStreamReader;
 import java.net.MalformedURLException;
 import java.net.Proxy;
 import java.net.URL;
+import java.net.URLConnection;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -427,10 +428,12 @@ public class ChannelFolder implements ChannelProps, SearchObj{
 						a.proxy=p0;
 				}
 				Proxy p=ChannelUtil.proxy(a);
+				URLConnection conn=urlobj.openConnection(p);
 				if(post) 
-					page=ChannelUtil.postPage(urlobj.openConnection(p), urlEnd,"",hdrs);
+					page=ChannelUtil.postPage(conn, urlEnd,"",hdrs);
 				else
-					page=ChannelUtil.fetchPage(urlobj.openConnection(p),a,"",hdrs);
+					page=ChannelUtil.fetchPage(conn,a,"",hdrs);
+				ChannelCookie.parseCookie(conn, a, realUrl);
 			} catch (Exception e) {
 				Channels.debug("fetch exception "+e);
 				page="";
@@ -563,7 +566,7 @@ public class ChannelFolder implements ChannelProps, SearchObj{
 	    				someName=cf.name;
 	    		if(ChannelUtil.getProperty(cf.prop, "prepend_parenturl"))
 	    			fUrl=ChannelUtil.concatURL(realUrl,fUrl);
-	    		fUrl=ChannelScriptMgr.runScript(post_script, fUrl, parent);
+	    		fUrl=ChannelScriptMgr.runScript(post_script, fUrl, parent,page);
 	    		PeekRes pr=cf.peek(fUrl,prop);
 	    		if(!pr.res)
 	    			continue;

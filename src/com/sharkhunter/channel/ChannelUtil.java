@@ -47,7 +47,8 @@ public class ChannelUtil {
 	
 	
 	public static String postPage(URLConnection connection,String query,String cookie,
-								  HashMap<String,String> hdr) {    
+								  HashMap<String,String> hdr) {   
+		URL url=connection.getURL();
 		connection.setDoOutput(true);   
 		connection.setDoInput(true);   
 		connection.setUseCaches(false);   
@@ -59,6 +60,8 @@ public class ChannelUtil {
 		connection.setRequestProperty("Content-Length", "" + query.length());  
 		
 		try {
+			if(!empty(ChannelCookie.getCookie(url.toString())))
+				cookie=append(cookie,"; ",ChannelCookie.getCookie(url.toString()));
 			if(!empty(cookie))
 				connection.setRequestProperty("Cookie",cookie);
 			
@@ -105,6 +108,7 @@ public class ChannelUtil {
 	public static String fetchPage(URLConnection connection,ChannelAuth auth,String cookie,HashMap<String,String> hdr) {
 		try {
 //			URLConnection connection=url.openConnection();
+			URL url=connection.getURL();
 			connection.setRequestProperty("User-Agent",defAgentString);
 			if(auth!=null) {
 				if(auth.method==ChannelLogin.STD)
@@ -112,12 +116,12 @@ public class ChannelUtil {
 				else if(auth.method==ChannelLogin.COOKIE) 
 					cookie=append(cookie,"; ",auth.authStr);
 				else if(auth.method==ChannelLogin.APIKEY) {
-					URL url=connection.getURL();
 					url=new URL(url.toString()+auth.authStr);
 					connection=url.openConnection();
 				}
-					
 			}
+			if(!empty(ChannelCookie.getCookie(url.toString())))
+				cookie=append(cookie,"; ",ChannelCookie.getCookie(url.toString()));
 			if(!empty(cookie))
 				connection.setRequestProperty("Cookie",cookie);
 			if(hdr!=null&&hdr.size()!=0) {
@@ -735,5 +739,9 @@ public class ChannelUtil {
 		if(str.equals("###n")) // this is newline
 			return "\n\r";
 		return str;
+	}
+	
+	public static boolean cookieMethod(int method) {
+		return (method==ChannelLogin.COOKIE)||(method==ChannelLogin.SIMPLE_COOKIE);
 	}
 }

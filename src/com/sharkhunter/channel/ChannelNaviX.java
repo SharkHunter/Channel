@@ -10,6 +10,7 @@ import java.util.regex.Pattern;
 
 import net.pms.PMS;
 import net.pms.dlna.DLNAResource;
+import net.pms.dlna.Feed;
 import net.pms.dlna.virtual.VirtualFolder;
 import net.pms.formats.Format;
 
@@ -41,6 +42,8 @@ public class ChannelNaviX extends VirtualFolder implements ChannelScraper {
 		if(type!=null) {
 			if(pp!=null)
 				nextUrl=nextUrl+pp;
+			if(!ChannelUtil.empty(thumb)&&thumb.equalsIgnoreCase("default"))
+				thumb=null;
 			parent.debug("url "+nextUrl+" type "+type+" processor "+proc+" name "+name);
 			if(type.equalsIgnoreCase("playlist")) {
 				String cn=ChannelUtil.getPropertyValue(props, "continue_name");
@@ -70,6 +73,12 @@ public class ChannelNaviX extends VirtualFolder implements ChannelScraper {
 				ChannelNaviXSearch sobj=new ChannelNaviXSearch(this,nextUrl);
 				parent.addSearcher(nextUrl, sobj);
 				res.addChild(new SearchFolder(name,sobj));
+			}
+			else if(type.equalsIgnoreCase("rss")) {
+				int f=ChannelUtil.getFormat(type);
+				if(f==-1)
+					f=Format.VIDEO; // guess
+				res.addChild(new Feed(name,nextUrl,f));
 			}
 			else {
 				int f=ChannelUtil.getFormat(type);

@@ -3,6 +3,7 @@ package com.sharkhunter.channel;
 import java.io.InputStream;
 import java.net.MalformedURLException;
 import java.net.Proxy;
+import java.net.URLConnection;
 import java.util.ArrayList;
 import java.util.HashMap;
 

@@ -709,15 +709,24 @@ public class ChannelNaviXProc {
 	// simple versions 
 	//////////////////////////////////
 	
+	public static String simple(String str,ArrayList<String> script) {
+		return simple(str,script,null);
+	}
+	
+	public static String simple(String str,String script,HashMap<String,String> initStash) {
+		ArrayList<String> sData=Channels.getScript(script);
+		return simple(str,sData,initStash);
+	}
+	
 	public static String simple(String str,String script) {
 		ArrayList<String> sData=Channels.getScript(script);
 		return simple(str,sData);
 	}
 	
-	public static String simple(String str,ArrayList<String> script) {
+	public static String simple(String str,ArrayList<String> script,HashMap<String,String> initStash) {
 		if(script==null)
 			return str;
-		HashMap<String,String> res=lite(str,script);
+		HashMap<String,String> res=lite(str,script,initStash);
 		return res.get("url");
 	}
 }

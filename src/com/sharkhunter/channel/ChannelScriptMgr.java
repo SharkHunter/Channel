@@ -2,6 +2,7 @@ package com.sharkhunter.channel;
 
 import java.io.File;
 import java.util.ArrayList;
+import java.util.HashMap;
 
 public class ChannelScriptMgr {
 	
@@ -11,12 +12,18 @@ public class ChannelScriptMgr {
 	}
 	
 	public static String runScript(String script,String url,Channel ch) {
+		return runScript(script,url,ch,"");
+	}
+	
+	public static String runScript(String script,String url,Channel ch,String page) {
 		if(ChannelUtil.empty(script))
 			return url;
 		// 1st up check local NIPL
 		ArrayList<String> sData=Channels.getScript(script);
 		if(sData!=null) { // found local script use it
-			return ChannelNaviXProc.simple(url,sData);
+			HashMap<String,String> vars=new HashMap<String,String>();
+			vars.put("htmRaw", page);
+			return ChannelNaviXProc.simple(url,sData,vars);
 		}
 		// 2nd remote NIPL
 		if(script.startsWith("http://")) {
