@@ -35,9 +35,12 @@ public class Channel extends VirtualFolder {
 	
 	private HashMap<String,String> hdrs;
 	
+	private ChannelFolder favorite;
+	
 	public Channel(String name) {
 		super(name,null);
 		Ok=false;
+		favorite=null;
 		this.name=name;
 		format=Format.VIDEO;
 		folders=new ArrayList<ChannelFolder>();
@@ -53,6 +56,7 @@ public class Channel extends VirtualFolder {
 		children.clear();
 		childrenNumber=0;
 		discovered=false;
+		mkFavFolder();
 		debug("parse channel "+name+" data "+data.toString());
 		this.macros=macros;
 		for(int i=0;i<data.size();i++) {
@@ -112,6 +116,46 @@ public class Channel extends VirtualFolder {
 		}
 	}
 	
+	private void mkFavFolder() {
+		ArrayList<String> data=new ArrayList<String>();
+		data.add("name=Favorite");
+		ChannelFolder f=new ChannelFolder(data,this);
+		if(f.Ok) {
+			f.setIgnoreFav();
+			favorite=f;
+		}
+	}
+	
+	public void addFavorite(ArrayList<String> data) {
+		if(data.size()<3)
+			return;
+		if(!data.get(1).contains("folder {")) { // at least one folder must be there
+			debug("Illegal favorite block ignore");
+			return;
+		}
+		for(int i=0;i<data.size();i++) {
+			String line=data.get(i).trim();
+			if(line==null)
+				continue;
+			if(line.contains("folder {")) {
+				ArrayList<String> folder=ChannelUtil.gatherBlock(data,i+1);
+				i+=folder.size();
+				ChannelFolder f=new ChannelFolder(folder,this);
+				if(f.Ok) {
+					f.setIgnoreFav();
+					favorite.addSubFolder(f);
+				}
+			}
+		}
+	}
+	
+	public void addFavorite(ChannelFolder cf) {
+		if(cf.Ok) {
+			cf.setIgnoreFav();
+			favorite.addSubFolder(cf);
+		}
+	}
+	
 	public String nxtSearchId() {
 		return String.valueOf(searchId++);
 	}
@@ -132,6 +176,12 @@ public class Channel extends VirtualFolder {
 		return hdrs;
 	}
 	
+	public void resolve() {
+		this.discovered=false;
+		this.childrenNumber=0;
+		this.children.clear();
+	}
+	
 	public boolean refreshChildren() {
 		return true; // always re resolve
 	}
@@ -141,6 +191,10 @@ public class Channel extends VirtualFolder {
 	}
 	
 	public void discoverChildren() {
+		try {
+			favorite.match(this);
+		} catch (MalformedURLException e1) {
+		}
 		for(int i=0;i<folders.size();i++) {
 			ChannelFolder cf=folders.get(i);
 			if(cf.isATZ()) 

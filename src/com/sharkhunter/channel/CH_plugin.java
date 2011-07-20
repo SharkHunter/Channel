@@ -33,10 +33,11 @@ public class CH_plugin implements AdditionalFolderAtRoot, StartStopListener {
 			else 
 				path=confPath;
 			String save=(String)PMS.getConfiguration().getCustomProperty("channels.save");
-			chRoot=new Channels(path,getInterval(),pluginName,img);
+			chRoot=new Channels(path,pluginName,img);
 			cfg=new ChannelCfg(chRoot);
 			cfg.init();
 			chRoot.setCfg(cfg);
+			chRoot.start(getInterval());
 			if(save!=null) {
 				String ts=(String)PMS.getConfiguration().getCustomProperty("channels.save_ts");
 				String savePath=save;

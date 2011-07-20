@@ -197,7 +197,7 @@ public class ChannelMedia implements ChannelProps,ChannelScraper {
 	}
 	
 	public String separator(String base) {
-		return ChannelUtil.getPropertyValue(prop, base+"_separator");
+		return ChannelUtil.separatorToken(ChannelUtil.getPropertyValue(prop, base+"_separator"));
 	}
 	
 	@Override
@@ -269,5 +269,49 @@ public class ChannelMedia implements ChannelProps,ChannelScraper {
 	
 	public boolean scriptOnly() {
 		return !ChannelUtil.empty(script)&&(matcher==null);
+	}
+	
+	public String rawEntry() {
+		StringBuilder sb=new StringBuilder();
+		sb.append("media {");
+		sb.append("\n");
+		if(!ChannelUtil.empty(staticUrl)) {
+			sb.append("url=");
+			sb.append(staticUrl);
+			sb.append("\n");
+		}
+		if(!ChannelUtil.empty(name)) {
+			sb.append("name=");
+			sb.append(name);
+			sb.append("\n");
+		}
+		if(matcher!=null) {
+			sb.append("matcher=");
+			sb.append(matcher.getRegexp().toString());
+			sb.append("\n");
+			matcher.orderString(sb);
+			sb.append("\n");
+		}
+		if(prop!=null) {
+			sb.append("prop=");
+			ChannelUtil.list2file(sb,prop);
+			sb.append("\n");
+		}
+		if(subtitle!=null) {
+			sb.append("subtitle=");
+			ChannelUtil.list2file(sb,subtitle);
+			sb.append("\n");
+		}
+		if(!ChannelUtil.empty(script)) {
+			if(scriptType==ChannelMedia.SCRIPT_EXT)
+				sb.append("e");
+			else if(scriptType==ChannelMedia.SCRIPT_NET)
+				sb.append("n");
+			sb.append("script=");
+			sb.append(script);
+			sb.append("\n");
+		}
+		sb.append("\n}\n");
+		return sb.toString();
 	}
 }

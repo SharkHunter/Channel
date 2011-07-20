@@ -17,6 +17,8 @@ import java.util.Date;
 import java.util.GregorianCalendar;
 import java.util.HashMap;
 
+import org.apache.commons.io.FileUtils;
+
 import net.pms.PMS;
 import net.pms.dlna.DLNAResource;
 import net.pms.dlna.virtual.VirtualFolder;
@@ -26,7 +28,7 @@ import no.geosoft.cc.io.FileMonitor;
 public class Channels extends VirtualFolder implements FileListener {
 
 	// Version string
-	public static final String VERSION="1.27";
+	public static final String VERSION="1.30";
 	
 	// Constants for RTMP string constructions
 	public static final int RTMP_MAGIC_TOKEN=1;
@@ -61,8 +63,9 @@ public class Channels extends VirtualFolder implements FileListener {
     private HashMap<String,HashMap<String,String>> stash;
     private boolean groupFolder;
     private ChannelMovieInfo movieInfo;
+    private ArrayList<ArrayList<String>> favorite;
     
-    public Channels(String path,long poll,String name,String img) {
+    public Channels(String path,String name,String img) {
     	super(name,img);
     	// First the simple fields
     	this.file=new File(path);
@@ -75,6 +78,7 @@ public class Channels extends VirtualFolder implements FileListener {
     	groupFolder=false;
     	movieInfo=null;
     	// Setup list and tables
+    	favorite=new ArrayList<ArrayList<String>>();
     	chFiles=new ArrayList<File>();
     	cred=new ArrayList<ChannelCred>();
     	scripts=new HashMap<String,ChannelMacro>();
@@ -93,8 +97,23 @@ public class Channels extends VirtualFolder implements FileListener {
     	// Add std folders
     	addChild(cache);
     	addChild(searchDb);
-    	// Start filemonitoring
     	fileMonitor=null;
+    }
+    
+    public void start(long poll) {
+    	// Move any work favorites first
+    	if(workFavFile().exists()) {
+    		try {
+    			favFile().delete();
+				FileUtils.copyFile(workFavFile(), favFile());
+			} catch (IOException e) {
+			}
+    	}
+    	try {
+			FileUtils.copyFile(favFile(), workFavFile());
+		} catch (IOException e1) {
+		}
+    	// Start filemonitoring
     	if(poll>0)
     		fileMonitor=new FileMonitor(poll);
     	// Parse the files for the first time
@@ -131,18 +150,36 @@ public class Channels extends VirtualFolder implements FileListener {
     }
     
     private Channel find(String name) {
-    	for(DLNAResource f:children)
-    		if((f instanceof Channel)&&(f.getDisplayName().equals(name)))
+    	for(DLNAResource f:children) {
+    		if((f instanceof Channel)&&(f.getDisplayName().trim().equals(name.trim())))
     				return (Channel) f;
+    	}
     	return null;
     }
     
     public static ArrayList<Channel> getChannels() {
     	ArrayList<Channel> res=new ArrayList<Channel>();
     	for(DLNAResource f:inst.children)
-    		if(f instanceof Channel)
+    		if(f instanceof Channel) {
     			res.add((Channel) f);
+    		}
     	return res;
+    }
+    
+    private void addFavorites() {
+    	if(noFavorite())
+    		return;
+    	for(int i=0;i<favorite.size();i++) {
+    		ArrayList<String> block=favorite.get(i);
+    		String[] o=block.get(0).split("\\s*=\\s*");
+	    	if(o.length<2&&!o[0].equalsIgnoreCase("owner"))
+	    		continue;
+    		Channel ch=find(o[1]);
+    		if(ch!=null) {
+    			ch.addFavorite(block);
+    			favorite.remove(i);
+    		}
+    	}
     }
     
     private void readChannel(String data)  throws Exception {
@@ -199,6 +236,14 @@ public class Channels extends VirtualFolder implements FileListener {
     	    		continue;
     	    	}
     	    	scripts.put(sName, new ChannelMacro(sName,sData));
+    	    	continue;
+    	    }
+    	    if(str.startsWith("favorite ")) {
+    	    	ArrayList<String> fData=ChannelUtil.gatherBlock(lines, i+1);
+    	    	i+=fData.size();
+    	    	if(noFavorite())
+    	    		continue;
+    	    	favorite.add(fData);
     	    	continue;
     	    }
     	    if(str.startsWith("subdef ")) {
@@ -267,6 +312,8 @@ public class Channels extends VirtualFolder implements FileListener {
     	    	ver=v[1];
     	    	continue; // don't append these
     	    }	
+    	    if(str.trim().startsWith("favorite")) 
+    	    	defines=true;
     	    sb.append(str);
     	    sb.append("\n");
     	}
@@ -278,6 +325,7 @@ public class Channels extends VirtualFolder implements FileListener {
     		parseDefines(s);
     	readChannel(s);
     	addCred();
+    	addFavorites();
     }
     
     
@@ -815,5 +863,21 @@ public class Channels extends VirtualFolder implements FileListener {
 	
 	public static ChannelMovieInfo movieInfo() {
 		return inst.movieInfo;
+	}
+	
+	/////////////////////////////////////////////////
+	// Favorite handling methods
+	/////////////////////////////////////////////////
+	
+	public static File workFavFile() {
+		return new File(getPath()+File.separator+"000favorite.work");
+	}
+	
+	public static File favFile() {
+		return new File(getPath()+File.separator+"000favorite.ch");
+	}
+	
+	public static boolean noFavorite() {
+		return !cfg().favorite();
 	}
 }

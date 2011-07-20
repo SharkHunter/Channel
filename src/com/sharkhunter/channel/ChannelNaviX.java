@@ -12,6 +12,7 @@ import net.pms.PMS;
 import net.pms.dlna.DLNAResource;
 import net.pms.dlna.Feed;
 import net.pms.dlna.virtual.VirtualFolder;
+import net.pms.dlna.virtual.VirtualVideoAction;
 import net.pms.formats.Format;
 
 public class ChannelNaviX extends VirtualFolder implements ChannelScraper {
@@ -22,6 +23,7 @@ public class ChannelNaviX extends VirtualFolder implements ChannelScraper {
 	private boolean contAll;
 	private String[] subtitle;
 	private String imdbId;
+	private boolean ignoreFav;
 	
 	public ChannelNaviX(Channel ch,String name,String thumb,String url,String[] props,String[] sub) {
 		super(name,ChannelUtil.getThumb(thumb,null,ch));
@@ -33,9 +35,16 @@ public class ChannelNaviX extends VirtualFolder implements ChannelScraper {
 		if(continues==0)
 			contAll=true;
 		parent=ch;
+		ignoreFav=false;
 	}
 	
+	private boolean favFolder() {
+		return !(ignoreFav||Channels.noFavorite());
+	}
 	
+	public void setIgnoreFav() {
+		ignoreFav=true;
+	}
 	
 	private void addMedia(String name,String nextUrl,String thumb,String proc,String type,String pp,
 			DLNAResource res) {
@@ -157,6 +166,18 @@ public class ChannelNaviX extends VirtualFolder implements ChannelScraper {
 	}
 	
 	public void discoverChildren() {
+		if(favFolder()) {
+			// Add bookmark action
+			final ChannelNaviX cb=this;
+			final String u=url;
+			final String n=name;
+			addChild(new VirtualVideoAction("Add to favorite",true) { //$NON-NLS-1$
+				public boolean enable() {
+					cb.bookmark(n,u,null);
+					return true;
+				}
+			});
+		}
 		readPlx(url,this);
 	}
 	
@@ -206,6 +227,54 @@ public class ChannelNaviX extends VirtualFolder implements ChannelScraper {
 		catch (Exception e) {
 			return super.getThumbnailInputStream();
 		}
+	}
+	
+	public String rawEntry() {
+		StringBuilder sb=new StringBuilder();
+		sb.append("folder {\n");
+		if(!ChannelUtil.empty(url)) {
+			sb.append("url=");
+			sb.append(url);
+			sb.append("\n");
+		}
+		if(!ChannelUtil.empty(name)) {
+			sb.append("name=");
+			sb.append(name);
+			sb.append("\n");
+		}
+		sb.append("type=");
+		sb.append("navix");
+		sb.append("\n");
+		if(subtitle!=null) {
+			sb.append("subtitle=");
+			ChannelUtil.list2file(sb,subtitle);
+			sb.append("\n");
+		}
+		if(props!=null) {
+			sb.append("prop=");
+			ChannelUtil.list2file(sb,props);
+			sb.append("\n");
+		}
+		sb.append("\n}\n");
+		return sb.toString();
+	}
+	
+	public void bookmark(String name,String url,String thumb) {
+		if(!favFolder()) // weird but better safe than sorry
+			return;
+		StringBuilder sb=new StringBuilder();
+		String data=rawEntry();
+		ArrayList<String> block=ChannelUtil.gatherBlock(data.split("\n"), 1);
+		ChannelFolder cf=new ChannelFolder(block,parent);
+		cf.setIgnoreFav();
+		parent.addFavorite(cf);
+		sb.append("favorite {\n");
+		sb.append("owner=");
+		sb.append(parent.name());
+		sb.append("\n");
+		sb.append(data);
+		sb.append("\n}\r\n");
+		ChannelUtil.addToFavFile(sb.toString(),name);
 	}
 		
 }

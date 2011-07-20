@@ -5,6 +5,7 @@ import java.io.InputStream;
 import org.apache.commons.lang.StringEscapeUtils;
 
 import net.pms.dlna.virtual.VirtualFolder;
+import net.pms.dlna.virtual.VirtualVideoAction;
 
 public class ChannelPMSFolder extends VirtualFolder implements ChannelFilter{
 	
@@ -38,10 +39,30 @@ public class ChannelPMSFolder extends VirtualFolder implements ChannelFilter{
 		
 		public void discoverChildren() {
 			try {
+				if(favFolder()) {
+					// Add bookmark action
+					final ChannelPMSFolder cb=this;
+					addChild(new VirtualVideoAction("Add to favorite",true) { //$NON-NLS-1$
+						public boolean enable() {
+							cb.bookmark();
+							return true;
+						}
+					});
+				}
 				cf.match(this,this,url,thumbnailIcon,name,imdb);
 				cf.addMovieInfo(this, imdb,thumbnailIcon);
 			} catch (Exception e) {
 			}
+		}
+		
+		private boolean favFolder() {
+			return !(cf.ignoreFav()||Channels.noFavorite());
+		}
+		
+		public void resolve() {
+			this.discovered=false;
+			this.childrenNumber=0;
+			this.children.clear();
 		}
 		
 		public boolean refreshChildren() { // Always update
@@ -74,5 +95,13 @@ public class ChannelPMSFolder extends VirtualFolder implements ChannelFilter{
 			catch (Exception e) {
 				return super.getThumbnailInputStream();
 			}
+		}
+		
+		public void bookmark() {
+			if(!favFolder()) // weird but better safe than sorry
+				return;
+			String data=cf.mkFav(url,name,thumbnailIcon,imdb);
+			if(!ChannelUtil.empty(data))
+				ChannelUtil.addToFavFile(data,name);
 		}
 }

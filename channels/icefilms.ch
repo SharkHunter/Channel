@@ -1,4 +1,4 @@
-version=0.34
+version=0.35
 ## NOTE!!
 ## 
 ## We match out both the megavideo play link and megaupload link
@@ -100,7 +100,7 @@ macrodef mediaMacro {
 		order=url
 		subtitle=s4u,allSubs,podnapisiTV
 		#nscript=http://navix.turner3d.net/proc/megavideo
-		prop=concat_name=rear,name_separator= ,name_index=3+2
+		prop=concat_name=rear,name_separator=###0,name_index=3+2
 	}
 	media {
 		#<div class="down_butt_pad1" style="display:none;" id="downloadlink"><a href="http://www820.megaupload.com/files/e852a3a714538767347d5866d6ad9d7c/big_bang_theory.1x01.dvdrip_xvid-fov.H2020.dvd4arab.com.avi" class="down_butt1"></a>
@@ -108,7 +108,7 @@ macrodef mediaMacro {
 		name=MegaUpload
 		order=url
 		subtitle=s4u,allSubs,podnapisiTV
-		prop=concat_name=rear,name_separator= ,name_index=3+2
+		prop=concat_name=rear,name_separator=###0,name_index=3+2
 	}	
 	media {
 		# <a href="http://www68.megaupload.com/files/f27f675c5fd22f12f08a4e03fc2d4522/Game.of.Thrones.S01E01.HDTV.XviD-FEVER.avi" class="down_ad_butt1"></a> 
@@ -116,7 +116,7 @@ macrodef mediaMacro {
 		name=MegaUpload Premium
 		order=url
 		subtitle=s4u,allSubs,podnapisiTV
-		prop=concat_name=rear,name_separator= ,name_index=3+2
+		prop=concat_name=rear,name_separator=###0,name_index=3+2
 	}	 
 }
 
@@ -130,6 +130,7 @@ macrodef tvMacro {
 		#order=url,name
 		url=http://www.icefilms.info
 #		thumb_script=imdbThumb
+        prop=movieinfo
 		folder {
 			# Episodes 
 			#img class=star><a href=/ip.php?v=124783&>Jan 31. Bill Gates</a>

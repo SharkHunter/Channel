@@ -37,6 +37,7 @@ public class ChannelCfg {
 	private boolean subs;
 	private boolean cache;
 	private String credPath;
+	private boolean favorite;
 	
 	public ChannelCfg(Channels top) {
 		chPath=null;
@@ -48,6 +49,7 @@ public class ChannelCfg {
 		credPath=null;
 		this.top=top;
 		cache=false;
+		favorite=true;
 	}
 	
 	///////////////////////////////////
@@ -162,6 +164,10 @@ public class ChannelCfg {
 		return credPath;
 	}
 	
+	public boolean favorite() {
+		return favorite;
+	}
+	
 	////////////////////////////////////////
 	// Misc. methods
 	////////////////////////////////////////
@@ -196,6 +202,7 @@ public class ChannelCfg {
 		String rtmpMode=(String)PMS.getConfiguration().getCustomProperty("channels.rtmp");
 		String group=(String)PMS.getConfiguration().getCustomProperty("channels.group_folder");
 		String mi=(String)PMS.getConfiguration().getCustomProperty("channels.movieinfo");
+		String fav=(String)PMS.getConfiguration().getCustomProperty("channels.favorite");
 		if(rtmpMode!=null) {
 			if(rtmpMode.trim().equalsIgnoreCase("1"))
 				Channels.rtmpMethod(Channels.RTMP_MAGIC_TOKEN);
@@ -239,7 +246,8 @@ public class ChannelCfg {
 			Channels.setGroup(true);
 		if(!ChannelUtil.empty(mi)&&mi.equalsIgnoreCase("true"))
 			Channels.setMovieInfo(true);
-		
+		if(!ChannelUtil.empty(fav)&&fav.equalsIgnoreCase("false"))
+			favorite=false;
 	}
 	
 	private void configPath(String key,String val) {

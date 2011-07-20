@@ -117,4 +117,16 @@ public class ChannelMatcher implements ChannelProps{
 	 public boolean onlyFirst() {
 		 return false;
 	 }
+	 
+	 public String orderString() {
+		 StringBuilder sb=new StringBuilder();
+		 orderString(sb);
+		 return sb.toString();
+	 }
+	 
+	 public void orderString(StringBuilder sb) {
+		 sb.append("order=");
+		 ChannelUtil.list2file(sb, order);
+	 }
+	 
 }

@@ -17,6 +17,7 @@ import org.apache.commons.lang.StringEscapeUtils;
 import net.pms.PMS;
 import net.pms.dlna.DLNAResource;
 import net.pms.dlna.virtual.VirtualFolder;
+import net.pms.dlna.virtual.VirtualVideoAction;
 import net.pms.movieinfo.MovieInfoVirtualFolder;
 
 public class ChannelFolder implements ChannelProps, SearchObj{
@@ -65,6 +66,10 @@ public class ChannelFolder implements ChannelProps, SearchObj{
 	
 	private String group;
 	private String imdbId;
+	private String staticThumb;
+	
+	private boolean ignoreFav;
+	private boolean favorized;
 	
 	public ChannelFolder(ArrayList<String> data,Channel parent) {
 		this(data,parent,null);
@@ -91,6 +96,8 @@ public class ChannelFolder implements ChannelProps, SearchObj{
 		hdrs=cf.hdrs;
 		group=cf.group;
 		imdbId=cf.imdbId;
+		ignoreFav=cf.ignoreFav;
+		favorized=cf.favorized;
 	}
 	
 	public ChannelFolder(ArrayList<String> data,Channel parent,ChannelFolder pf) {
@@ -107,6 +114,8 @@ public class ChannelFolder implements ChannelProps, SearchObj{
 		pre_script=null;
 		post_script=null;
 		proxy=null;
+		ignoreFav=false;
+		favorized=false;
 		hdrs=new HashMap<String,String>();
 		if(pf!=null)
 			hdrs.putAll(pf.hdrs);
@@ -216,6 +225,10 @@ public class ChannelFolder implements ChannelProps, SearchObj{
 					continue;
 				hdrs.put(k1[0], k1[1]);
 			}
+			if(keyval[0].equalsIgnoreCase("thumb"))
+				staticThumb=keyval[1];
+			if(keyval[0].equalsIgnoreCase("imdb"))
+				imdbId=keyval[1];
 		}
 	}
 	
@@ -253,6 +266,19 @@ public class ChannelFolder implements ChannelProps, SearchObj{
 	
 	public String[] getSubs() {
 		return sub;
+	}
+	
+	public void addSubFolder(ChannelFolder f) {
+		Channels.debug("add subfolder");
+		subfolders.add(f);
+	}
+	
+	public void setIgnoreFav() {
+		ignoreFav=true;
+	}
+	
+	public boolean ignoreFav() {
+		return ignoreFav;
 	}
 	
 	private int parseType(String t) {
@@ -382,6 +408,7 @@ public class ChannelFolder implements ChannelProps, SearchObj{
 	public void match(DLNAResource res,ChannelFilter filter,String urlEnd,
 			String pThumb,String nName,String imdb) throws MalformedURLException {
 		String page="";
+//		parent.debug("folder match "+name+" nName "+nName);
 		if(ChannelUtil.getProperty(prop, "test_login")) {
 			parent.prepareCom();
 			return;
@@ -389,7 +416,9 @@ public class ChannelFolder implements ChannelProps, SearchObj{
 		if(filter==null&&matcher==null&&type==ChannelFolder.TYPE_NORMAL) { // static folder
 			// static folders are not subject to filter
 			parent.debug("static folder");
-			res.addChild(new ChannelPMSFolder(this,name));
+			ChannelPMSFolder cpf=new ChannelPMSFolder(this,name);
+			cpf.setImdb(ChannelUtil.empty(imdb)?imdbId:imdb);
+			res.addChild(cpf);
 			return;
 		}
 		boolean post=false;
@@ -399,8 +428,11 @@ public class ChannelFolder implements ChannelProps, SearchObj{
 		String realUrl=url;		
 		if(isNaviX()) { // i'm navix special handling
 			realUrl=ChannelUtil.concatURL(url,urlEnd);	
-			res.addChild(new ChannelNaviX(parent,name,ChannelUtil.getThumb(null,pThumb, parent),
-										  realUrl,prop,sub));
+			ChannelNaviX nx=new ChannelNaviX(parent,name,ChannelUtil.getThumb(null,pThumb, parent),
+					  realUrl,prop,sub);
+			if(ignoreFav)
+				nx.setIgnoreFav();
+			res.addChild(nx);
 			return;
 		}
 		if(isSearch()) {
@@ -530,9 +562,20 @@ public class ChannelFolder implements ChannelProps, SearchObj{
 	    		res.addChild(new SearchFolder(cf.name,cf));
 	    		continue;
 	    	}
+	    	if(cf.isNaviX()) { // i'm navix special handling
+				realUrl=ChannelUtil.concatURL(cf.url,urlEnd);	
+				ChannelNaviX nx=new ChannelNaviX(parent,cf.name,ChannelUtil.getThumb(null,pThumb, parent),
+						  realUrl,cf.prop,cf.sub);
+				if(ignoreFav)
+					nx.setIgnoreFav();
+				res.addChild(nx);
+				continue;
+			}
 	    	if(m==null) {
 	    		parent.debug("nested static folder");
-	    		res.addChild(new ChannelPMSFolder(cf,cf.name));
+	    		ChannelPMSFolder cpf=new ChannelPMSFolder(cf,cf.name);
+				cpf.setImdb(ChannelUtil.empty(imdb)?cf.imdbId:imdb);
+				res.addChild(cpf);
 	    		continue;
 	    	}	
 	    	m.startMatch(page);
@@ -570,6 +613,7 @@ public class ChannelFolder implements ChannelProps, SearchObj{
 	    		PeekRes pr=cf.peek(fUrl,prop);
 	    		if(!pr.res)
 	    			continue;
+	    		cf.ignoreFav=ignoreFav; // forward this along the path
 	    		if(!ChannelUtil.empty(pr.thumbUrl))
 	    			thumb=pr.thumbUrl;
 	    		if(!ChannelUtil.empty(cf.group)&&Channels.useGroupFolder()) {
@@ -616,6 +660,8 @@ public class ChannelFolder implements ChannelProps, SearchObj{
 	}
 	
 	public String getThumb() { // relic method just return parents thumb
+		if(!ChannelUtil.empty(staticThumb))
+			return staticThumb;
 		if(parent!=null)
 			return parent.getThumb();
 		return null;
@@ -663,5 +709,130 @@ public class ChannelFolder implements ChannelProps, SearchObj{
 		   ChannelUtil.getProperty(prop, "movieinfo")) {
 			res.addChild(new ChannelMovieInfoFolder(imdb,thumb));
 		}
+	}
+	
+	private String rawEntry() {
+		StringBuilder sb=new StringBuilder();
+		sb.append("folder {\n");
+		if(!ChannelUtil.empty(url)) {
+			sb.append("url=");
+			sb.append(url);
+			sb.append("\n");
+		}
+		if(!ChannelUtil.empty(name)) {
+			sb.append("name=");
+			sb.append(name);
+			sb.append("\n");
+		}
+		sb.append("type=");
+		sb.append(ChannelUtil.type2str(type));
+		sb.append("\n");
+		
+		if(matcher!=null) {
+			sb.append("matcher=");
+			sb.append(matcher.getRegexp().toString());
+			sb.append("\n");
+			matcher.orderString(sb);
+			sb.append("\n");
+		}
+		if(prop!=null) {
+			sb.append("prop=");
+			ChannelUtil.list2file(sb,prop);
+			sb.append("\n");
+		}
+		if(!ChannelUtil.empty(post_script)) {
+			sb.append("post_script=");
+			sb.append(post_script);
+			sb.append("\n");
+		}
+		if(!ChannelUtil.empty(pre_script)) {
+			sb.append("pre_script=");
+			sb.append(pre_script);
+			sb.append("\n");
+		}
+		if(sub!=null) {
+			sb.append("subtitle=");
+			ChannelUtil.list2file(sb,sub);
+			sb.append("\n");
+		}
+		for(int i=0;i<medias.size();i++) {
+			ChannelMedia m=medias.get(i);
+			sb.append(m.rawEntry());
+			sb.append("\n");
+		}
+		for(int i=0;i<items.size();i++) {
+			ChannelItem m=items.get(i);
+			sb.append(m.rawEntry());
+			sb.append("\n");
+		}
+		for(int i=0;i<subfolders.size();i++) {
+			ChannelFolder cf=subfolders.get(i);
+			sb.append(cf.rawEntry());
+			sb.append("\n}\n");
+		}
+		return sb.toString();
+	}
+	
+	private String mkFavEntry(String urlEnd,String name,String thumb,String imdb) {
+		StringBuilder sb=new StringBuilder();
+		String realUrl=ChannelUtil.concatURL(url,urlEnd);
+		realUrl=ChannelScriptMgr.runScript(pre_script, realUrl, parent);
+		sb.append("favorite {\n");
+		sb.append("owner=");
+		sb.append(parent.name());
+		sb.append("\n");
+		sb.append("folder {\n");
+		if(!ChannelUtil.empty(realUrl)) {
+			sb.append("url=");
+			sb.append(realUrl);
+			sb.append("\n");
+		}
+		if(!ChannelUtil.empty(name)) {
+			sb.append("name=");
+			sb.append(name);
+			sb.append("\n");
+		}
+		if(!ChannelUtil.empty(thumb)) {
+			sb.append("thumb=");
+			sb.append(thumb);
+			sb.append("\n");
+		}
+		if(!ChannelUtil.empty(imdb)) {
+			sb.append("imdb=");
+			sb.append(imdb);
+			sb.append("\n");
+		}
+		for(int i=0;i<medias.size();i++) {
+			ChannelMedia m=medias.get(i);
+			sb.append(m.rawEntry());
+			sb.append("\n");
+		}
+		for(int i=0;i<items.size();i++) {
+			ChannelItem m=items.get(i);
+			sb.append(m.rawEntry());
+			sb.append("\n");
+		}
+		for(int i=0;i<subfolders.size();i++) {
+			ChannelFolder cf=subfolders.get(i);
+			sb.append(cf.rawEntry());
+			sb.append("\n}\n");
+		}
+		sb.append("\n}\n");
+		sb.append("\n}\r\n");
+		return sb.toString();	
+	}
+	
+	public String mkFav(String urlEnd,String name,String thumb,String imdb) {
+		if(favorized)
+			return null;
+		favorized=true;
+		ChannelFolder copy=new ChannelFolder(this);
+		copy.matcher=null;
+		copy.staticThumb=thumb;
+		copy.imdbId=imdb;
+		copy.name=name;
+		copy.url=ChannelUtil.concatURL(url,urlEnd);
+		parent.addFavorite(copy);
+		return mkFavEntry(urlEnd,name,thumb,imdb);
 	}
 }

@@ -283,7 +283,7 @@ public class ChannelUtil {
 		String cProp=getPropertyValue(props,"concat_"+field);
 		if(cProp==null)
 			return matched;
-		String sep=getPropertyValue(props,field+"_separator");
+		String sep=separatorToken(getPropertyValue(props,field+"_separator"));
 		if(cProp.equalsIgnoreCase("front")) {
 			return append(conf,sep,matched);
 		}
@@ -744,4 +744,58 @@ public class ChannelUtil {
 	public static boolean cookieMethod(int method) {
 		return (method==ChannelLogin.COOKIE)||(method==ChannelLogin.SIMPLE_COOKIE);
 	}
+	
+	public static void list2file(StringBuilder sb,String[] list) {
+		for(int i=0;i<list.length;i++) {
+			sb.append(list[i]);
+			sb.append(",");
+		}
+	}
+	
+	
+	
+	public static void addToFavFile(String data,String name) {
+		File f=Channels.workFavFile();
+		String bar="\n############################\n";
+		try {
+			boolean newFile=!f.exists();
+			Channels.debug("adding to fav file "+name);
+			FileOutputStream out=new FileOutputStream(f,true);
+			if(newFile) {
+				String msg="## Auto generated favorite file,Edit with care\n\n\n";
+				out.write(bar.getBytes(), 0, bar.length());
+				out.write(msg.getBytes(), 0, msg.length());
+			}
+			String n="## Name: "+name+"\r\n\n";
+			out.write(bar.getBytes(), 0, bar.length());
+			out.write(n.getBytes(),0,n.length());
+			out.write(data.getBytes(), 0, data.length());
+			out.flush();
+			out.close();
+		}
+		catch (Exception e) {
+		}
+	}
+	
+	public static String type2str(int type) {
+		switch(type) {
+		case ChannelFolder.TYPE_ATZ:
+			return "atz";
+		case ChannelFolder.TYPE_ATZ_LINK:
+			return "atzlink";
+		case ChannelFolder.TYPE_EMPTY:
+			return "empty";
+		case ChannelFolder.TYPE_LOGIN:
+			return "login";
+		case ChannelFolder.TYPE_NAVIX:
+			return "navix";
+		case ChannelFolder.TYPE_RECURSE:
+			return "recurse";
+		case ChannelFolder.TYPE_SEARCH:
+			return "search";
+		default:
+			return "normal";
+		}
+	}
+	
 }

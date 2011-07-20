@@ -12,11 +12,11 @@ public class ChannelMovieInfoFolder extends MovieInfoVirtualFolder{
 	
 	public ChannelMovieInfoFolder(String imdbId,String thumb) {
 		super(thumb);
-		imdb=imdbId;
+		imdb=(imdbId.startsWith("tt")?imdbId:"tt"+imdbId);
 	}
 	
 	public void discoverChildren() {
-		Channels.movieInfo().addFolders(this, "tt"+imdb, thumbnailIcon);
+		Channels.movieInfo().addFolders(this, imdb, thumbnailIcon);
 	}
 	
 	public InputStream getThumbnailInputStream() {

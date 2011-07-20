@@ -1,4 +1,4 @@
-version=1.3
+version=1.31
 channel Movie2K {
 
 	login {
@@ -109,10 +109,11 @@ folder {
 
 macrodef cinetopmacro {
 	folder {
-	matcher=div\sstyle=\"float\:left\">[^\*]+?href=\"([^\"]+)\"[^\*]+?color[^\>]+?>([^\<]+)<
-	order=url,name
+	matcher=div\sstyle=\"float\:left\">[^\*]+?href=\"([^\"]+)\"[^\*]+?color[^\>]+?>([^\<]+)<[^\*]+?tt([0-9]+)\"
+	order=url,name,imdb
 	url=http://www.movie2k.to/
 	macro=sourcesmacro
+	prop=movieinfo
 	}
 }
 
@@ -122,6 +123,7 @@ macrodef cinefeaturedmacro {
 	order=url,name
 	url=http://www.movie2k.to/
 	macro=sourcesmacro
+	prop=movieinfo
 	}
 }
 macrodef cinelatestmacro {
@@ -130,6 +132,7 @@ macrodef cinelatestmacro {
 	order=url,name
 	url=http://www.movie2k.to/
 	macro=sourcesmacro
+	prop=movieinfo
 	}
 }
 
@@ -140,6 +143,7 @@ macrodef langlistmacro {
 	order=url,name
 	url=http://www.movie2k.to/
 	macro=sourcesmacro
+	prop=movieinfo
 	}
 }
 
@@ -172,7 +176,7 @@ macrodef sourcesmacro {
 	matcher=nbsp;(Movshare|MegaVideo|Stream2k|Bitload|Novamov|Putlocker|Divxstage)<[^\*]+?href[^\*]*?\"([^\*]+?html)[^\*]+?(>Quality:)[^\*]+?img/smileys/([0-9])
 	order=name,url,name+
 	url=http://www.movie2k.to/
-	prop=name_separator=  ,
+	prop=name_separator=###0
 	macro=mediamacro
 	macro=partsmacro
 	}
@@ -183,6 +187,7 @@ macrodef partsmacro {
 	folder {
 	matcher=href=\"([^\"]+?part=[0-9])\"[^\*]+?img/parts/([^\W]+)_
 	order=url,name
+	prop=movieinfo
 	url=http://www.movie2k.to/
 	macro=mediamacro
 		}

@@ -144,4 +144,39 @@ public class ChannelItem implements ChannelProps{
 	public boolean onlyFirst() {
 		return ChannelUtil.getProperty(prop, "only_first");
 	}
+	
+	public String rawEntry() {
+		StringBuilder sb=new StringBuilder();
+		sb.append("item {");
+		sb.append("\n");
+		if(!ChannelUtil.empty(url)) {
+			sb.append("url=");
+			sb.append(url);
+			sb.append("\n");
+		}
+		if(!ChannelUtil.empty(name)) {
+			sb.append("name=");
+			sb.append(name);
+			sb.append("\n");
+		}
+		if(matcher!=null) {
+			sb.append("matcher=");
+			sb.append(matcher.getRegexp().toString());
+			sb.append("\n");
+			matcher.orderString(sb);
+			sb.append("\n");
+		}
+		if(prop!=null) {
+			sb.append("prop=");
+			ChannelUtil.list2file(sb,prop);
+			sb.append("\n");
+		}
+		for(int i=0;i<mediaURL.size();i++) {
+			ChannelMedia m=mediaURL.get(i);
+			sb.append(m.rawEntry());
+			sb.append("\n");
+		}
+		sb.append("\n}\n");
+		return sb.toString();
+	}
 }
