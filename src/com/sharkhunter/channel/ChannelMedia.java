@@ -187,6 +187,7 @@ public class ChannelMedia implements ChannelProps,ChannelScraper {
 			ChannelPMSSaveFolder sf=new ChannelPMSSaveFolder(parent,nName,url,thumb,script,asx,
 					                format,this);
 			sf.setImdb(imdb);
+			sf.setDoSubs(subtitle!=null);
 			res.addChild(sf);
 		}
 		else {

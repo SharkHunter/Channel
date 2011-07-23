@@ -14,6 +14,8 @@ public class ChannelPMSFolder extends VirtualFolder implements ChannelFilter{
 		private String url;
 		private String imdb;
 		
+		private boolean favorized;
+		
 		public ChannelPMSFolder(ChannelFolder cf,char ch) {
 			this(cf,String.valueOf(ch),String.valueOf(ch),"",cf.getThumb());
 		}
@@ -31,6 +33,7 @@ public class ChannelPMSFolder extends VirtualFolder implements ChannelFilter{
 			this.cf=cf;
 			this.filter=filter;
 			this.url=url;
+			favorized=false;
 		}
 		
 		public void setImdb(String imdb) {
@@ -39,7 +42,7 @@ public class ChannelPMSFolder extends VirtualFolder implements ChannelFilter{
 		
 		public void discoverChildren() {
 			try {
-				if(favFolder()) {
+				if(!cf.ignoreFav()) {
 					// Add bookmark action
 					final ChannelPMSFolder cb=this;
 					addChild(new VirtualVideoAction("Add to favorite",true) { //$NON-NLS-1$
@@ -53,10 +56,6 @@ public class ChannelPMSFolder extends VirtualFolder implements ChannelFilter{
 				cf.addMovieInfo(this, imdb,thumbnailIcon);
 			} catch (Exception e) {
 			}
-		}
-		
-		private boolean favFolder() {
-			return !(cf.ignoreFav()||Channels.noFavorite());
 		}
 		
 		public void resolve() {
@@ -98,8 +97,9 @@ public class ChannelPMSFolder extends VirtualFolder implements ChannelFilter{
 		}
 		
 		public void bookmark() {
-			if(!favFolder()) // weird but better safe than sorry
+			if(cf.ignoreFav()||favorized) 
 				return;
+			favorized=true;
 			String data=cf.mkFav(url,name,thumbnailIcon,imdb);
 			if(!ChannelUtil.empty(data))
 				ChannelUtil.addToFavFile(data,name);

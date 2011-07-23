@@ -39,7 +39,7 @@ public class ChannelNaviX extends VirtualFolder implements ChannelScraper {
 	}
 	
 	private boolean favFolder() {
-		return !(ignoreFav||Channels.noFavorite());
+		return !(ignoreFav||parent.noFavorite());
 	}
 	
 	public void setIgnoreFav() {
@@ -275,6 +275,11 @@ public class ChannelNaviX extends VirtualFolder implements ChannelScraper {
 		sb.append(data);
 		sb.append("\n}\r\n");
 		ChannelUtil.addToFavFile(sb.toString(),name);
+		try {
+			ChannelNaviXUpdate.update(name, url);
+		} catch (Exception e) {
+			Channels.debug("navix update error "+e);
+		}
 	}
 		
 }

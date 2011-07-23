@@ -33,10 +33,11 @@ public class Channel extends VirtualFolder {
 	private String[] proxies;
 	private ChannelProxy activeProxy;
 	
+	private String[] prop;
+	
 	private HashMap<String,String> hdrs;
 	
-	private ChannelFolder favorite;
-	
+	private ChannelFolder favorite;	
 	public Channel(String name) {
 		super(name,null);
 		Ok=false;
@@ -112,6 +113,8 @@ public class Channel extends VirtualFolder {
 					continue;
 				hdrs.put(k1[0], k1[1]);
 			}
+			if(keyval[0].equalsIgnoreCase("prop"))
+				prop=keyval[1].trim().split(",");
 			
 		}
 	}
@@ -282,7 +285,6 @@ public class Channel extends VirtualFolder {
 	}
 	
 	public void research(String str,String id,DLNAResource res) {
-		debug("id "+id);
 		if(id.startsWith("navix:")) {
 			id=id.substring(6);
 			ChannelFolder holder=folders.get(0);
@@ -310,6 +312,10 @@ public class Channel extends VirtualFolder {
 		if(s==null)
 			return res;
 		return ChannelNaviXProc.lite(realName,s,res);
+	}
+	
+	public boolean noFavorite() {
+		return ChannelUtil.getProperty(prop, "no_favorite")||Channels.noFavorite();
 	}
 	
 }

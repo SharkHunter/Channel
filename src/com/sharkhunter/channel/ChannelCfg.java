@@ -38,6 +38,7 @@ public class ChannelCfg {
 	private boolean cache;
 	private String credPath;
 	private boolean favorite;
+	private String navixUploadList;
 	
 	public ChannelCfg(Channels top) {
 		chPath=null;
@@ -50,6 +51,7 @@ public class ChannelCfg {
 		this.top=top;
 		cache=false;
 		favorite=true;
+		navixUploadList=null;
 	}
 	
 	///////////////////////////////////
@@ -102,6 +104,14 @@ public class ChannelCfg {
 	
 	public void setCredPath(String p) {
 		credPath=p;
+	}
+	
+	public void setNaviXUpload(String p) {
+		navixUploadList=p;
+	}
+	
+	public void setFavorite(boolean b) {
+		favorite=b;
 	}
 	
 	////////////////////////////////////////
@@ -168,6 +178,10 @@ public class ChannelCfg {
 		return favorite;
 	}
 	
+	public String getNaviXUpload() {
+		return navixUploadList;
+	}
+	
 	////////////////////////////////////////
 	// Misc. methods
 	////////////////////////////////////////
@@ -203,6 +217,7 @@ public class ChannelCfg {
 		String group=(String)PMS.getConfiguration().getCustomProperty("channels.group_folder");
 		String mi=(String)PMS.getConfiguration().getCustomProperty("channels.movieinfo");
 		String fav=(String)PMS.getConfiguration().getCustomProperty("channels.favorite");
+		navixUploadList=(String)PMS.getConfiguration().getCustomProperty("channels.navix_upload");
 		if(rtmpMode!=null) {
 			if(rtmpMode.trim().equalsIgnoreCase("1"))
 				Channels.rtmpMethod(Channels.RTMP_MAGIC_TOKEN);
@@ -281,6 +296,9 @@ public class ChannelCfg {
 			PMS.getConfiguration().setCustomProperty("channels.debug",String.valueOf(Channels.debugStatus()));
 			PMS.getConfiguration().setCustomProperty("channels.subtitles",String.valueOf(Channels.doSubs()));
 			PMS.getConfiguration().setCustomProperty("channels.group_folder",String.valueOf(Channels.useGroupFolder()));
+			PMS.getConfiguration().setCustomProperty("channels.favorite",String.valueOf(favorite));
+			if(!ChannelUtil.empty(navixUploadList))
+				PMS.getConfiguration().setCustomProperty("channels.navix_upload",navixUploadList);
 			PMS.getConfiguration().save();
 		} catch (Exception e) {
 		}

@@ -35,7 +35,11 @@ public class ChannelCookie {
 		return a.authStr;
 	}
 	
-	public static void parseCookie(URLConnection connection,ChannelAuth a,String url) throws Exception {
+	public static String parseCookie(URLConnection connection,ChannelAuth a,String url) throws Exception {
+		return parseCookie(connection,a,url,false);
+	}
+	
+	public static String parseCookie(URLConnection connection,ChannelAuth a,String url,boolean skipUpdate) throws Exception {
 		String hName="";
 		long ttd=System.currentTimeMillis()+(24*60*60*2*1000);
 		boolean update=false;
@@ -65,10 +69,13 @@ public class ChannelCookie {
 	 		a.method=ChannelLogin.SIMPLE_COOKIE;
 	 		a.authStr=cookie;
 	 		a.ttd=ttd;
+	 		if(skipUpdate)
+	 			return a.authStr;
 	 		Channels.debug("adding cookie "+cookie+" to url "+trimUrl(url));
 	 		update|=Channels.addCookie(trimUrl(url), a);	
 		}
 		if(update)
 			Channels.mkCookieFile();
+		return null;
 	}
 }

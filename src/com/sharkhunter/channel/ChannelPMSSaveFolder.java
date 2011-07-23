@@ -17,6 +17,7 @@ public class ChannelPMSSaveFolder extends VirtualFolder {
 	private int type;
 	private long childDone;
 	private String imdb;
+	private boolean subs;
 	
 	private static final long AUTO_PLAY_FACTOR=(1000*15);
 	
@@ -34,10 +35,15 @@ public class ChannelPMSSaveFolder extends VirtualFolder {
 		this.type=type;
 		childDone=0;
 		imdb=null;
+		subs=true;
 	}
 	
 	public void setImdb(String i) {
 		imdb=i;
+	}
+	
+	public void setDoSubs(boolean b) {
+		subs=b;
 	}
 	
 	public boolean refreshChildren() { // Always update
@@ -51,7 +57,7 @@ public class ChannelPMSSaveFolder extends VirtualFolder {
 		cms=new ChannelMediaStream(ch,"PLAY",url,thumb,proc,type,asx,scraper,name,null);
 		cms.setImdb(imdb);
 		addChild(cms);
-		if(Channels.doSubs()) {
+		if(Channels.doSubs()&&subs) {
 			cms=new ChannelMediaStream(ch,"SAVE&PLAY - No Subs",url,thumb,proc,type,asx,scraper,name,name);
 			cms.noSubs();
 			cms.setImdb(imdb);

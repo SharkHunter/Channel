@@ -43,8 +43,10 @@ public class ChannelGUI implements  ActionListener, ItemListener{
 	private JTextField get_flash;
 	private JTextField yt;
 	private JTextField credText;
+	private JTextField naviText;
 	private JCheckBox dbg;
 	private JCheckBox subs;
+	private JCheckBox favorite;
 	private JComponent topComp;
 	
 	public ChannelGUI(ChannelCfg cfg,Channels root) {
@@ -70,6 +72,7 @@ public class ChannelGUI implements  ActionListener, ItemListener{
 		JButton get_flBrowse=new JButton("Browse...");
 		JButton ytBrowse=new JButton("Browse...");
 		JButton credBrowse=new JButton("Browse...");
+		JButton commit=new JButton("Save config only");
 		JLabel l1=new JLabel("Channels Path: ");
 		JLabel l2=new JLabel("Save Path: ");
 		JLabel l3=new JLabel("RTMPDump path: ");
@@ -81,8 +84,10 @@ public class ChannelGUI implements  ActionListener, ItemListener{
 		JLabel l9=new JLabel("get_flash_videos path: ");
 		JLabel l10=new JLabel("YouTube-dl path: ");
 		JLabel l11=new JLabel("Credentials path: ");
+		JLabel l12=new JLabel("NaviX Upload List name: ");
 		dbg=new JCheckBox("Enable debug",Channels.debugStatus());
 		subs=new JCheckBox("Use subtiles",Channels.doSubs());
+		favorite=new JCheckBox("Use favorite handling",cfg.favorite());
 		chPath=new JTextField(cfg.getPath(),20);
 		saPath=new JTextField(cfg.getSavePath(),20);
 		rtmp=new JTextField(cfg.getRtmpPath(),20);
@@ -94,6 +99,7 @@ public class ChannelGUI implements  ActionListener, ItemListener{
 		get_flash=new JTextField(cfg.getFlashPath(),20);
 		yt=new JTextField(cfg.getYouTubePath(),20);
 		credText=new JTextField(cfg.getCredPath(),20);
+		naviText=new JTextField(cfg.getNaviXUpload(),20);
 
 		// Add some actions
 		cBrowse.setActionCommand("cpath");
@@ -120,7 +126,12 @@ public class ChannelGUI implements  ActionListener, ItemListener{
 		credBrowse.addActionListener(this);
 		channels.setActionCommand("other_channels");
 		channels.addActionListener(this);
+		naviText.setActionCommand("navix");
+		naviText.addActionListener(this);
 		subs.addItemListener(this);
+		favorite.addItemListener(this);
+		commit.setActionCommand("other_commit");
+		commit.addActionListener(this);
 		
 		GridBagConstraints c = new GridBagConstraints();
 		// 1st the channels path
@@ -160,16 +171,30 @@ public class ChannelGUI implements  ActionListener, ItemListener{
 		c.weightx=1.0;
 		pathPanel.add(credBrowse,c);
 		
-		// Debug
+		// NaviXList
 		c.gridx = 0;
 		c.gridy = 3;
+		c.weightx=1.0;
+		pathPanel.add(l12,c);
+		c.gridx++;
+		c.weightx=2.0;
+		pathPanel.add(naviText,c);
+		
+		// Debug
+		c.gridx = 0;
+		c.gridy = 4;
 		c.weightx=1.0;
 		pathPanel.add(dbg,c);
 		// Subs
 		c.gridx = 0;
-		c.gridy = 4;
+		c.gridy = 5;
 		c.weightx=1.0;
 		pathPanel.add(subs,c);
+		// Favorite
+		c.gridx = 0;
+		c.gridy = 6;
+		c.weightx=1.0;
+		pathPanel.add(favorite,c);
 		
 		// Sopcast
 		c.gridx = 0;
@@ -199,6 +224,7 @@ public class ChannelGUI implements  ActionListener, ItemListener{
 		// Channels
 		c.fill = GridBagConstraints.BOTH;
 		inst.add(channels);
+		inst.add(commit);
 
 		// Add all
 		top.add(pathPanel,BorderLayout.NORTH);
@@ -246,6 +272,11 @@ public class ChannelGUI implements  ActionListener, ItemListener{
 							cfg.setYouTubePath(path.getSelectedFile().getCanonicalPath().toString());
 						else if(text.equals("credpath"))
 							cfg.setCredPath(path.getSelectedFile().getCanonicalPath().toString());
+						else if(text.equals("navix")) {
+							String t=naviText.getText();
+							if(!ChannelUtil.empty(t)&&!t.equals(cfg.getNaviXUpload()))
+								cfg.setNaviXUpload(t);	
+						}
 						update();
 						cfg.commit();
 					} catch (IOException e1) {
@@ -254,12 +285,14 @@ public class ChannelGUI implements  ActionListener, ItemListener{
 			}
 		}
 		else  {
-			if(text.equals("other_channels")) {
+			if(text.equals("other_commit")||text.equals("other_channels")) {
 				PMS.debug("update channels files");
 				pushPaths();
 				cfg.commit();
-				cfg.fetchChannels();
-				root.fileChanged(new File(cfg.getPath()));
+				if(text.equals("other_channels")) {
+					cfg.fetchChannels();
+					root.fileChanged(new File(cfg.getPath()));
+				}
 				return;
 			}
 		}
@@ -275,6 +308,8 @@ public class ChannelGUI implements  ActionListener, ItemListener{
 			Channels.debug(val);
 		if(source==subs)
 			Channels.setSubs(val);
+		if(source==favorite)
+			cfg.setFavorite(val);
 		cfg.commit();
 	}
 	
@@ -304,6 +339,11 @@ public class ChannelGUI implements  ActionListener, ItemListener{
 		cfg.setGetFlPath(get_flash.getText());
 		cfg.setYouTubePath(yt.getText());
 		cfg.setCredPath(credText.getText());
+		String t=naviText.getText();
+		if(!ChannelUtil.empty(t)&&!t.equals(cfg.getNaviXUpload())) {
+			cfg.setNaviXUpload(t);
+			Channels.initNaviX();
+		}
 	}
 	
 }

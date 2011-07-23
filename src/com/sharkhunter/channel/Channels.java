@@ -28,7 +28,7 @@ import no.geosoft.cc.io.FileMonitor;
 public class Channels extends VirtualFolder implements FileListener {
 
 	// Version string
-	public static final String VERSION="1.30";
+	public static final String VERSION="1.35";
 	
 	// Constants for RTMP string constructions
 	public static final int RTMP_MAGIC_TOKEN=1;
@@ -128,6 +128,31 @@ public class Channels extends VirtualFolder implements FileListener {
     	catch (Exception e) {
     		debug("Error reading search db "+e);
     	}
+    	initNaviXUploader();
+    }
+    
+    private void initNaviXUploader() {
+    	try { // must do this last we need some credentials first
+    		if(ChannelUtil.empty(cfg.getNaviXUpload())) {
+    			debug("No navix upload playlist configured");
+    			return;
+    		}
+    		for(int i=0;i<cred.size();i++) {
+        		ChannelCred cr=cred.get(i);
+        		if(ChannelUtil.empty(cr.channelName))
+        			continue;
+        		if(cr.channelName.equalsIgnoreCase("navix")) {
+        			ChannelNaviXUpdate.init(cfg.getNaviXUpload(),cr);
+        			break;
+        		}
+    		}
+		} catch (Exception e) {
+			debug("error navix up startup");
+		}
+    }
+    
+    public static void initNaviX() {
+    	inst.initNaviXUploader();
     }
     
     public static void debug(String msg) {

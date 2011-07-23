@@ -5,7 +5,7 @@ various online wb tv channels. It allows you to save the content while viewing i
 
 # Installation <a name="Install"></a>
 
-* download the [Channels jar file](https://github.com/downloads/SharkHunter/Channel/tv_plug_130.jar) and place it in the PMS `plugins` directory
+* download the [Channels jar file](https://github.com/downloads/SharkHunter/Channel/tv_plug_135.jar) and place it in the PMS `plugins` directory
 * download the [Channels files](https://github.com/SharkHunter/Channel/tree/master/channels) you need and place them in a new directory.
 * you must also download [PMSEncoder scripts](https://github.com/SharkHunter/Channel/tree/master/scripts). 
 * shut down PMS; open `PMS.conf` in a text editor; and add Channel specific configuration see below. 
@@ -15,7 +15,7 @@ various online wb tv channels. It allows you to save the content while viewing i
 
 ## Upgrading <a name="Upgrade"></a>
 
-To upgrade to a new version of the plugin, simply replace the old jar file in the `plugins` directory with the [new version](https://github.com/downloads/SharkHunter/Channel/tv_plug_130.jar) and restart PMS.
+To upgrade to a new version of the plugin, simply replace the old jar file in the `plugins` directory with the [new version](https://github.com/downloads/SharkHunter/Channel/tv_plug_135.jar) and restart PMS.
 
 ## Uninstalling <a name="Uninstall"></a>
 
@@ -49,6 +49,12 @@ The Channel plugin has the following configuration options all should be entered
   
 * channels.movieinfo -  If set to "true" the plugin integrates with the MovieInfo plugin (if it is
   installed).  
+  
+* channels.favorite - If set to "false" the plugin wil disable the "Add to favorite" and all favorite
+  handling.
+  
+* channels.navix_upload - Set this to the playlist name of the NaviX playlist to autoupload to
+  when doing "Add to favorite" on NaviX folders.
 
 ## Writing .ch files <a name="Write .ch files"></a>
 For instructions on how to write [.ch files](https://github.com/SharkHunter/Channel/blob/master/README)

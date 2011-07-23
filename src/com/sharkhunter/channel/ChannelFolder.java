@@ -69,7 +69,6 @@ public class ChannelFolder implements ChannelProps, SearchObj{
 	private String staticThumb;
 	
 	private boolean ignoreFav;
-	private boolean favorized;
 	
 	public ChannelFolder(ArrayList<String> data,Channel parent) {
 		this(data,parent,null);
@@ -97,7 +96,6 @@ public class ChannelFolder implements ChannelProps, SearchObj{
 		group=cf.group;
 		imdbId=cf.imdbId;
 		ignoreFav=cf.ignoreFav;
-		favorized=cf.favorized;
 	}
 	
 	public ChannelFolder(ArrayList<String> data,Channel parent,ChannelFolder pf) {
@@ -115,7 +113,6 @@ public class ChannelFolder implements ChannelProps, SearchObj{
 		post_script=null;
 		proxy=null;
 		ignoreFav=false;
-		favorized=false;
 		hdrs=new HashMap<String,String>();
 		if(pf!=null)
 			hdrs.putAll(pf.hdrs);
@@ -269,7 +266,6 @@ public class ChannelFolder implements ChannelProps, SearchObj{
 	}
 	
 	public void addSubFolder(ChannelFolder f) {
-		Channels.debug("add subfolder");
 		subfolders.add(f);
 	}
 	
@@ -278,7 +274,7 @@ public class ChannelFolder implements ChannelProps, SearchObj{
 	}
 	
 	public boolean ignoreFav() {
-		return ignoreFav;
+		return ignoreFav||parent.noFavorite();
 	}
 	
 	private int parseType(String t) {
@@ -802,6 +798,16 @@ public class ChannelFolder implements ChannelProps, SearchObj{
 			sb.append(imdb);
 			sb.append("\n");
 		}
+		if(prop!=null) {
+			sb.append("prop=");
+			ChannelUtil.list2file(sb,prop);
+			sb.append("\n");
+		}
+		if(sub!=null) {
+			sb.append("subtitle=");
+			ChannelUtil.list2file(sb,sub);
+			sb.append("\n");
+		}
 		for(int i=0;i<medias.size();i++) {
 			ChannelMedia m=medias.get(i);
 			sb.append(m.rawEntry());
@@ -823,9 +829,6 @@ public class ChannelFolder implements ChannelProps, SearchObj{
 	}
 	
 	public String mkFav(String urlEnd,String name,String thumb,String imdb) {
-		if(favorized)
-			return null;
-		favorized=true;
 		ChannelFolder copy=new ChannelFolder(this);
 		copy.matcher=null;
 		copy.staticThumb=thumb;
