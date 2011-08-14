@@ -25,6 +25,8 @@ import java.util.regex.Pattern;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
 
+import org.apache.commons.io.FileUtils;
+
 import net.pms.PMS;
 import net.pms.configuration.PmsConfiguration;
 import net.pms.dlna.DLNAResource;
@@ -42,9 +44,8 @@ public class ChannelUtil {
 	public static final int ASXTYPE_FORCE=2;
 	
 	public static String postPage(URLConnection connection,String query) {
-		return postPage(connection,query,null,null);
+		return postPage(connection,query,"",null);
 	}
-	
 	
 	public static String postPage(URLConnection connection,String query,String cookie,
 								  HashMap<String,String> hdr) {   
@@ -60,11 +61,13 @@ public class ChannelUtil {
 		connection.setRequestProperty("Content-Length", "" + query.length());  
 		
 		try {
-			if(!empty(ChannelCookie.getCookie(url.toString())))
-				cookie=append(cookie,"; ",ChannelCookie.getCookie(url.toString()));
+			String c1=ChannelCookie.getCookie(url.toString());
+			if(!empty(c1)) {
+				if(!cookieContains(c1,cookie))
+						cookie=append(cookie,"; ",ChannelCookie.getCookie(url.toString()));
+			}
 			if(!empty(cookie))
 				connection.setRequestProperty("Cookie",cookie);
-			
 			if(hdr!=null&&hdr.size()!=0) {
 				for(String key : hdr.keySet()) 
 					connection.setRequestProperty(key,hdr.get(key));
@@ -74,7 +77,7 @@ public class ChannelUtil {
 			connection.connect();
 			// open up the output stream of the connection
 			if(!empty(query)) {
-				DataOutputStream output = new DataOutputStream(connection.getOutputStream());   
+				DataOutputStream output = new DataOutputStream(connection.getOutputStream());
 				output.writeBytes(query);   
 				output.flush ();   
 				output.close();
@@ -120,14 +123,18 @@ public class ChannelUtil {
 					connection=url.openConnection();
 				}
 			}
-			if(!empty(ChannelCookie.getCookie(url.toString())))
-				cookie=append(cookie,"; ",ChannelCookie.getCookie(url.toString()));
+			String c1=ChannelCookie.getCookie(url.toString());
+			if(!empty(c1)) {
+				if(!cookieContains(c1,cookie))
+					cookie=append(cookie,"; ",ChannelCookie.getCookie(url.toString()));
+			}
 			if(!empty(cookie))
 				connection.setRequestProperty("Cookie",cookie);
 			if(hdr!=null&&hdr.size()!=0) {
 				for(String key : hdr.keySet()) 
 					connection.setRequestProperty(key,hdr.get(key));
 			}
+		//	connection.setRequestProperty("Content-Length", "0"); 
 			connection.setDoInput(true);
 			connection.setDoOutput(true);
 			
@@ -147,6 +154,24 @@ public class ChannelUtil {
 		    return "";
 		}
 	}
+	
+	public static boolean cookieContains(String cookie1,String cookie0) {
+		if(empty(cookie0))
+			return false;
+		String[] c1=cookie1.split("; ");
+		String[] c0=cookie0.split("; ");
+		for(int i=0;i<c1.length;i++) {
+			String[] cookie=c1[i].split("=");
+			for(int j=0;j<c0.length;j++) {
+				String[] c2=c0[j].split("=");
+				if(c2[0].equals(cookie[0]))
+					return true;
+			}
+		}
+		return false;
+	}
+	
+	
 	
 	public static boolean downloadBin(String url,File f) {
 		try {
@@ -752,22 +777,21 @@ public class ChannelUtil {
 		}
 	}
 	
-	
+	private final static String FAV_BAR="\n############################\n"; 
 	
 	public static void addToFavFile(String data,String name) {
 		File f=Channels.workFavFile();
-		String bar="\n############################\n";
 		try {
 			boolean newFile=!f.exists();
 			Channels.debug("adding to fav file "+name);
 			FileOutputStream out=new FileOutputStream(f,true);
 			if(newFile) {
 				String msg="## Auto generated favorite file,Edit with care\n\n\n";
-				out.write(bar.getBytes(), 0, bar.length());
+				out.write(FAV_BAR.getBytes(), 0, FAV_BAR.length());
 				out.write(msg.getBytes(), 0, msg.length());
 			}
 			String n="## Name: "+name+"\r\n\n";
-			out.write(bar.getBytes(), 0, bar.length());
+			out.write(FAV_BAR.getBytes(), 0, FAV_BAR.length());
 			out.write(n.getBytes(),0,n.length());
 			out.write(data.getBytes(), 0, data.length());
 			out.flush();
@@ -777,6 +801,27 @@ public class ChannelUtil {
 		}
 	}
 	
+	public static void RemoveFromFavFile(String name, String url) {
+		File f=Channels.workFavFile();
+		try {
+			String str = FileUtils.readFileToString(f);
+			Channels.debug("removing from fav file "+name);
+			int pos = str.indexOf(url);
+			if(pos > -1) {
+				FileOutputStream out=new FileOutputStream(f,false);
+				pos = str.lastIndexOf(FAV_BAR,pos); // head
+				out.write(str.substring(0,pos).getBytes());
+				pos = str.indexOf(FAV_BAR,pos+30);  // tail
+				if(pos > -1)
+					out.write(str.substring(pos).getBytes());
+				out.flush();
+				out.close();
+			}
+		}
+		catch (Exception e) {
+		}
+	}
+			
 	public static String type2str(int type) {
 		switch(type) {
 		case ChannelFolder.TYPE_ATZ:

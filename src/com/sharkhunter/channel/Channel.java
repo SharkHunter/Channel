@@ -57,7 +57,6 @@ public class Channel extends VirtualFolder {
 		children.clear();
 		childrenNumber=0;
 		discovered=false;
-		mkFavFolder();
 		debug("parse channel "+name+" data "+data.toString());
 		this.macros=macros;
 		for(int i=0;i<data.size();i++) {
@@ -117,9 +116,12 @@ public class Channel extends VirtualFolder {
 				prop=keyval[1].trim().split(",");
 			
 		}
+		mkFavFolder();
 	}
 	
 	private void mkFavFolder() {
+		if(noFavorite())
+			return;
 		ArrayList<String> data=new ArrayList<String>();
 		data.add("name=Favorite");
 		ChannelFolder f=new ChannelFolder(data,this);
@@ -194,10 +196,11 @@ public class Channel extends VirtualFolder {
 	}
 	
 	public void discoverChildren() {
-		try {
-			favorite.match(this);
-		} catch (MalformedURLException e1) {
-		}
+		if(favorite!=null)
+			try {
+				favorite.match(this);
+			} catch (MalformedURLException e1) {
+			}
 		for(int i=0;i<folders.size();i++) {
 			ChannelFolder cf=folders.get(i);
 			if(cf.isATZ()) 
@@ -318,4 +321,7 @@ public class Channel extends VirtualFolder {
 		return ChannelUtil.getProperty(prop, "no_favorite")||Channels.noFavorite();
 	}
 	
+	public ChannelFolder favorite() {
+		return favorite;
+	}
 }

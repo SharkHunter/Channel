@@ -82,6 +82,18 @@ public class ChannelPMSSaveFolder extends VirtualFolder {
 				}
 			});
 		}
+		if(ChannelNaviXUpdate.active()) {
+			final String rName=name;
+			addChild(new VirtualVideoAction("Upload to NaviX",true) { //$NON-NLS-1$
+				public boolean enable() {
+					try {
+						ChannelNaviXUpdate.updateMedia(rName, url, proc, type,thumb);
+					} catch (Exception e) {
+					}
+					return true;
+				}
+			});
+		}
 	}
 	
 	public InputStream getThumbnailInputStream() {

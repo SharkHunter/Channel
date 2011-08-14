@@ -151,12 +151,13 @@ public class ChannelLogin {
 	private ChannelAuth updateCookieDb(String cookie,ChannelAuth a) {
 		String u=trimUrl(url);
 		Channels.debug("update cookie db "+u);
-		a=mkResult(a);
-		boolean update=Channels.addCookie(u,a);
+		ChannelAuth b=mkResult(null);
+		b.authStr=cookie;
+		boolean update=Channels.addCookie(u,b);
 		if(associated!=null)
 			for(int i=0;i<associated.length;i++) {
 				u=trimUrl(associated[i].trim());
-				update|=Channels.addCookie(u, a);
+				update|=Channels.addCookie(u, b);
 			}
 		if(update)
 			Channels.mkCookieFile();
@@ -198,10 +199,12 @@ public class ChannelLogin {
 	 				if(exp.length>1)
 	 					ttd=parseTTD(exp[1]);
 	 			}
-	        tokenStr=cookie;
+	 		updateCookieDb(cookie,a);
+	 		tokenStr=ChannelUtil.append(tokenStr,"; ",cookie);
 	        loggedOn=true;
-	        return updateCookieDb(tokenStr,a);
 		}
+		if(!ChannelUtil.empty(tokenStr))
+	        return mkResult(a);
 		return null;
 	}
 	
@@ -230,7 +233,7 @@ public class ChannelLogin {
 		URL u=new URL(url);
 		Proxy p=proxy.getProxy();
 		//URLConnection connection;
-		Channels.debug("url "+u.toString()+" query "+query);
+		//Channels.debug("url "+u.toString()+" query "+query);
 		if(u.toString().startsWith("https")) {
 			HttpsURLConnection connection = (HttpsURLConnection) u.openConnection(p);
 			 HttpsURLConnection.setFollowRedirects(true);

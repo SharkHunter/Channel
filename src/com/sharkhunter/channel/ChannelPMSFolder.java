@@ -52,6 +52,16 @@ public class ChannelPMSFolder extends VirtualFolder implements ChannelFilter{
 						}
 					});
 				}
+				else if(cf.isFavItem()) {
+					// Add 'remove bookmark' action
+					final ChannelPMSFolder cb=this;
+					addChild(new VirtualVideoAction("Remove from favorite",true) { //$NON-NLS-1$
+						public boolean enable() {
+							cb.unbookmark();
+							return true;
+						}
+					});
+				}
 				cf.match(this,this,url,thumbnailIcon,name,imdb);
 				cf.addMovieInfo(this, imdb,thumbnailIcon);
 			} catch (Exception e) {
@@ -103,5 +113,10 @@ public class ChannelPMSFolder extends VirtualFolder implements ChannelFilter{
 			String data=cf.mkFav(url,name,thumbnailIcon,imdb);
 			if(!ChannelUtil.empty(data))
 				ChannelUtil.addToFavFile(data,name);
+		}
+		
+		public void unbookmark() {
+			ChannelUtil.RemoveFromFavFile(name,cf.getURL());
+			cf.remove();
 		}
 }

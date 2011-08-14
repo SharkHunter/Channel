@@ -28,7 +28,7 @@ import no.geosoft.cc.io.FileMonitor;
 public class Channels extends VirtualFolder implements FileListener {
 
 	// Version string
-	public static final String VERSION="1.35";
+	public static final String VERSION="1.36";
 	
 	// Constants for RTMP string constructions
 	public static final int RTMP_MAGIC_TOKEN=1;
@@ -57,7 +57,7 @@ public class Channels extends VirtualFolder implements FileListener {
     private boolean doCache;
     private ChannelOffHour oh;
     private ChannelCfg cfg;
-    private HashMap<String,ChannelAuth> cookies;
+    private HashMap<String,ArrayList<ChannelAuth>> cookies;
     private ChannelSearch searchDb;
     private HashMap<String,ChannelProxy> proxies;
     private HashMap<String,HashMap<String,String>> stash;
@@ -83,7 +83,7 @@ public class Channels extends VirtualFolder implements FileListener {
     	cred=new ArrayList<ChannelCred>();
     	scripts=new HashMap<String,ChannelMacro>();
     	subtitles=new HashMap<String,ChannelSubs>();
-    	cookies=new HashMap<String,ChannelAuth>();
+    	cookies=new HashMap<String,ArrayList<ChannelAuth>>();
     	proxies=new HashMap<String,ChannelProxy>();
     	stash=new HashMap<String,HashMap<String,String>>();
     	cache=new ChannelCache(path);
@@ -203,6 +203,7 @@ public class Channels extends VirtualFolder implements FileListener {
     		if(ch!=null) {
     			ch.addFavorite(block);
     			favorite.remove(i);
+    			i--; // stay in sync, otherwise we leapfrog
     		}
     	}
     }
@@ -667,7 +668,7 @@ public class Channels extends VirtualFolder implements FileListener {
 		return readCookieFile(file,inst.cookies);
 	}
 	
-	public static boolean readCookieFile(String file,HashMap<String,ChannelAuth> map) {
+	public static boolean readCookieFile(String file,HashMap<String,ArrayList<ChannelAuth>> map) {
 		boolean skipped=false;
 		try {
 			BufferedReader in=new BufferedReader(new FileReader(file));
@@ -699,7 +700,13 @@ public class Channels extends VirtualFolder implements FileListener {
 	    		a.ttd=ttd;
 	    		a.proxy=null;
 	    		debug("adding to cookie jar "+url);
-	    		map.put(url, a);
+	    		ArrayList<ChannelAuth> old=map.get(url);
+	    		if(old==null) {
+	    			old=new ArrayList<ChannelAuth>();
+	    		}
+	    		old.add(a);
+	    		map.put(url, old);
+	    			
 	    	}	
 		} catch (Exception e) {
 		}	
@@ -712,10 +719,15 @@ public class Channels extends VirtualFolder implements FileListener {
 			String data="# Cookie file\n"; // write a dummy line to make sure the file exists
 			out.write(data.getBytes(), 0, data.length());
 			for(String key : inst.cookies.keySet()) {
-				ChannelAuth a=inst.cookies.get(key);
-				data=key+"\tTRUE\t/\tFALSE\t"+String.valueOf(a.ttd)+"\t"+a.authStr.replace('=', '\t')+
-				"\n";
-				out.write(data.getBytes(), 0, data.length());
+				ArrayList<ChannelAuth> list= inst.cookies.get(key);
+				debug("list size "+list.size());
+				for(int i=0;i<list.size();i++) {
+					ChannelAuth a=list.get(i);
+					data=key+"\tTRUE\t/\tFALSE\t"+String.valueOf(a.ttd)+"\t"+a.authStr.replace('=', '\t')+
+					"\n";
+					debug("write data "+data);
+					out.write(data.getBytes(), 0, data.length());
+				}
 			}	
 			out.flush();
 			out.close();
@@ -734,26 +746,24 @@ public class Channels extends VirtualFolder implements FileListener {
 		// Move all cookie from the internal jar to the sandbox UNLESS
 		// the sandbox is newer.
 		// Finally rewrite the sandbox.
-		HashMap<String,ChannelAuth> map=null;
+		HashMap<String,ArrayList<ChannelAuth>> map=null;
 		if(f.exists()) { // life is full of troubles, first we must fix stuff here
-			map=new HashMap<String,ChannelAuth>();
+			map=new HashMap<String,ArrayList<ChannelAuth>>();
 			readCookieFile(file,map);
 		}
 		if(map!=null) { // we got a new map (we reread the cookie file)
 			for(String key : inst.cookies.keySet()) {
-				ChannelAuth a=inst.cookies.get(key);
-				ChannelAuth b=map.get(key);
-				if(b!=null) { // cookie file contain this key
+				ArrayList<ChannelAuth> a=inst.cookies.get(key);
+				ArrayList<ChannelAuth> b=map.get(key);
+				if(b==null)
+					map.put(key,a);
+				else { // cookie file contain this key
 					// if it's newer or lives longer we'll use it
-					if(!a.authStr.equals(b.authStr)&&b.ttd>a.ttd)
-						a=b;
-					else if(b.ttd>a.ttd)
-						a=b;
-				}
-				if(a.ttd<System.currentTimeMillis()) // cookie expired skip it
-					map.remove(key);
-				else
+					for(int i=0;i<a.size();i++) {
+						mergeChannelAuths(a.get(i),b);
+					}
 					map.put(key, a);
+				}
 			}
 			// map now contains all keys from file + our internal
 			// NOTE!! Cookies in the sandbox that are "new"
@@ -765,12 +775,45 @@ public class Channels extends VirtualFolder implements FileListener {
 		writeCookieFile(file);
 	}
 	
+	private static void mergeChannelAuths(ChannelAuth old,ArrayList<ChannelAuth> list) {
+		String cookie=old.authStr.split("=")[0];
+		ChannelAuth tmp=null;
+		for(int j=0;j<list.size();j++) {
+			ChannelAuth a=list.get(j);
+			String c1=a.authStr.split("=")[0];
+			if(!c1.equals(cookie))
+				continue;
+			// cookie in list
+			if(!a.authStr.equals(old.authStr)&&old.ttd>a.ttd)
+				return;
+			else if(old.ttd>a.ttd)
+				return;
+			tmp=a;
+			break;
+		}
+		if(tmp!=null) {
+			list.remove(old);
+			list.add(tmp);
+		}
+	}
+	
 	public static boolean addCookie(String url,ChannelAuth a) {
-		return (inst.cookies.put(url, a)==null);
+		ArrayList<ChannelAuth> l=inst.cookies.get(url);
+		if(l==null)
+			l=new ArrayList<ChannelAuth>();
+		l.add(a);
+		inst.cookies.put(url, l);
+		return true;
 	}
 	
 	public static ChannelAuth getCookie(String url) {
-		return inst.cookies.get(url);
+		ArrayList<ChannelAuth> l=inst.cookies.get(url);
+		if(l==null)
+			return null;
+		ChannelAuth a=l.get(0);
+		for(int i=1;i<l.size();i++)
+			a.authStr=ChannelUtil.append(a.authStr,"; ",l.get(i).authStr);
+		return a;
 	}
 	
 	////////////////////////////////////////////////

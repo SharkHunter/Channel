@@ -267,6 +267,7 @@ public class ChannelFolder implements ChannelProps, SearchObj{
 	
 	public void addSubFolder(ChannelFolder f) {
 		subfolders.add(f);
+		f.parentFolder = this;
 	}
 	
 	public void setIgnoreFav() {
@@ -837,5 +838,18 @@ public class ChannelFolder implements ChannelProps, SearchObj{
 		copy.url=ChannelUtil.concatURL(url,urlEnd);
 		parent.addFavorite(copy);
 		return mkFavEntry(urlEnd,name,thumb,imdb);
+	}
+	
+	public Boolean isFavItem() {
+		return parentFolder != null && parentFolder == parent.favorite();
+	}
+
+	public ArrayList<ChannelFolder> subfolders() {
+		return subfolders;
+	}
+
+	public void remove() {
+		if(parentFolder != null)
+			parentFolder.subfolders().remove(this);
 	}
 }

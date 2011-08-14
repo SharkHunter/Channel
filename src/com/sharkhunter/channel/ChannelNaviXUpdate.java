@@ -92,14 +92,37 @@ public class ChannelNaviXUpdate {
 		fetchListId(listName);		
 	}
 	
-	public static void update(String name,String url) throws Exception {
+	private static void upload(String query) throws Exception {
 		if(ChannelUtil.empty(listId)||ChannelUtil.empty(naviCookie))
 			throw new Exception("NaviXupdater missing listId or cookie");
+		Channels.debug("about to upload "+query);
 		URL u=new URL(upUrl);
-		String query="action=item_save&id=0&list_id="+listId+"&text_local=0&"+
-			"list_pos=top&type=plx&name="+name+"&URL="+ChannelUtil.escape(url);
 		String s=ChannelUtil.postPage(u.openConnection(), query,naviCookie,null);
 		Channels.debug("navixup res "+s);
+	}
+	
+	public static void updatePlx(String name,String url) throws Exception {
+		String query="action=item_save&id=0&list_id="+listId+"&text_local=0&"+
+			"list_pos=top&type=plx&name="+ChannelUtil.escape(name)+"&URL="+ChannelUtil.escape(url);
+		upload(query);
+	}
+	
+	public static void updateMedia(String name,String url,String proc,int format,String thumb) throws Exception {
+		if(ChannelUtil.empty(proc)) // just to make sure
+			proc="";
+		if(ChannelUtil.empty(thumb))
+			thumb="";
+		String query="action=item_save&id=0&list_id="+listId+"&text_local=0&"+
+		"list_pos=top&type="+ChannelUtil.format2str(format).toLowerCase()+
+		"&name="+ChannelUtil.escape(name)+
+		"&thumb="+ChannelUtil.escape(thumb)+
+		"&URL="+ChannelUtil.escape(url)+
+		"&processor="+ChannelUtil.escape(proc);
+		upload(query);
+	}
+	
+	public static boolean active() {
+		return (!ChannelUtil.empty(listId))&&(!ChannelUtil.empty(naviCookie));
 	}
 
 }

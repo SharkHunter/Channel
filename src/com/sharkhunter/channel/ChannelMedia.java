@@ -315,4 +315,5 @@ public class ChannelMedia implements ChannelProps,ChannelScraper {
 		sb.append("\n}\n");
 		return sb.toString();
 	}
+	
 }
