@@ -10,7 +10,7 @@ script {
             def quotedURI = quoteURI($URI)
             $HOOK = [ SOPCAST, quotedURI ]
             $URI = SOPCAST_URI ?: 'http://127.0.0.1:8902/stream'
-			$PARAMS.waitbeforestart = 30000L
+			$PARAMS.waitbeforestart = 15000L
             // in the absence of a $BEFORE hook, try using MEncoder, which
             // may handle a missing network connection more gracefully (i.e. with retries)
             // Thanks to SharkHunter for the suggestion:

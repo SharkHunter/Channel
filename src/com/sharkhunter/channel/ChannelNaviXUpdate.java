@@ -107,17 +107,23 @@ public class ChannelNaviXUpdate {
 		upload(query);
 	}
 	
-	public static void updateMedia(String name,String url,String proc,int format,String thumb) throws Exception {
+	public static void updateMedia(String name,String url,String proc,int format,
+			String thumb,String imdb) throws Exception {
 		if(ChannelUtil.empty(proc)) // just to make sure
 			proc="";
 		if(ChannelUtil.empty(thumb))
 			thumb="";
+		if(ChannelUtil.empty(imdb))
+			imdb="";
+		else
+			imdb="imdb="+imdb+"!";
 		String query="action=item_save&id=0&list_id="+listId+"&text_local=0&"+
 		"list_pos=top&type="+ChannelUtil.format2str(format).toLowerCase()+
 		"&name="+ChannelUtil.escape(name)+
 		"&thumb="+ChannelUtil.escape(thumb)+
 		"&URL="+ChannelUtil.escape(url)+
-		"&processor="+ChannelUtil.escape(proc);
+		"&processor="+ChannelUtil.escape(proc)+
+		"&description="+ChannelUtil.escape(imdb);
 		upload(query);
 	}
 	

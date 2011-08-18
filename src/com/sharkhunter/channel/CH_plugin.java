@@ -1,14 +1,20 @@
 package com.sharkhunter.channel;
 import net.pms.PMS;
+import net.pms.configuration.RendererConfiguration;
 import net.pms.dlna.DLNAMediaInfo;
 import net.pms.dlna.DLNAResource;
+import net.pms.encoders.Player;
 import net.pms.external.AdditionalFolderAtRoot;
+import net.pms.external.FinalizeTranscoderArgsListener;
 import net.pms.external.StartStopListener;
+import net.pms.io.OutputParams;
 
 import javax.swing.*;
 import java.io.*;
+import java.util.List;
 
-public class CH_plugin implements AdditionalFolderAtRoot, StartStopListener {
+public class CH_plugin implements AdditionalFolderAtRoot, StartStopListener
+						, FinalizeTranscoderArgsListener {
 
 	private static final long DEFAULT_POLL_INTERVAL=20000;
 	private Channels chRoot;
@@ -100,6 +106,21 @@ public class CH_plugin implements AdditionalFolderAtRoot, StartStopListener {
 	public void nowPlaying(DLNAMediaInfo arg0, DLNAResource arg1) {
 		if(arg1 instanceof ChannelMediaStream)
 			((ChannelMediaStream)arg1).nowPlaying();
+	}
+
+	@Override
+	public List<String> finalizeTranscoderArgs(Player player, String name,
+			DLNAResource res, DLNAMediaInfo media, OutputParams params,
+			List<String> cmdList) {
+		if(!player.name().equals("PMSEncoder")) // skip all other
+			return cmdList;
+		RendererConfiguration render=params.mediaRenderer;
+		if(render==null)
+			return cmdList;
+		if(!render.isXBOX()) // this only applies to XBOX
+			return cmdList;
+		// So now we no that we are talking to an XBOX
+		return cmdList;
 	}
 	
 }

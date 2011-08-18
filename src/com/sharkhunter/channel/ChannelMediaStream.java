@@ -15,6 +15,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 
 import net.pms.PMS;
+import net.pms.configuration.FormatConfiguration;
 import net.pms.configuration.RendererConfiguration;
 import net.pms.dlna.DLNAMediaInfo;
 import net.pms.dlna.DLNAResource;
@@ -40,6 +41,7 @@ public class ChannelMediaStream extends DLNAResource {
 	private long startTime;
 	private boolean noSubs;
 	private String imdb;
+	private RendererConfiguration render;
 	
 	public ChannelMediaStream(Channel ch,String name,String nextUrl,
 			  String thumb,String proc,int type,int asx,
@@ -72,10 +74,15 @@ public class ChannelMediaStream extends DLNAResource {
 		startTime=0;
 		noSubs=false;
 		imdb=null;
+		render=null;
 	}
 	
 	public void noSubs() {
 		noSubs=true;
+	}
+	
+	public void setRender(RendererConfiguration r) {
+		render=r;
 	}
 	
 	
@@ -217,6 +224,14 @@ public class ChannelMediaStream extends DLNAResource {
     }
 
 	public boolean isValid() {
+		if(render!=null&&render.isXBOX()&&(format==Format.VIDEO)) {
+			ext = PMS.get().getAssociatedExtension("dummy.avi");
+			if(media==null)
+				media=new DLNAMediaInfo();
+			media.mimeType=FormatConfiguration.MIMETYPE_AUTO;
+			media.mediaparsed=true;
+			return true;
+		}
 		checktype();
 		return true;
 	}

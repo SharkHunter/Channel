@@ -53,18 +53,22 @@ public class ChannelPMSSaveFolder extends VirtualFolder {
 	public void discoverChildren() {
 		ChannelMediaStream cms=new ChannelMediaStream(ch,"SAVE&PLAY",url,thumb,proc,type,asx,scraper,name,name);
 		cms.setImdb(imdb);
+		cms.setRender(this.defaultRenderer);
 		addChild(cms);
 		cms=new ChannelMediaStream(ch,"PLAY",url,thumb,proc,type,asx,scraper,name,null);
 		cms.setImdb(imdb);
+		cms.setRender(this.defaultRenderer);
 		addChild(cms);
 		if(Channels.doSubs()&&subs) {
 			cms=new ChannelMediaStream(ch,"SAVE&PLAY - No Subs",url,thumb,proc,type,asx,scraper,name,name);
 			cms.noSubs();
 			cms.setImdb(imdb);
+			cms.setRender(this.defaultRenderer);
 			addChild(cms);
 			cms=new ChannelMediaStream(ch,"PLAY - No Subs",url,thumb,proc,type,asx,scraper,name,null);
 			cms.noSubs();
 			cms.setImdb(imdb);
+			cms.setRender(this.defaultRenderer);
 			addChild(cms);
 		}
 		final ChannelOffHour oh=Channels.getOffHour();
@@ -87,7 +91,7 @@ public class ChannelPMSSaveFolder extends VirtualFolder {
 			addChild(new VirtualVideoAction("Upload to NaviX",true) { //$NON-NLS-1$
 				public boolean enable() {
 					try {
-						ChannelNaviXUpdate.updateMedia(rName, url, proc, type,thumb);
+						ChannelNaviXUpdate.updateMedia(rName, url, proc, type,thumb,imdb);
 					} catch (Exception e) {
 					}
 					return true;

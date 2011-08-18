@@ -46,13 +46,19 @@ public class ChannelNaviX extends VirtualFolder implements ChannelScraper {
 		ignoreFav=true;
 	}
 	
+	private String washName(String name) {
+		name=name.replaceAll("\\[[^]]*\\]","");
+		return name;
+	}
+	
 	private void addMedia(String name,String nextUrl,String thumb,String proc,String type,String pp,
-			DLNAResource res) {
+			DLNAResource res,String imdb) {
 		if(type!=null) {
 			if(pp!=null)
 				nextUrl=nextUrl+pp;
 			if(!ChannelUtil.empty(thumb)&&thumb.equalsIgnoreCase("default"))
 				thumb=null;
+			name=washName(name);
 			parent.debug("url "+nextUrl+" type "+type+" processor "+proc+" name "+name);
 			if(type.equalsIgnoreCase("playlist")) {
 				String cn=ChannelUtil.getPropertyValue(props, "continue_name");
@@ -99,14 +105,20 @@ public class ChannelNaviX extends VirtualFolder implements ChannelScraper {
 					asx=ChannelUtil.ASXTYPE_AUTO;
 				else
 					asx=ChannelUtil.ASXTYPE_NONE;
+				if(ChannelUtil.empty(imdb))
+					imdb=imdbId;
 				if(Channels.save()) {
 					ChannelPMSSaveFolder sf=new ChannelPMSSaveFolder(parent,name,nextUrl,thumb,proc,
 							asx,f,this);
+					sf.setImdb(imdb);
 					res.addChild(sf);
 				}
 				else {
-					res.addChild(new ChannelMediaStream(parent,name,nextUrl,thumb,proc,
-							f,asx,this));
+					ChannelMediaStream cms=new ChannelMediaStream(parent,name,nextUrl,thumb,proc,
+							f,asx,this);
+					cms.setImdb(imdb);
+					cms.setRender(this.defaultRenderer);
+					res.addChild(cms);
 				}
 			}
 		}
@@ -115,6 +127,7 @@ public class ChannelNaviX extends VirtualFolder implements ChannelScraper {
 	public void readPlx(String str,DLNAResource res) {
 		// The URL found in the cf points to a NaviX playlist
 		// (or similar) fetch and parse
+		Pattern re=Pattern.compile("imdb=([^!]+)!");
 		URL urlobj=null;
 		try {
 			urlobj = new URL(str);
@@ -136,16 +149,18 @@ public class ChannelNaviX extends VirtualFolder implements ChannelScraper {
 		String proc=null;
 		String type=null;
 		String playpath=null;
+		String imdb=null;
 		for(int i=0;i<lines.length;i++) {
 			String line=lines[i].trim();
 			if(ChannelUtil.ignoreLine(line)) { // new block
-				addMedia(name,nextUrl,thumb,proc,type,playpath,res);
+				addMedia(name,nextUrl,thumb,proc,type,playpath,res,imdb);
 				name=null;
 				nextUrl=null;
 				thumb=null;
 				proc=null;
 				type=null;
 				playpath=null;
+				imdb=null;
 				continue;
 			}
 			if(line.startsWith("URL="))
@@ -160,9 +175,18 @@ public class ChannelNaviX extends VirtualFolder implements ChannelScraper {
 				type=line.substring(5);	
 			else if(line.startsWith("playpath="))
 				playpath=line.substring(9);
+			else if(line.startsWith("description=")) {
+				int pos=line.indexOf("/description",12 );
+				if(pos==-1)
+					continue;
+				String descr=line.substring(12,pos);
+				Matcher m=re.matcher(descr);
+				if(m.find())
+					imdb=m.group(1);
+			}
 		}
 		// add last item
-		addMedia(name,nextUrl,thumb,proc,type,playpath,res);
+		addMedia(name,nextUrl,thumb,proc,type,playpath,res,imdb);
 	}
 	
 	public void discoverChildren() {

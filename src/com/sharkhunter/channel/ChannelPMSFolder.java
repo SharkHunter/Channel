@@ -14,6 +14,7 @@ public class ChannelPMSFolder extends VirtualFolder implements ChannelFilter{
 		private String url;
 		private String imdb;
 		
+		private boolean thumbScriptRun;
 		private boolean favorized;
 		
 		public ChannelPMSFolder(ChannelFolder cf,char ch) {
@@ -34,6 +35,7 @@ public class ChannelPMSFolder extends VirtualFolder implements ChannelFilter{
 			this.filter=filter;
 			this.url=url;
 			favorized=false;
+			thumbScriptRun=false;
 		}
 		
 		public void setImdb(String imdb) {
@@ -42,6 +44,10 @@ public class ChannelPMSFolder extends VirtualFolder implements ChannelFilter{
 		
 		public void discoverChildren() {
 			try {
+				if(!thumbScriptRun) {
+					thumbnailIcon=ChannelScriptMgr.runScript(cf.thumbScript(), thumbnailIcon,cf.getChannel());
+					thumbScriptRun=true;
+				}
 				if(!cf.ignoreFav()) {
 					// Add bookmark action
 					final ChannelPMSFolder cb=this;
@@ -99,6 +105,7 @@ public class ChannelPMSFolder extends VirtualFolder implements ChannelFilter{
 			try {
 				//thumbnailIcon=ChannelNaviXProc.simple(thumbnailIcon, cf.thumbScript());
 				thumbnailIcon=ChannelScriptMgr.runScript(cf.thumbScript(), thumbnailIcon,cf.getChannel());
+				thumbScriptRun=true;
 				return downloadAndSend(thumbnailIcon,true);
 			}
 			catch (Exception e) {
