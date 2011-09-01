@@ -132,6 +132,10 @@ public class ChannelMedia implements ChannelProps,ChannelScraper {
 		}
 	}
 	
+	public void overrideFormat(int f) {
+		format=f;
+	}
+	
 	public ChannelMatcher getMatcher() {
 		return matcher;
 	}

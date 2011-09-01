@@ -30,12 +30,13 @@ public class ChannelFolder implements ChannelProps, SearchObj{
 	public static final int TYPE_RECURSE=6;
 	public static final int TYPE_SEARCH=7;
 	public static final int TYPE_NAVIX_SEARCH=8;
+	public static final int TYPE_ACTION=9;	
 	
 	public boolean Ok;
 	
 	private String name;
 	private String url;
-	private String format;
+	private int format;
 	private int type;
 	private String[] prop;
 	
@@ -46,6 +47,7 @@ public class ChannelFolder implements ChannelProps, SearchObj{
 	private ChannelFolder parentFolder;
 	private ArrayList<ChannelItem> items;
 	private ArrayList<ChannelMedia> medias; 
+	private ArrayList<ChannelSwitch> switches;
 	
 	private int continues;
 	private boolean contAll;
@@ -69,6 +71,9 @@ public class ChannelFolder implements ChannelProps, SearchObj{
 	private String staticThumb;
 	
 	private boolean ignoreFav;
+	
+	private String actionName;
+	private String[] action_prop;
 	
 	public ChannelFolder(ArrayList<String> data,Channel parent) {
 		this(data,parent,null);
@@ -96,6 +101,9 @@ public class ChannelFolder implements ChannelProps, SearchObj{
 		group=cf.group;
 		imdbId=cf.imdbId;
 		ignoreFav=cf.ignoreFav;
+		switches=cf.switches;
+		actionName=cf.actionName;
+		action_prop=cf.action_prop;
 	}
 	
 	public ChannelFolder(ArrayList<String> data,Channel parent,ChannelFolder pf) {
@@ -107,12 +115,15 @@ public class ChannelFolder implements ChannelProps, SearchObj{
 		subfolders=new ArrayList<ChannelFolder>();
 		items=new ArrayList<ChannelItem>();
 		medias=new ArrayList<ChannelMedia>();
+		switches=new ArrayList<ChannelSwitch>();
 		contAll=false;
 		continues=Channels.DeafultContLim;
 		pre_script=null;
 		post_script=null;
 		proxy=null;
 		ignoreFav=false;
+		actionName="";
+		action_prop=null;
 		hdrs=new HashMap<String,String>();
 		if(pf!=null)
 			hdrs.putAll(pf.hdrs);
@@ -124,6 +135,8 @@ public class ChannelFolder implements ChannelProps, SearchObj{
 			contAll=true;
 		if(isSearch())
 			setSearchId();
+		if(!ChannelUtil.empty(actionName))
+			parent.addAction(this);
 		Ok=true;
 	}
 	
@@ -163,6 +176,14 @@ public class ChannelFolder implements ChannelProps, SearchObj{
 					medias.add(med);
 				continue;
 			}
+			if(line.contains("switch {")) {
+				ArrayList<String> m=ChannelUtil.gatherBlock(data,i+1);
+				i+=m.size();
+				ChannelSwitch sw=new ChannelSwitch(m,parent);
+				if(sw.Ok)
+					switches.add(sw);
+				continue;
+			}
 			String[] keyval=line.split("\\s*=\\s*",2);
 			if(keyval.length<2)
 				continue;
@@ -179,8 +200,11 @@ public class ChannelFolder implements ChannelProps, SearchObj{
 				type=parseType(keyval[1]);
 			if(keyval[0].equalsIgnoreCase("url"))
 				url=keyval[1];
-			if(keyval[0].equalsIgnoreCase("format"))
-				format=keyval[1];
+			if(keyval[0].equalsIgnoreCase("format")) {
+				int f=ChannelUtil.getFormat(keyval[1]);
+				if(f!=-1)
+					format=f;
+			}				
 			if(keyval[0].equalsIgnoreCase("prop"))	
 				prop=keyval[1].trim().split(",");
 			if(keyval[0].equalsIgnoreCase("matcher")) {
@@ -217,7 +241,7 @@ public class ChannelFolder implements ChannelProps, SearchObj{
 				proxy=keyval[1];
 			}
 			if(keyval[0].equalsIgnoreCase("hdr")) {
-				String[] k1=keyval[1].split("=");
+				String[] k1=keyval[1].split("=",2);
 				if(k1.length<2)
 					continue;
 				hdrs.put(k1[0], k1[1]);
@@ -226,6 +250,10 @@ public class ChannelFolder implements ChannelProps, SearchObj{
 				staticThumb=keyval[1];
 			if(keyval[0].equalsIgnoreCase("imdb"))
 				imdbId=keyval[1];
+			if(keyval[0].equalsIgnoreCase("action_name"))
+				actionName=keyval[1];
+			if(keyval[0].equalsIgnoreCase("action_prop"))	
+				action_prop=keyval[1].trim().split(",");
 		}
 	}
 	
@@ -265,6 +293,10 @@ public class ChannelFolder implements ChannelProps, SearchObj{
 		return sub;
 	}
 	
+	public String actionName() {
+		return actionName;
+	}
+	
 	public void addSubFolder(ChannelFolder f) {
 		subfolders.add(f);
 		f.parentFolder = this;
@@ -293,6 +325,8 @@ public class ChannelFolder implements ChannelProps, SearchObj{
 			return ChannelFolder.TYPE_SEARCH;
 		if(t.compareToIgnoreCase("navix_search")==0)
 			return ChannelFolder.TYPE_NAVIX_SEARCH;
+		if(t.compareToIgnoreCase("action")==0)
+			return ChannelFolder.TYPE_ACTION;
 		return ChannelFolder.TYPE_NORMAL;
 	}
 	
@@ -475,10 +509,12 @@ public class ChannelFolder implements ChannelProps, SearchObj{
 		ArrayList<ChannelMedia> med=medias;
 		ArrayList<ChannelItem> ite=items;
 		ArrayList<ChannelFolder> fol=subfolders;
+		ArrayList<ChannelSwitch> swi=switches;
 		if(type==ChannelFolder.TYPE_RECURSE) {
 			med=parentFolder.medias;
 			ite=parentFolder.items;
 			fol=parentFolder.subfolders;
+			swi=parentFolder.switches;
 		}
 		// 1st Media
 		// Channels.debug("matching media "+medias.size());
@@ -513,6 +549,8 @@ public class ChannelFolder implements ChannelProps, SearchObj{
 	    			imdbId=imdb;
 	    		Channels.debug("media imdb "+imdbId);
 	    		m1.add(res, someName, mUrl, thumb,ChannelUtil.getProperty(prop, "auto_asx"),imdbId);
+	    		if(format!=-1)
+	    			m1.overrideFormat(format);
 	    		m1.stash("playpath",playpath);
 	    		m1.stash("swfVfy",swfplayer);
 	    		if(m1.onlyFirst())
@@ -545,11 +583,32 @@ public class ChannelFolder implements ChannelProps, SearchObj{
 	    			break;
 	    	}
 	    } 
+	    // 3rd channel switches
+	    for(int i=0;i<swi.size();i++) {
+	    	ChannelSwitch sw=switches.get(i);
+	    	Channel ch=Channels.findChannel(sw.getName());
+	    	if(ch==null)
+	    		continue;
+	    	ChannelMatcher m=sw.matcher;
+	    	m.startMatch(page);
+	    	parent.debug("switch matching using expr "+m.getRegexp().pattern());
+	    	while(m.match()) {
+	    		String someName=m.getMatch("name",false);
+	    		if(filter!=null&&!filter.filter(someName))
+	    			continue;
+	    		String fUrl=m.getMatch("url",true);
+	    		String thumb=m.getMatch("thumb",false);
+	    		parent.debug("matched "+someName+" url "+fUrl);
+	    		res.addChild(new ChannelPMSSwitch(ch,sw,someName,null,fUrl,thumb));
+	    	}
+	    }
 	    // last but not least folders
 		parent.debug("subfolders "+fol.size());
 	    for(int i=0;i<fol.size();i++) {
 	    	ChannelFolder cf=fol.get(i);
 	    	ChannelMatcher m=cf.matcher;
+	    	if(cf.type==TYPE_ACTION)
+	    		continue;
 	    	if(cf.isATZ()) {
     			res.addChild(new ChannelATZ(cf,urlEnd));
     			continue;
@@ -851,5 +910,15 @@ public class ChannelFolder implements ChannelProps, SearchObj{
 	public void remove() {
 		if(parentFolder != null)
 			parentFolder.subfolders().remove(this);
+	}
+	
+	public void action(DLNAResource res,ChannelFilter filter,String urlEnd,
+			String pThumb,String nName,String imdb) throws MalformedURLException {
+		parent.debug("cf action called");
+		String[] old_prop=prop;
+		if(action_prop!=null)
+			prop=action_prop;
+		match(res,filter,urlEnd,pThumb,nName,imdb);
+		prop=old_prop;
 	}
 }

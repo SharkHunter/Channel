@@ -21,6 +21,7 @@ public class Channel extends VirtualFolder {
 	
 	private ArrayList<ChannelFolder> folders;
 	private ArrayList<ChannelMacro> macros;
+	private ArrayList<ChannelFolder> actions;
 	
 	private ChannelCred cred;
 	private ChannelLogin logObj;
@@ -49,6 +50,7 @@ public class Channel extends VirtualFolder {
 		activeProxy=null;
 		hdrs=new HashMap<String,String>();
 		searchFolders=new HashMap<String,SearchObj>();
+		actions=new ArrayList<ChannelFolder>();
 		Ok=true;
 	}
 	
@@ -85,13 +87,9 @@ public class Channel extends VirtualFolder {
 					PMS.debug("unknown macro "+keyval[1]);
 			}
 			if(keyval[0].equalsIgnoreCase("format")) {
-				if(keyval[1].equalsIgnoreCase("video"))
-					format=Format.VIDEO;
-				if(keyval[1].equalsIgnoreCase("audio"))
-					format=Format.AUDIO;
-				if(keyval[1].equalsIgnoreCase("image"))
-					format=Format.IMAGE;
-				
+				int f=ChannelUtil.getFormat(keyval[1]);
+				if(f!=-1)
+					format=f;
 			}
 			if(keyval[0].equalsIgnoreCase("img")) {
 				thumbnailIcon=keyval[1];
@@ -194,8 +192,11 @@ public class Channel extends VirtualFolder {
 	public void discoverChildren(String s) {
 		discoverChildren();
 	}
-	
 	public void discoverChildren() {
+		discoverChildren(this);
+	}
+	
+	public void discoverChildren(DLNAResource res) {
 		if(favorite!=null)
 			try {
 				favorite.match(this);
@@ -323,5 +324,55 @@ public class Channel extends VirtualFolder {
 	
 	public ChannelFolder favorite() {
 		return favorite;
+	}
+	
+	///////////////////////////////////////////////
+	// Action handling
+	///////////////////////////////////////////////
+	
+	public void addAction(ChannelFolder cf) {
+		debug("adding action "+cf.actionName());
+		actions.add(cf);
+	}
+	
+	public void action(ChannelSwitch swi,String name,String url,String thumb,DLNAResource res) {
+		String action=swi.getAction();
+		String rUrl=swi.runScript(url);
+		debug("action "+action+" mangled url "+rUrl+" actions "+actions.size());
+		for(int i=0;i<actions.size();i++) {
+			/*ChannelAction a=actions.get(i);
+			if(!action.equals(a.name())) // not this action
+				continue;*/
+			ChannelFolder cf=actions.get(i);
+			debug("cf action "+cf.actionName());
+			if(!action.equals(cf.actionName()))
+				continue;
+			try {
+				cf.action(res,null,rUrl,thumb,name,null);
+			} catch (MalformedURLException e) {
+			}
+			return;
+		}
+	}
+	
+	private void open(DLNAResource res,String[] names,int pos,DLNAResource child) {
+		ArrayList<DLNAResource> children=child.getChildren();
+		for(int j=0;j<children.size();j++) {
+			DLNAResource nxt=children.get(j);
+			if(!names[pos].equals(nxt.getDisplayName()))
+				continue;
+			if((pos+1)==names.length) { // all done
+				res.addChild(nxt);
+				return;
+			}
+			open(res,names,pos+1,nxt);
+			return;
+		}
+	}
+	
+	public void open(DLNAResource res,String[] names) {
+		DLNAResource tmp=new VirtualFolder("",null);
+		discoverChildren(tmp);
+		open(res,names,0,tmp);
 	}
 }

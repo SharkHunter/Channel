@@ -64,7 +64,7 @@ public class ChannelUtil {
 			String c1=ChannelCookie.getCookie(url.toString());
 			if(!empty(c1)) {
 				if(!cookieContains(c1,cookie))
-						cookie=append(cookie,"; ",ChannelCookie.getCookie(url.toString()));
+					cookie=append(cookie,"; ",c1);
 			}
 			if(!empty(cookie))
 				connection.setRequestProperty("Cookie",cookie);
@@ -125,8 +125,9 @@ public class ChannelUtil {
 			}
 			String c1=ChannelCookie.getCookie(url.toString());
 			if(!empty(c1)) {
-				if(!cookieContains(c1,cookie))
-					cookie=append(cookie,"; ",ChannelCookie.getCookie(url.toString()));
+				if(!cookieContains(c1,cookie)) {
+					cookie=append(cookie,"; ",c1);
+				}
 			}
 			if(!empty(cookie))
 				connection.setRequestProperty("Cookie",cookie);
@@ -264,6 +265,9 @@ public class ChannelUtil {
 	}
 	
 	public static String append(String res,String sep,String data) {
+		res=ChannelUtil.separatorToken(res);
+		data=ChannelUtil.separatorToken(data);
+		sep=ChannelUtil.separatorToken(sep);
   	  	if(empty(res))
   	  		return data;
   	  	if(empty(data))
@@ -762,7 +766,7 @@ public class ChannelUtil {
 		if(str.equals("###0")) // this is space :)
 			return " ";
 		if(str.equals("###n")) // this is newline
-			return "\n\r";
+			return "\r\n";
 		return str;
 	}
 	
@@ -842,5 +846,4 @@ public class ChannelUtil {
 			return "normal";
 		}
 	}
-	
 }

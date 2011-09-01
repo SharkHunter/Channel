@@ -220,6 +220,7 @@ public class ChannelLogin {
 				return a1;
 			}
 		}
+		Channels.debug("okidoki");
 		ChannelProxy proxy=a.proxy;
 		if(proxy==null)
 			proxy=ChannelProxy.NULL_PROXY;
@@ -239,7 +240,6 @@ public class ChannelLogin {
 			 HttpsURLConnection.setFollowRedirects(true);
 			((HttpsURLConnection) connection).setInstanceFollowRedirects(true);   
 			((HttpsURLConnection) connection).setRequestMethod(method);
-			Channels.debug("post page");
 			String page=ChannelUtil.postPage(connection, query);
 			if(ChannelUtil.empty(page))
 				return null;
