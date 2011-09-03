@@ -115,7 +115,7 @@ public class ChannelMedia implements ChannelProps,ChannelScraper {
 				subtitle=keyval[1].split(",");
 			}
 			if(keyval[0].equalsIgnoreCase("format")) {
-				format=ChannelUtil.getFormat(keyval[1]);
+				format=ChannelUtil.getFormat(keyval[1],format);
 			}
 			if(keyval[0].equalsIgnoreCase("url")) {
 				staticUrl=keyval[1];

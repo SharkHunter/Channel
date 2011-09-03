@@ -87,9 +87,7 @@ public class Channel extends VirtualFolder {
 					PMS.debug("unknown macro "+keyval[1]);
 			}
 			if(keyval[0].equalsIgnoreCase("format")) {
-				int f=ChannelUtil.getFormat(keyval[1]);
-				if(f!=-1)
-					format=f;
+				format=ChannelUtil.getFormat(keyval[1],format);
 			}
 			if(keyval[0].equalsIgnoreCase("img")) {
 				thumbnailIcon=keyval[1];

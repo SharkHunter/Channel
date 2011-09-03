@@ -743,13 +743,17 @@ public class ChannelUtil {
 	}
 	
 	public static int getFormat(String type) {
+		return getFormat(type,-1);
+	}
+	
+	public static int getFormat(String type,int def) {
 		if(type.equalsIgnoreCase("image"))
 			return Format.IMAGE;
 		if(type.equalsIgnoreCase("video"))
 			return Format.VIDEO;
 		if(type.equalsIgnoreCase("audio"))
 			return Format.AUDIO;
-		return -1;
+		return def;
 	}
  
 	public static Proxy proxy(ChannelAuth a) {

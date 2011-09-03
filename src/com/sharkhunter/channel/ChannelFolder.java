@@ -124,6 +124,7 @@ public class ChannelFolder implements ChannelProps, SearchObj{
 		ignoreFav=false;
 		actionName="";
 		action_prop=null;
+		format=-1;
 		hdrs=new HashMap<String,String>();
 		if(pf!=null)
 			hdrs.putAll(pf.hdrs);
@@ -201,9 +202,7 @@ public class ChannelFolder implements ChannelProps, SearchObj{
 			if(keyval[0].equalsIgnoreCase("url"))
 				url=keyval[1];
 			if(keyval[0].equalsIgnoreCase("format")) {
-				int f=ChannelUtil.getFormat(keyval[1]);
-				if(f!=-1)
-					format=f;
+				format=ChannelUtil.getFormat(keyval[1],format);
 			}				
 			if(keyval[0].equalsIgnoreCase("prop"))	
 				prop=keyval[1].trim().split(",");
