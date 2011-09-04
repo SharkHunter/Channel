@@ -15,6 +15,7 @@ public class ChannelPMSSwitch extends VirtualFolder implements ChannelFilter{
 	private boolean thumbScriptRun;
 	private boolean favorized;
 	
+	private int format;	
 	
 	public ChannelPMSSwitch(Channel dst,ChannelSwitch cs,String name,String filter,String url,String thumb) {
 		super(name==null?"":StringEscapeUtils.unescapeHtml(name),thumb);
@@ -22,12 +23,22 @@ public class ChannelPMSSwitch extends VirtualFolder implements ChannelFilter{
 		this.filter=filter;
 		this.url=url;
 		this.dstCh=dst;
+		format=-1;
 		favorized=false;
 		thumbScriptRun=false;
 	}
 	
+	public void setFormat(int f) {
+		if(f==-1)
+			return;
+		format=f;
+	}
+	
 	public void discoverChildren() {
-		dstCh.action(cs, null, url, thumbnailIcon, this);
+		int f=format;
+		if(f==-1)
+			f=cs.getFormat();
+		dstCh.action(cs, null, url, thumbnailIcon, this,f);
 	}
 
 

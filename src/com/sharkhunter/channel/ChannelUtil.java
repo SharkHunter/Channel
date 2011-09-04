@@ -443,6 +443,8 @@ public class ChannelUtil {
 	
 	public static String createMediaUrl(HashMap<String,String> vars,int format,Channel ch) {
 		String rUrl=vars.get("url");
+		if(empty(rUrl)) // what do we do?
+			return null;
 		int rtmpMet=Channels.rtmpMethod();
 		String type=vars.get("__type__");
 		Channels.debug("create media url entry "+rUrl+" format "+format+" type "+type);

@@ -4,6 +4,7 @@ import java.io.InputStream;
 
 import net.pms.dlna.virtual.VirtualFolder;
 import net.pms.dlna.virtual.VirtualVideoAction;
+import net.pms.formats.Format;
 
 public class ChannelPMSSaveFolder extends VirtualFolder {
 	
@@ -14,7 +15,7 @@ public class ChannelPMSSaveFolder extends VirtualFolder {
 	private String proc;
 	private int asx;
 	private ChannelScraper scraper;
-	private int type;
+	private int f;
 	private long childDone;
 	private String imdb;
 	private boolean subs;
@@ -32,7 +33,7 @@ public class ChannelPMSSaveFolder extends VirtualFolder {
 		this.ch=ch;
 		this.asx=asx;
 		this.scraper=scraper;
-		this.type=type;
+		this.f=type;
 		childDone=0;
 		imdb=null;
 		subs=true;
@@ -51,26 +52,7 @@ public class ChannelPMSSaveFolder extends VirtualFolder {
 	}
 	
 	public void discoverChildren() {
-		ChannelMediaStream cms=new ChannelMediaStream(ch,"SAVE&PLAY",url,thumb,proc,type,asx,scraper,name,name);
-		cms.setImdb(imdb);
-		cms.setRender(this.defaultRenderer);
-		addChild(cms);
-		cms=new ChannelMediaStream(ch,"PLAY",url,thumb,proc,type,asx,scraper,name,null);
-		cms.setImdb(imdb);
-		cms.setRender(this.defaultRenderer);
-		addChild(cms);
-		if(Channels.doSubs()&&subs) {
-			cms=new ChannelMediaStream(ch,"SAVE&PLAY - No Subs",url,thumb,proc,type,asx,scraper,name,name);
-			cms.noSubs();
-			cms.setImdb(imdb);
-			cms.setRender(this.defaultRenderer);
-			addChild(cms);
-			cms=new ChannelMediaStream(ch,"PLAY - No Subs",url,thumb,proc,type,asx,scraper,name,null);
-			cms.noSubs();
-			cms.setImdb(imdb);
-			cms.setRender(this.defaultRenderer);
-			addChild(cms);
-		}
+		final ChannelPMSSaveFolder me=this;
 		final ChannelOffHour oh=Channels.getOffHour();
 		if(oh!=null) {
 			final boolean add=!oh.scheduled(url);
@@ -78,9 +60,11 @@ public class ChannelPMSSaveFolder extends VirtualFolder {
 			addChild(new VirtualVideoAction((add?"ADD to ":"DELETE from ")+
 											"offhour download", true) { //$NON-NLS-1$
 				public boolean enable() {
+					if(me.preventAutoPlay())
+						return false;
 					String rUrl=url;
 					if(scraper!=null)
-						rUrl=scraper.scrape(ch, url, proc, type, this,false,null);
+						rUrl=scraper.scrape(ch, url, proc, f, this,false,null);
 					oh.update(rUrl, rName, add);
 					return add;
 				}
@@ -91,12 +75,34 @@ public class ChannelPMSSaveFolder extends VirtualFolder {
 			addChild(new VirtualVideoAction("Upload to NaviX",true) { //$NON-NLS-1$
 				public boolean enable() {
 					try {
-						ChannelNaviXUpdate.updateMedia(rName, url, proc, type,thumb,imdb);
+						if(me.preventAutoPlay())
+							return false;
+						ChannelNaviXUpdate.updateMedia(rName, url, proc, f,thumb,imdb);
 					} catch (Exception e) {
 					}
 					return true;
 				}
 			});
+		}
+		ChannelMediaStream cms=new ChannelMediaStream(ch,"SAVE&PLAY",url,thumb,proc,f,asx,scraper,name,name);
+		cms.setImdb(imdb);
+		cms.setRender(this.defaultRenderer);
+		addChild(cms);
+		cms=new ChannelMediaStream(ch,"PLAY",url,thumb,proc,f,asx,scraper,name,null);
+		cms.setImdb(imdb);
+		cms.setRender(this.defaultRenderer);
+		addChild(cms);
+		if(Channels.doSubs()&&subs&&(f==Format.VIDEO)) {
+			cms=new ChannelMediaStream(ch,"SAVE&PLAY - No Subs",url,thumb,proc,f,asx,scraper,name,name);
+			cms.noSubs();
+			cms.setImdb(imdb);
+			cms.setRender(this.defaultRenderer);
+			addChild(cms);
+			cms=new ChannelMediaStream(ch,"PLAY - No Subs",url,thumb,proc,f,asx,scraper,name,null);
+			cms.noSubs();
+			cms.setImdb(imdb);
+			cms.setRender(this.defaultRenderer);
+			addChild(cms);
 		}
 	}
 	

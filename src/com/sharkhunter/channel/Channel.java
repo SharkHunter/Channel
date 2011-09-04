@@ -333,20 +333,19 @@ public class Channel extends VirtualFolder {
 		actions.add(cf);
 	}
 	
-	public void action(ChannelSwitch swi,String name,String url,String thumb,DLNAResource res) {
+	public void action(ChannelSwitch swi,String name,String url,String thumb,DLNAResource res,int form) {
 		String action=swi.getAction();
 		String rUrl=swi.runScript(url);
-		debug("action "+action+" mangled url "+rUrl+" actions "+actions.size());
+		int f=form;
+		if(f==-1)
+			f=format;
+		debug("action "+action+" mangled url "+rUrl+" format "+f);
 		for(int i=0;i<actions.size();i++) {
-			/*ChannelAction a=actions.get(i);
-			if(!action.equals(a.name())) // not this action
-				continue;*/
 			ChannelFolder cf=actions.get(i);
-			debug("cf action "+cf.actionName());
 			if(!action.equals(cf.actionName()))
 				continue;
 			try {
-				cf.action(res,null,rUrl,thumb,name,null);
+				cf.action(res,null,rUrl,thumb,name,null,f);
 			} catch (MalformedURLException e) {
 			}
 			return;

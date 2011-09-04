@@ -12,12 +12,14 @@ public class ChannelSwitch implements ChannelProps {
 	private String script;
 	private String[] prop;
 	public ChannelMatcher matcher;
+	private int format;
 	
 	private Channel parent;
 	
 	public ChannelSwitch(ArrayList<String> data,Channel parent) {
 		Ok=false;
 		this.parent=parent;
+		format=-1;
 		parse(data);
 		Ok=true;
 	}
@@ -50,7 +52,14 @@ public class ChannelSwitch implements ChannelProps {
 			}
 			if(keyval[0].equalsIgnoreCase("prop"))	
 				prop=keyval[1].trim().split(",");
+			if(keyval[0].equalsIgnoreCase("format"))
+				format=ChannelUtil.getFormat(keyval[1],format);
 		}
+	}
+	
+	public void parentFormat(int f) {
+		if(format==-1)
+			format=f;
 	}
 	
 	public String getName() {
@@ -59,6 +68,10 @@ public class ChannelSwitch implements ChannelProps {
 	
 	public String getAction() {
 		return action;
+	}
+	
+	public int getFormat() {
+		return format;
 	}
 	
 	public String runScript(String url) {

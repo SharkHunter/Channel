@@ -280,6 +280,10 @@ public class ChannelFolder implements ChannelProps, SearchObj{
 		return (type==ChannelFolder.TYPE_SEARCH);
 	}
 	
+	public boolean isActionOnly() {
+		return (type==ChannelFolder.TYPE_ACTION);
+	}
+	
 	public String getProp(String p) {
 		return ChannelUtil.getPropertyValue(prop, p);
 	}
@@ -307,6 +311,10 @@ public class ChannelFolder implements ChannelProps, SearchObj{
 	
 	public boolean ignoreFav() {
 		return ignoreFav||parent.noFavorite();
+	}
+	
+	public int getFormat() {
+		return format;
 	}
 	
 	private int parseType(String t) {
@@ -505,6 +513,14 @@ public class ChannelFolder implements ChannelProps, SearchObj{
 				return;
 			}
 		}
+		int form=format;
+		Channels.debug("format before flipp "+format);
+		if(format==-1) // we don't know our format better get it
+			if(parentFolder!=null)
+				format=parentFolder.getFormat();
+			else
+				format=parent.getFormat();
+		Channels.debug("format after flipp "+format);
 		ArrayList<ChannelMedia> med=medias;
 		ArrayList<ChannelItem> ite=items;
 		ArrayList<ChannelFolder> fol=subfolders;
@@ -517,7 +533,6 @@ public class ChannelFolder implements ChannelProps, SearchObj{
 		}
 		// 1st Media
 		// Channels.debug("matching media "+medias.size());
-		Channels.debug("imdb in is "+imdb);
 	    for(int i=0;i<med.size();i++) {
 	    	ChannelMedia m1=med.get(i);
 	    	ChannelMatcher m=m1.getMatcher();
@@ -546,10 +561,8 @@ public class ChannelFolder implements ChannelProps, SearchObj{
 	    			someName=nName;
 	    		if(ChannelUtil.empty(imdbId))
 	    			imdbId=imdb;
-	    		Channels.debug("media imdb "+imdbId);
-	    		m1.add(res, someName, mUrl, thumb,ChannelUtil.getProperty(prop, "auto_asx"),imdbId);
-	    		if(format!=-1)
-	    			m1.overrideFormat(format);
+	    		m1.add(res, someName, mUrl, thumb,
+	    				ChannelUtil.getProperty(prop, "auto_asx"),imdbId,format);
 	    		m1.stash("playpath",playpath);
 	    		m1.stash("swfVfy",swfplayer);
 	    		if(m1.onlyFirst())
@@ -598,7 +611,9 @@ public class ChannelFolder implements ChannelProps, SearchObj{
 	    		String fUrl=m.getMatch("url",true);
 	    		String thumb=m.getMatch("thumb",false);
 	    		parent.debug("matched "+someName+" url "+fUrl);
-	    		res.addChild(new ChannelPMSSwitch(ch,sw,someName,null,fUrl,thumb));
+	    		ChannelPMSSwitch csp=new ChannelPMSSwitch(ch,sw,someName,null,fUrl,thumb);
+	    		csp.setFormat(format);
+	    		res.addChild(csp);
 	    	}
 	    }
 	    // last but not least folders
@@ -606,7 +621,7 @@ public class ChannelFolder implements ChannelProps, SearchObj{
 	    for(int i=0;i<fol.size();i++) {
 	    	ChannelFolder cf=fol.get(i);
 	    	ChannelMatcher m=cf.matcher;
-	    	if(cf.type==TYPE_ACTION)
+	    	if(cf.isActionOnly()) // pure action folders are skipped
 	    		continue;
 	    	if(cf.isATZ()) {
     			res.addChild(new ChannelATZ(cf,urlEnd));
@@ -712,6 +727,7 @@ public class ChannelFolder implements ChannelProps, SearchObj{
 	    		}
 	    	}
 	    }
+	    format=form;
 	}
 	
 	public String getThumb() { // relic method just return parents thumb
@@ -912,12 +928,16 @@ public class ChannelFolder implements ChannelProps, SearchObj{
 	}
 	
 	public void action(DLNAResource res,ChannelFilter filter,String urlEnd,
-			String pThumb,String nName,String imdb) throws MalformedURLException {
-		parent.debug("cf action called");
+			String pThumb,String nName,String imdb,int f) throws MalformedURLException {
 		String[] old_prop=prop;
+		int old_format=format;
+		if(f!=-1)
+			format=f;
+		Channels.debug("action called "+format);
 		if(action_prop!=null)
 			prop=action_prop;
 		match(res,filter,urlEnd,pThumb,nName,imdb);
 		prop=old_prop;
+		format=old_format;
 	}
 }

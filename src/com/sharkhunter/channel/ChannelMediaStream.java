@@ -107,6 +107,8 @@ public class ChannelMediaStream extends DLNAResource {
     		ext=old_ext;
     		return;
     	}	
+    	if(ext.getProfiles()==null) // no profiles, what do we do? give up
+    		return;
     	// need to update player as well
     	int i=0;
     	Player pl=null;
@@ -217,10 +219,15 @@ public class ChannelMediaStream extends DLNAResource {
     }
 
     public String getSystemName() {
+    	String u;
     	if(ChannelUtil.empty(realUrl))
-    		return url;
-    	else 
-    		return realUrl;
+    		u=url;
+    	else {
+    		u= realUrl;
+    	}
+		if(format==Format.AUDIO)
+			return u.substring(u.lastIndexOf("/")+1);
+		return u;
     }
 
 	public boolean isValid() {

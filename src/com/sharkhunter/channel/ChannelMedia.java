@@ -49,8 +49,6 @@ public class ChannelMedia implements ChannelProps,ChannelScraper {
 		hdrs=new HashMap<String,String>();	
 		hdrs.putAll(parent.getHdrs());
 		parse(data);
-		if(format==-1)
-			format=parent.getFormat();
 		Ok=true;
 	}
 	
@@ -132,10 +130,6 @@ public class ChannelMedia implements ChannelProps,ChannelScraper {
 		}
 	}
 	
-	public void overrideFormat(int f) {
-		format=f;
-	}
-	
 	public ChannelMatcher getMatcher() {
 		return matcher;
 	}
@@ -151,10 +145,14 @@ public class ChannelMedia implements ChannelProps,ChannelScraper {
 	}
 	
 	public void add(DLNAResource res,String nName,String url,String thumb,boolean autoASX) {
-		add(res,nName,url,thumb,autoASX,null);
+		add(res,nName,url,thumb,autoASX,null,-1);
 	}
 	
 	public void add(DLNAResource res,String nName,String url,String thumb,boolean autoASX,String imdb) {
+		add(res,nName,url,thumb,autoASX,imdb,-1);
+	}
+	
+	public void add(DLNAResource res,String nName,String url,String thumb,boolean autoASX,String imdb,int f) {
 		if(!ChannelUtil.empty(thumbURL)) {
 			if(ChannelUtil.getProperty(prop, "use_conf_thumb"))
 				thumb=thumbURL;
@@ -180,22 +178,23 @@ public class ChannelMedia implements ChannelProps,ChannelScraper {
 		if(ChannelUtil.empty(nName))
 			nName="Unknown";
 		nName=StringEscapeUtils.unescapeHtml(nName);
-		parent.debug("found media "+nName+" thumb "+thumb+" url "+url);
+		parent.debug("found media "+nName+" thumb "+thumb+" url "+url+" format "+format);
 		// asx is weird and one would expect mencoder to support it no
 		int asx=ChannelUtil.ASXTYPE_NONE;
 		if(ChannelUtil.getProperty(prop, "auto_asx"))
 			asx=ChannelUtil.ASXTYPE_AUTO;
 		if(type==ChannelMedia.TYPE_ASX)
 			asx=ChannelUtil.ASXTYPE_FORCE;
+		int resF=(format==-1?(f==-1?parent.getFormat():f):format);
 		if(Channels.save())  { // Add save version
 			ChannelPMSSaveFolder sf=new ChannelPMSSaveFolder(parent,nName,url,thumb,script,asx,
-					                format,this);
+					                resF,this);
 			sf.setImdb(imdb);
 			sf.setDoSubs(subtitle!=null);
 			res.addChild(sf);
 		}
 		else {
-			ChannelMediaStream cms=new ChannelMediaStream(parent,nName,url,thumb,script,format,asx,this);
+			ChannelMediaStream cms=new ChannelMediaStream(parent,nName,url,thumb,script,resF,asx,this);
 			cms.setImdb(imdb);
 			res.addChild(cms);
 		}
@@ -208,8 +207,7 @@ public class ChannelMedia implements ChannelProps,ChannelScraper {
 	@Override
 	public String scrape(Channel ch, String url, String scriptName,int format,DLNAResource start
 			             ,boolean noSub,String imdb) {
-		String realUrl;
-		ch.debug("scrape sub "+subtitle);
+		ch.debug("scrape sub "+subtitle+" format "+format);
 		String subFile="";
 		boolean live=ChannelUtil.getProperty(prop, "live");
 		if(live)
