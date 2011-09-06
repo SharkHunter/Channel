@@ -28,7 +28,7 @@ import no.geosoft.cc.io.FileMonitor;
 public class Channels extends VirtualFolder implements FileListener {
 
 	// Version string
-	public static final String VERSION="1.42";
+	public static final String VERSION="1.43";
 	
 	// Constants for RTMP string constructions
 	public static final int RTMP_MAGIC_TOKEN=1;
@@ -550,14 +550,15 @@ public class Channels extends VirtualFolder implements FileListener {
 	}
 	
 	public static String fileName(String name,boolean cache) {
-		String ts="";
 		name=name.trim();
 		String ext=ChannelUtil.extension(name);
-		if(inst.appendTS) 
-			ts="_"+String.valueOf(System.currentTimeMillis());
-		String fName=ChannelUtil.append(name, null, ts);
-		fName=ChannelUtil.append(fName,null, ext);
-		// if we got an extension we move it to the end of the filename
+		String fName=name;
+		if(inst.appendTS) { 
+			// if we got an extension we move it to the end of the filename
+			String ts="_"+String.valueOf(System.currentTimeMillis());
+			fName=ChannelUtil.append(name, null, ts);
+			fName=ChannelUtil.append(fName,null, ext);
+		}
 		if(!cache&&save())
 			return cfg().getSavePath()+File.separator+fName;
 		else

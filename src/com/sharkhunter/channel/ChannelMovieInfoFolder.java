@@ -1,17 +1,14 @@
 package com.sharkhunter.channel;
 
 import java.io.InputStream;
+import net.pms.dlna.virtual.VirtualFolder;
 
-import net.pms.movieinfo.MovieInfoVirtualFolder;
-
-
-
-public class ChannelMovieInfoFolder extends MovieInfoVirtualFolder{
+public class ChannelMovieInfoFolder extends VirtualFolder {
 	
 	private String imdb;
 	
 	public ChannelMovieInfoFolder(String imdbId,String thumb) {
-		super(thumb);
+		super("#--MOVIE INFO--#",thumb);
 		imdb=(imdbId.startsWith("tt")?imdbId:"tt"+imdbId);
 	}
 	
