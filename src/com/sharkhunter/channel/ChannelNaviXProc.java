@@ -440,6 +440,26 @@ public class ChannelNaviXProc {
 				continue;
 			}
 			
+			if(line.startsWith("stripExt ")) {
+				String[] ops=line.substring(9).split(" ");
+				String var=ops[0].trim();
+				String strip=".";
+				int stripCnt=1;
+				if(ops.length>1) {
+					String num=ops[1].trim();
+					try {
+						stripCnt=Integer.parseInt(num);
+					}
+					catch (Exception e) {}
+				}
+				if(ops.length>2) {
+					strip=ops[2];
+				}
+				String res=ChannelUtil.stripExt(getVar(var),stripCnt,strip);
+				putVar(var, res);
+				continue;
+			}
+			
 			//////////////////////
 			// Exit form here
 			//////////////////////

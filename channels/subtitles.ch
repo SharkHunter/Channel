@@ -1,4 +1,4 @@
-version=0.4
+version=0.46
 ###########################
 ## s4u
 ###########################
@@ -7,17 +7,23 @@ scriptdef s4uName {
    if imdb
 	url='/imdb/
 	concat url imdb
-   else
-    escape s_url
-	url='/title/
-	concat url s_url
+   else if release
+	   url='/rls/
+	   escape s_url
+	   concat url s_url
+	else
+	   url='/title/
+	   escape s_url
+	   concat url s_url
    endif
-   concat url '/year=
-   concat url year
-   concat url '&season=
-   concat url season
-   concat url '&episode=
-   concat url episode
+   if release=='
+	concat url '/year=
+	concat url year
+	concat url '&season=
+	concat url season
+	concat url '&episode=
+	concat url episode
+   endif
    play
 }
 

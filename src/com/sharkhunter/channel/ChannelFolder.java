@@ -488,7 +488,7 @@ public class ChannelFolder implements ChannelProps, SearchObj{
 		//realUrl=ChannelNaviXProc.simple(realUrl, pre_script);
 		realUrl=ChannelScriptMgr.runScript(pre_script, realUrl, parent);
 		if(!ChannelUtil.empty(realUrl)&&!dummy) {
-			URL urlobj=new URL(realUrl);
+			URL urlobj=new URL(realUrl.replaceAll(" ", "%20"));
 			parent.debug("folder match url "+urlobj.toString()+" type "+type+" post "+post+" "+urlEnd);
 			try {
 				ChannelAuth a=parent.prepareCom();

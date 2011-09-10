@@ -238,7 +238,7 @@ public class ChannelMedia implements ChannelProps,ChannelScraper {
 				if(!ChannelUtil.empty(subFile))
 					break;
 			}
-		}
+		}	
 		if(ChannelUtil.empty(scriptName)) { // no script just return what we got
 			params.put("url", ChannelUtil.parseASX(url,asx));
 			return ChannelUtil.createMediaUrl(params,format,ch);
@@ -247,9 +247,22 @@ public class ChannelMedia implements ChannelProps,ChannelScraper {
 		if(scriptType==ChannelMedia.SCRIPT_NET) 
 			return ChannelNaviXProc.parse(url,scriptName,format,subFile,parent);
 		if(scriptType==ChannelMedia.SCRIPT_EXT) {
-			String f=ChannelUtil.format2str(format);
+			/*String f=ChannelUtil.format2str(format);
 			ProcessBuilder pb=new ProcessBuilder(scriptName,url,f);
-			String rUrl=ChannelUtil.execute(pb);
+			String rUrl=ChannelUtil.execute(pb);*/
+			boolean no_format=ChannelUtil.getProperty(prop, "script.no_format");
+			String rUrl=ChannelScriptMgr.runScript(scriptName,url,parent,no_format);
+			if(rUrl.startsWith("RTMPDUMP")) { // rtmpdump magic
+				params.put("__type__", "RTMPDUMP");
+				String tmp=rUrl.replace("RTMPDUMP", "");
+				asx=ChannelUtil.ASXTYPE_NONE; // force none
+				int first=tmp.indexOf("###");
+				int last=tmp.lastIndexOf("###");
+				rUrl=tmp;
+				if(first!=-1&&last!=-1) {
+					rUrl=tmp.substring(first+3, last-3);
+				}
+			}
 			params.put("url",  ChannelUtil.parseASX(rUrl,asx));
 			return ChannelUtil.createMediaUrl(params, format,ch);
 		}	

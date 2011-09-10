@@ -1,4 +1,11 @@
-version=0.20
+version=0.21
+
+scriptdef furkSubs {
+	release='1
+	stripExt s_url
+	url=s_url
+	play
+}
 
 scriptdef furkUpload {
 	url='------WebKitFormBoundaryoMPSU04IfEvfFd9N
@@ -39,11 +46,14 @@ macrodef furkMacro {
 		media {
 			matcher=<title>([^<]+)</title>\s+<location>([^<]+)</location>
 			order=name,url
+			subtitle=s4u
+			prop=name_index=0
 		}
 	}
 }
 
 channel Furk {
+   subscript=furkSubs
    login {
       url=http://www.furk.net/login/login/
       passwd=pwd

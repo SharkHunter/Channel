@@ -12,10 +12,20 @@ public class ChannelScriptMgr {
 	}
 	
 	public static String runScript(String script,String url,Channel ch) {
-		return runScript(script,url,ch,"");
+		return runScript(script,url,ch,"",false);
+	}
+	
+	public static String runScript(String script,String url,Channel ch,
+								   boolean no_format) {
+		return runScript(script,url,ch,"",no_format);
 	}
 	
 	public static String runScript(String script,String url,Channel ch,String page) {
+		return runScript(script,url,ch,page,false);
+	}
+	
+	public static String runScript(String script,String url,Channel ch,
+								   String page,boolean no_format) {
 		if(ChannelUtil.empty(script))
 			return url;
 		// 1st up check local NIPL
@@ -31,11 +41,19 @@ public class ChannelScriptMgr {
 		}
 		// 3rd external script,assume full path
 		if(isExtScript(script)) {
-			return ChannelUtil.execute(script,url,ch.getFormat());
+			if(no_format)
+				return ChannelUtil.execute(script,url,"");
+			else
+				return ChannelUtil.execute(script,url,ch.getFormat());
 		}
 		// no try in a special place
-		if(isExtScript(Channels.cfg().scriptFile(script)))
-			return ChannelUtil.execute(Channels.cfg().scriptFile(script),url,ch.getFormat());
+		String f=Channels.cfg().scriptFile(script);
+		if(isExtScript(f)) {
+			if(no_format)
+				return ChannelUtil.execute(f,url,"");
+			else 
+				return ChannelUtil.execute(f,url,ch.getFormat());
+		}
 		// down here we're out of options return the orignal url
 		return url;
 	}

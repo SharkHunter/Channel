@@ -39,6 +39,7 @@ public class ChannelCfg {
 	private String credPath;
 	private boolean favorite;
 	private String navixUploadList;
+	private boolean noPlay;
 	
 	public ChannelCfg(Channels top) {
 		chPath=null;
@@ -52,6 +53,7 @@ public class ChannelCfg {
 		cache=false;
 		favorite=true;
 		navixUploadList=null;
+		noPlay=false;
 	}
 	
 	///////////////////////////////////
@@ -182,6 +184,10 @@ public class ChannelCfg {
 		return navixUploadList;
 	}
 	
+	public boolean noPlay() {
+		return noPlay;
+	}
+	
 	////////////////////////////////////////
 	// Misc. methods
 	////////////////////////////////////////
@@ -217,6 +223,7 @@ public class ChannelCfg {
 		String group=(String)PMS.getConfiguration().getCustomProperty("channels.group_folder");
 		String mi=(String)PMS.getConfiguration().getCustomProperty("channels.movieinfo");
 		String fav=(String)PMS.getConfiguration().getCustomProperty("channels.favorite");
+		String nop=(String)PMS.getConfiguration().getCustomProperty("channels.no_play");
 		navixUploadList=(String)PMS.getConfiguration().getCustomProperty("channels.navix_upload");
 		if(rtmpMode!=null) {
 			if(rtmpMode.trim().equalsIgnoreCase("1"))
@@ -263,8 +270,10 @@ public class ChannelCfg {
 			Channels.setMovieInfo(true);
 		if(!ChannelUtil.empty(fav)&&fav.equalsIgnoreCase("false"))
 			favorite=false;
+		if(!ChannelUtil.empty(nop)&&nop.equalsIgnoreCase("true"))
+			noPlay=true;
 	}
-	
+
 	private void configPath(String key,String val) {
 		if(!ChannelUtil.empty(val))
 			PMS.getConfiguration().setCustomProperty(key,val);

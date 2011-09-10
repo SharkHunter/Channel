@@ -443,10 +443,10 @@ public class ChannelUtil {
 	
 	public static String createMediaUrl(HashMap<String,String> vars,int format,Channel ch) {
 		String rUrl=vars.get("url");
-		if(empty(rUrl)) // what do we do?
+		if(empty(rUrl)||Channels.noPlay()) // what do we do?
 			return null;
 		int rtmpMet=Channels.rtmpMethod();
-		String type=vars.get("__type__");
+		String type=vars.get("__type__");			
 		Channels.debug("create media url entry "+rUrl+" format "+format+" type "+type);
 		if(rUrl.startsWith("http")) {
 			if((format!=Format.VIDEO)||
@@ -487,6 +487,27 @@ public class ChannelUtil {
 				else
 					rUrl=vars.get("url");
 			Channels.debug("return media url "+rUrl);
+			return rUrl;
+		}
+		
+		if(!empty(type)&&type.equals("RTMPDUMP")) {
+			Channels.debug("rmtpdump spec "+rUrl);
+			String[] args=rUrl.split(" ");
+			String res="";
+			for(int i=0;i<args.length;i++) {
+				if(args[i].equals("--flv")) { // special, should be removed
+					i++;
+					continue;
+				}
+				if(args[i].equals("--swfUrl"))
+					res=append(res,"&","--swfVfy");
+				else if(args[i].startsWith("--"))
+					res=append(res,"&",args[i]);
+				else
+					res=append(res,"=",escape(args[i]));
+			}
+			rUrl="rtmpdump://channel?"+res;
+			Channels.debug("return media url rtmpdump spec "+rUrl);
 			return rUrl;
 		}
 		
@@ -852,4 +873,17 @@ public class ChannelUtil {
 			return "normal";
 		}
 	}
+	
+	public static String stripExt(String str,int cnt,String strip) {
+		if(cnt==0)
+			cnt=-1;
+		while(cnt!=0) {
+			int pos=str.lastIndexOf(strip);
+			if(pos==-1) // no more dots return what we got so far
+				return str;
+			str=str.substring(0,pos);
+			cnt--;
+		}
+		return str;
+	} 
 }
