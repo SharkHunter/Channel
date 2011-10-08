@@ -19,6 +19,8 @@ public class ChannelPMSSaveFolder extends VirtualFolder {
 	private long childDone;
 	private String imdb;
 	private boolean subs;
+	private boolean rawSave;
+	private String videoFormat;
 	
 	private static final long AUTO_PLAY_FACTOR=(1000*15);
 	
@@ -37,6 +39,8 @@ public class ChannelPMSSaveFolder extends VirtualFolder {
 		childDone=0;
 		imdb=null;
 		subs=true;
+		rawSave=false;
+		videoFormat=null;
 	}
 	
 	public void setImdb(String i) {
@@ -49,6 +53,10 @@ public class ChannelPMSSaveFolder extends VirtualFolder {
 	
 	public boolean refreshChildren() { // Always update
 		return true;
+	}
+	
+	public void setSaveMode(boolean raw) {
+		rawSave=raw;
 	}
 	
 	public void discoverChildren() {
@@ -87,21 +95,29 @@ public class ChannelPMSSaveFolder extends VirtualFolder {
 		ChannelMediaStream cms=new ChannelMediaStream(ch,"SAVE&PLAY",url,thumb,proc,f,asx,scraper,name,name);
 		cms.setImdb(imdb);
 		cms.setRender(this.defaultRenderer);
+		cms.setSaveMode(rawSave);
+		cms.setFallbackFormat(videoFormat);
 		addChild(cms);
 		cms=new ChannelMediaStream(ch,"PLAY",url,thumb,proc,f,asx,scraper,name,null);
 		cms.setImdb(imdb);
 		cms.setRender(this.defaultRenderer);
+		cms.setSaveMode(rawSave);
+		cms.setFallbackFormat(videoFormat);
 		addChild(cms);
 		if(Channels.doSubs()&&subs&&(f==Format.VIDEO)) {
 			cms=new ChannelMediaStream(ch,"SAVE&PLAY - No Subs",url,thumb,proc,f,asx,scraper,name,name);
 			cms.noSubs();
 			cms.setImdb(imdb);
 			cms.setRender(this.defaultRenderer);
+			cms.setSaveMode(rawSave);
+			cms.setFallbackFormat(videoFormat);
 			addChild(cms);
 			cms=new ChannelMediaStream(ch,"PLAY - No Subs",url,thumb,proc,f,asx,scraper,name,null);
 			cms.noSubs();
 			cms.setImdb(imdb);
 			cms.setRender(this.defaultRenderer);
+			cms.setSaveMode(rawSave);
+			cms.setFallbackFormat(videoFormat);
 			addChild(cms);
 		}
 	}
@@ -123,5 +139,9 @@ public class ChannelPMSSaveFolder extends VirtualFolder {
 		// Normally childDone is 0 and 0+15000 is never larger
 		// then now.
 		return (childDone+AUTO_PLAY_FACTOR)>System.currentTimeMillis();
+	}
+	
+	public void setFallbackFormat(String s) {
+		videoFormat=s;
 	}
 }

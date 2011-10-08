@@ -40,6 +40,8 @@ public class ChannelCfg {
 	private boolean favorite;
 	private String navixUploadList;
 	private boolean noPlay;
+	private boolean netDisc;
+	private boolean rawSave;
 	
 	public ChannelCfg(Channels top) {
 		chPath=null;
@@ -54,6 +56,9 @@ public class ChannelCfg {
 		favorite=true;
 		navixUploadList=null;
 		noPlay=false;
+		netDisc=false;
+		//netDisc=true;
+		rawSave=false;
 	}
 	
 	///////////////////////////////////
@@ -188,6 +193,14 @@ public class ChannelCfg {
 		return noPlay;
 	}
 	
+	public boolean netDiscStyle() {
+		return netDisc;
+	}
+	
+	public boolean rawSave() {
+		return rawSave;
+	}
+	
 	////////////////////////////////////////
 	// Misc. methods
 	////////////////////////////////////////
@@ -224,6 +237,8 @@ public class ChannelCfg {
 		String mi=(String)PMS.getConfiguration().getCustomProperty("channels.movieinfo");
 		String fav=(String)PMS.getConfiguration().getCustomProperty("channels.favorite");
 		String nop=(String)PMS.getConfiguration().getCustomProperty("channels.no_play");
+		String nd=(String)PMS.getConfiguration().getCustomProperty("channels.net_disc");
+		String rs=(String)PMS.getConfiguration().getCustomProperty("channels.raw_save");
 		navixUploadList=(String)PMS.getConfiguration().getCustomProperty("channels.navix_upload");
 		if(rtmpMode!=null) {
 			if(rtmpMode.trim().equalsIgnoreCase("1"))
@@ -272,6 +287,10 @@ public class ChannelCfg {
 			favorite=false;
 		if(!ChannelUtil.empty(nop)&&nop.equalsIgnoreCase("true"))
 			noPlay=true;
+		if(!ChannelUtil.empty(nd)&&nd.equalsIgnoreCase("true"))
+			netDisc=true;
+		if(!ChannelUtil.empty(rs)&&rs.equalsIgnoreCase("true"))
+			rawSave=true;
 	}
 
 	private void configPath(String key,String val) {

@@ -123,12 +123,14 @@ public class ChannelUtil {
 					connection=url.openConnection();
 				}
 			}
+			Channels.debug("fpage cookie "+cookie);
 			String c1=ChannelCookie.getCookie(url.toString());
 			if(!empty(c1)) {
 				if(!cookieContains(c1,cookie)) {
 					cookie=append(cookie,"; ",c1);
 				}
 			}
+			Channels.debug("fpage2 cookie "+cookie);
 			if(!empty(cookie))
 				connection.setRequestProperty("Cookie",cookie);
 			if(hdr!=null&&hdr.size()!=0) {
@@ -562,12 +564,18 @@ public class ChannelUtil {
 		return null;
 	}
 	
-	public static String backTrack(DLNAResource start,int[] stops) {
+	public static String backTrack(DLNAResource start,int[] stops,String sep) {
+		if(empty(sep))
+			sep=" ";
 		String res="";
 		for(int i=0;i<stops.length;i++) {
-			res=append(res," ",backTrack(start,stops[i]));
+			res=append(res,sep,backTrack(start,stops[i]));
 		}
 		return res;
+	}
+	
+	public static String backTrack(DLNAResource start,int[] stops) {
+		return backTrack(start,stops, " ");
 	}
 	
 	public static int[] getNameIndex(String[] prop) {
@@ -886,4 +894,20 @@ public class ChannelUtil {
 		}
 		return str;
 	} 
+	
+	public static void sleep(long time) {
+		try {
+			Thread.sleep(time);
+		}
+		catch (Exception e){}
+	}
+	
+	public static String ensureDot(String str) {
+		if(str.charAt(0)!='.')
+			return "."+str;
+		return str;
+	}
+	
+	
+	
 }

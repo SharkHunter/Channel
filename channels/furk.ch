@@ -1,4 +1,4 @@
-version=0.21
+version=0.24
 
 scriptdef furkSubs {
 	release='1
@@ -52,6 +52,20 @@ macrodef furkMacro {
 	}
 }
 
+macrodef furkFolder {
+	folder {
+         matcher=a href=\"(/df/[^\"]+)\">([^<]+)<
+         order=url,name
+         url=http://www.furk.net/
+		 macro=furkMacro
+         media {
+            # <a class="playlist-item" href="http://ie9hajrspg5sg9mgqs4s1tf9nb9j0t3ds40r71g.gcdn.biz/d/R/KNoWaBGevj73PXNXuxaZiISdFFw__hnNo159OhQLI5epxWrSyuW_X1oi88NmdnIZ/01_Enter_Sandman.mp3" class="first" title="Metallica - Metallica (1991)/Metallica - Metallica/01 Enter Sandman.mp3">Metallica - Metallica (1991)/Metallica - Metallica/01 Enter Sandman.mp3</a> 
+            matcher=a class=\"playlist-item\" href=\"([^\"]+)\" .*?title=\"([^\"]+)\"
+            order=url,name
+         }
+	}
+}
+
 channel Furk {
    subscript=furkSubs
    login {
@@ -71,12 +85,18 @@ channel Furk {
 		macro=furkMacro
    }
    folder {
-      url=http://www.furk.net/users/files/finished
-      type=empty
-      folder {
-         matcher=a href=\"(/df/[^\"]+)\">([^<]+)<
+		name=Stored
+		url=http://www.furk.net/users/files/finished
+		macro=furkFolder
+  }
+  folder {
+      name=Search
+	  type=search
+	  url=http://api.furk.net/api/search
+	  prop=prepend_url=api_key=wxRsJ4uGJ33Tb2f6nysVTNMwdG3hAbOG;format=json;q=
+	  folder {
+         matcher=url_page\":\"([^\"]+)\".*?name\":\"([^\"]+)\"
          order=url,name
-         url=http://www.furk.net/
 		 macro=furkMacro
          media {
             # <a class="playlist-item" href="http://ie9hajrspg5sg9mgqs4s1tf9nb9j0t3ds40r71g.gcdn.biz/d/R/KNoWaBGevj73PXNXuxaZiISdFFw__hnNo159OhQLI5epxWrSyuW_X1oi88NmdnIZ/01_Enter_Sandman.mp3" class="first" title="Metallica - Metallica (1991)/Metallica - Metallica/01 Enter Sandman.mp3">Metallica - Metallica (1991)/Metallica - Metallica/01 Enter Sandman.mp3</a> 

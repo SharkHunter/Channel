@@ -8,9 +8,14 @@ import net.pms.external.AdditionalFolderAtRoot;
 import net.pms.external.FinalizeTranscoderArgsListener;
 import net.pms.external.StartStopListener;
 import net.pms.io.OutputParams;
+import net.pms.io.WindowsNamedPipe;
 
 import javax.swing.*;
+
+import com.sun.jna.Platform;
+
 import java.io.*;
+import java.util.ArrayList;
 import java.util.List;
 
 public class CH_plugin implements AdditionalFolderAtRoot, StartStopListener
@@ -112,14 +117,15 @@ public class CH_plugin implements AdditionalFolderAtRoot, StartStopListener
 	public List<String> finalizeTranscoderArgs(Player player, String name,
 			DLNAResource res, DLNAMediaInfo media, OutputParams params,
 			List<String> cmdList) {
-		if(!player.name().equals("PMSEncoder")) // skip all other
+		/*Channels.debug("finalize args:");
+		for(int i=0;i<cmdList.size();i++)
+			Channels.debug("arg "+i+":"+cmdList.get(i));
+		Channels.debug("############");*/
+		if((!(res instanceof ChannelMediaStream))||
+		   !cfg.netDiscStyle()) // bail early
 			return cmdList;
-		RendererConfiguration render=params.mediaRenderer;
-		if(render==null)
+		if(!player.name().equals("PMSEncoder"))
 			return cmdList;
-		if(!render.isXBOX()) // this only applies to XBOX
-			return cmdList;
-		// So now we no that we are talking to an XBOX
 		return cmdList;
 	}
 	

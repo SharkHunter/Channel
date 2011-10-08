@@ -34,6 +34,7 @@ public class ChannelMedia implements ChannelProps,ChannelScraper {
 	private String staticUrl;
 	private String proxy;
 	private HashMap<String,String> hdrs;
+	private String videoFormat;
 	
 	public ChannelMedia(ArrayList<String> data,Channel parent) {
 		Ok=false;
@@ -48,6 +49,7 @@ public class ChannelMedia implements ChannelProps,ChannelScraper {
 		proxy=null;
 		hdrs=new HashMap<String,String>();	
 		hdrs.putAll(parent.getHdrs());
+		videoFormat=null;
 		parse(data);
 		Ok=true;
 	}
@@ -80,19 +82,21 @@ public class ChannelMedia implements ChannelProps,ChannelScraper {
 					matcher.setOrder(keyval[1]);
 			}
 			if(keyval[0].equalsIgnoreCase("script")) {
-				parent.debug("assign script "+keyval[1]);
+				//parent.debug("assign script "+keyval[1]);
 				script=keyval[1];
 				scriptType=ChannelMedia.SCRIPT_LOCAL;
 			}
 			if(keyval[0].equalsIgnoreCase("nscript")) {
-				parent.debug("assign net script "+keyval[1]);
+				//parent.debug("assign net script "+keyval[1]);
 				script=keyval[1];
 				scriptType=ChannelMedia.SCRIPT_NET;
 			}
 			if(keyval[0].equalsIgnoreCase("escript")) {
 				parent.debug("assign ext script "+keyval[1]);
-				script=keyval[1];
-				scriptType=ChannelMedia.SCRIPT_EXT;
+				if(!ChannelUtil.empty(keyval[1])) {
+					script=keyval[1];
+					scriptType=ChannelMedia.SCRIPT_EXT;
+				}
 			}
 			if(keyval[0].equalsIgnoreCase("name"))
 				name=keyval[1];
@@ -127,7 +131,13 @@ public class ChannelMedia implements ChannelProps,ChannelScraper {
 					continue;
 				hdrs.put(k1[0], k1[1]);
 			}
+			if(keyval[0].equalsIgnoreCase("fallback_video"))
+				videoFormat=ChannelUtil.ensureDot(keyval[1].trim());
 		}
+	}
+	
+	public void setFallBackFormat(String s) {
+		videoFormat=s;
 	}
 	
 	public ChannelMatcher getMatcher() {
@@ -178,7 +188,8 @@ public class ChannelMedia implements ChannelProps,ChannelScraper {
 		if(ChannelUtil.empty(nName))
 			nName="Unknown";
 		nName=StringEscapeUtils.unescapeHtml(nName);
-		parent.debug("found media "+nName+" thumb "+thumb+" url "+url+" format "+format);
+		parent.debug("found media "+nName+" thumb "+thumb+" url "+url+" format "+format+
+				" script "+script);
 		// asx is weird and one would expect mencoder to support it no
 		int asx=ChannelUtil.ASXTYPE_NONE;
 		if(ChannelUtil.getProperty(prop, "auto_asx"))
@@ -191,11 +202,15 @@ public class ChannelMedia implements ChannelProps,ChannelScraper {
 					                resF,this);
 			sf.setImdb(imdb);
 			sf.setDoSubs(subtitle!=null);
+			sf.setSaveMode(ChannelUtil.getProperty(prop, "raw_save"));
+			sf.setFallbackFormat(videoFormat);
 			res.addChild(sf);
 		}
 		else {
 			ChannelMediaStream cms=new ChannelMediaStream(parent,nName,url,thumb,script,resF,asx,this);
 			cms.setImdb(imdb);
+			cms.setSaveMode(ChannelUtil.getProperty(prop, "raw_save"));
+			cms.setFallbackFormat(videoFormat);
 			res.addChild(cms);
 		}
 	}
@@ -224,7 +239,8 @@ public class ChannelMedia implements ChannelProps,ChannelScraper {
 					continue;
 				if(!subs.langSupported())
 					continue;
-				String realName=ChannelUtil.backTrack(start,ChannelUtil.getNameIndex(prop));
+				String realName=ChannelUtil.backTrack(start,ChannelUtil.getNameIndex(prop),
+						ChannelUtil.getPropertyValue(prop, "name_separator"));
 				// Maybe we should mangle the name?
 				String nameMangle=ChannelUtil.getPropertyValue(prop, "name_mangle");
 				realName=ChannelUtil.mangle(nameMangle, realName);
@@ -239,6 +255,7 @@ public class ChannelMedia implements ChannelProps,ChannelScraper {
 					break;
 			}
 		}	
+		Channels.debug("scrape script name "+scriptName);
 		if(ChannelUtil.empty(scriptName)) { // no script just return what we got
 			params.put("url", ChannelUtil.parseASX(url,asx));
 			return ChannelUtil.createMediaUrl(params,format,ch);

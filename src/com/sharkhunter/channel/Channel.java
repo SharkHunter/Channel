@@ -38,7 +38,9 @@ public class Channel extends VirtualFolder {
 	
 	private HashMap<String,String> hdrs;
 	
-	private ChannelFolder favorite;	
+	private ChannelFolder favorite;
+	private String videoFormat;
+	
 	public Channel(String name) {
 		super(name,null);
 		Ok=false;
@@ -51,6 +53,7 @@ public class Channel extends VirtualFolder {
 		hdrs=new HashMap<String,String>();
 		searchFolders=new HashMap<String,SearchObj>();
 		actions=new ArrayList<ChannelFolder>();
+		videoFormat=".flv";
 		Ok=true;
 	}
 	
@@ -110,7 +113,8 @@ public class Channel extends VirtualFolder {
 			}
 			if(keyval[0].equalsIgnoreCase("prop"))
 				prop=keyval[1].trim().split(",");
-			
+			if(keyval[0].equalsIgnoreCase("fallback_video"))
+				videoFormat=ChannelUtil.ensureDot(keyval[1].trim());
 		}
 		mkFavFolder();
 	}
@@ -371,5 +375,9 @@ public class Channel extends VirtualFolder {
 		DLNAResource tmp=new VirtualFolder("",null);
 		discoverChildren(tmp);
 		open(res,names,0,tmp);
+	}
+	
+	public String fallBackVideoFormat() {
+		return videoFormat;
 	}
 }

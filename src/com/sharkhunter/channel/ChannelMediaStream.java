@@ -12,16 +12,21 @@ import java.io.PipedOutputStream;
 import java.net.URL;
 import java.net.URLConnection;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 
 import net.pms.PMS;
 import net.pms.configuration.FormatConfiguration;
 import net.pms.configuration.RendererConfiguration;
+import net.pms.dlna.DLNAMediaAudio;
 import net.pms.dlna.DLNAMediaInfo;
+import net.pms.dlna.DLNAMediaSubtitle;
 import net.pms.dlna.DLNAResource;
 import net.pms.encoders.Player;
 import net.pms.formats.Format;
 import net.pms.formats.WEB;
+import net.pms.io.BufferedOutputFile;
+import net.pms.io.WindowsNamedPipe;
 
 public class ChannelMediaStream extends DLNAResource {
 
@@ -42,6 +47,9 @@ public class ChannelMediaStream extends DLNAResource {
 	private boolean noSubs;
 	private String imdb;
 	private RendererConfiguration render;
+	private boolean rawSave;
+	private boolean fool;
+	private String videoFormat;
 	
 	public ChannelMediaStream(Channel ch,String name,String nextUrl,
 			  String thumb,String proc,int type,int asx,
@@ -75,6 +83,9 @@ public class ChannelMediaStream extends DLNAResource {
 		noSubs=false;
 		imdb=null;
 		render=null;
+		rawSave=false;
+		fool=Channels.cfg().netDiscStyle();
+		videoFormat=null;
 	}
 	
 	public void noSubs() {
@@ -83,6 +94,14 @@ public class ChannelMediaStream extends DLNAResource {
 	
 	public void setRender(RendererConfiguration r) {
 		render=r;
+	}
+	
+	public void setSaveMode(boolean raw) {
+		rawSave=raw;
+	}
+	
+	public void setFallbackFormat(String s) {
+		videoFormat=s;
 	}
 	
 	
@@ -115,9 +134,29 @@ public class ChannelMediaStream extends DLNAResource {
         while (pl == null && i < ext.getProfiles().size()) {
                 pl = PMS.get().getPlayer(ext.getProfiles().get(i), ext);
                 i++;
-        }        	
-        // if we didn't find a new player leave the old one
-        if(pl!=null)
+        }
+        String name = getName();
+		
+		for (Class<? extends Player> clazz : ext.getProfiles()) {
+			for (Player p : PMS.get().getPlayers()) {
+				if (p.getClass().equals(clazz)) {
+					String end = "[" + p.id() + "]";
+					
+					if (name.endsWith(end)) {
+						//nametruncate = name.lastIndexOf(end);
+						pl = p;
+						break;
+					} else if (getParent() != null && getParent().getName().endsWith(end)) {
+						//getParent().nametruncate = getParent().getName().lastIndexOf(end);
+						pl = p;
+						break;
+					}
+				}
+			}
+		}
+		// if we didn't find a new player leave the old one
+      //  if(pl!=null)
+		Channels.debug("set player to "+pl);
         	player=pl;
     }
     
@@ -125,13 +164,35 @@ public class ChannelMediaStream extends DLNAResource {
     	if(parent instanceof ChannelPMSSaveFolder)
     		if(((ChannelPMSSaveFolder)parent).preventAutoPlay())
     			return null;
-    	if(scraper!=null)
-    		realUrl=scraper.scrape(ch,url,processor,format,this,noSubs,imdb);
-    	else
-    		realUrl=ChannelUtil.parseASX(url, ASX);
+    	Channels.debug("scrape "+name+" nosubs "+noSubs);
+    	fool=Channels.cfg().netDiscStyle();
+    	if(!scraped) {
+    		if(scraper!=null)
+    			realUrl=scraper.scrape(ch,url,processor,format,this,noSubs,imdb);
+    		else
+    			realUrl=ChannelUtil.parseASX(url, ASX);
+    	}
+    	scraped=true;
     	if(ChannelUtil.empty(realUrl))
     		return null;
+    	Channels.debug("real "+realUrl+" nd "+Channels.cfg().netDiscStyle()+" noSubs "+noSubs);
+    	if(Channels.cfg().netDiscStyle()) {
+    		if(realUrl.startsWith("subs://"))
+    			fixStuff(realUrl.substring(7),true);
+    		else if(realUrl.startsWith("navix://")) {
+    			fixStuff(realUrl.substring(8),false);
+    		}
+    	}
+    	if(noSubs) { // make sure subs are off here
+			media_subtitle=new DLNAMediaSubtitle();
+			media_subtitle.id=-1;
+		}
     	updateStreamDetails();
+    	fool=false;
+    	if(media==null) {
+    		media=new DLNAMediaInfo();
+    		media.audioCodes=new ArrayList<DLNAMediaAudio>();
+    	}
     	ch.prepareCom();
     	InputStream is=super.getInputStream(low,high,timeseek,mediarenderer);
     	if((saveName!=null)||Channels.cache()) {
@@ -143,7 +204,7 @@ public class ChannelMediaStream extends DLNAResource {
     
     private InputStream getStream() {
     	try {
-			URL urlobj = new URL(realUrl);
+			URL urlobj = new URL(realUrl.replaceAll(" ", "%20"));
 			Channels.debug("Retrieving " + urlobj.toString());
 			URLConnection conn = urlobj.openConnection();
 			conn.setRequestProperty("User-Agent",ChannelUtil.defAgentString);
@@ -152,7 +213,7 @@ public class ChannelMediaStream extends DLNAResource {
 			if(auth!=null) {
 				if(auth.method==ChannelLogin.STD)
 					conn.setRequestProperty("Authorization", auth.authStr);
-				else if(auth.method==ChannelLogin.COOKIE) 
+				else if(ChannelUtil.cookieMethod(auth.method)) 
 					cookie=ChannelUtil.append(cookie,"; ",auth.authStr);
 			}
 			if(!ChannelUtil.empty(cookie))
@@ -172,11 +233,14 @@ public class ChannelMediaStream extends DLNAResource {
 
 
     public InputStream getInputStream() {
-    	Channels.debug("cms getinp/0 scrape "+scraper);
-    	if(scraper!=null)
-    		realUrl=scraper.scrape(ch,url,processor,format,this,noSubs,imdb);
-    	else
-    		realUrl=ChannelUtil.parseASX(url, ASX);
+    	Channels.debug("cms getinp/0 scrape "+scraper+" url "+realUrl);
+    	if(!scraped) {
+    		if(scraper!=null)
+    			realUrl=scraper.scrape(ch,url,processor,format,this,noSubs,imdb);
+    		else
+    			realUrl=ChannelUtil.parseASX(url, ASX);
+    	}
+    	scraped=true;
     	if(ChannelUtil.empty(realUrl))
     		return null;
     	return getStream();
@@ -191,6 +255,16 @@ public class ChannelMediaStream extends DLNAResource {
     	fName=ChannelUtil.guessExt(fName,realUrl);
     	if(cache)
     		ChannelUtil.cacheFile(new File(fName),"media");
+    	if(rawSave&&Channels.cfg().rawSave()) {
+    		final String fName1=fName;
+    		Runnable r=new Runnable() {
+    			public void run() {
+    				ChannelUtil.downloadBin(realUrl, new File(fName1));
+    			}
+    		};
+    		new Thread(r).start();
+    		return is;
+    	}
     	BufferedOutputStream fos=new BufferedOutputStream(new FileOutputStream(fName));
  	   	PipedOutputStream pos=(new PipedOutputStream());
  	   	PipedInputStream pis=new PipedInputStream(pos);
@@ -217,6 +291,18 @@ public class ChannelMediaStream extends DLNAResource {
     public long lastModified() {
     	return 0;
     }
+    
+    public boolean directStream() {
+    	if(format==Format.AUDIO)
+    		return true;
+    	String u;
+    	if(ChannelUtil.empty(realUrl))
+    		u=url;
+    	else {
+    		u= realUrl;
+    	}
+    	return u.startsWith("http")&&(media_subtitle!=null);
+    }
 
     public String getSystemName() {
     	String u;
@@ -227,7 +313,39 @@ public class ChannelMediaStream extends DLNAResource {
     	}
 		if(format==Format.AUDIO)
 			return u.substring(u.lastIndexOf("/")+1);
-		return u;
+		if(u.startsWith("http")&&fool)
+			return ensureExt(u.substring(u.lastIndexOf("/")+1));
+		return (u); // need this to
+    }
+    
+    private boolean legalExt(String ext) {
+    	if(ChannelUtil.empty(ext))
+    		return false;
+    	ext=ext.substring(1); // remove the dot
+    	ArrayList<Format> formats=PMS.get().getExtensions();
+    	for(Format f : formats) {
+    		String[] supported=f.getId();
+    		for(int i=0;i<supported.length;i++)
+    			if(ext.equals(supported[i]))
+    				return true;
+    	}
+    	return false;
+    }
+    
+    private String ensureExt(String str) {
+    	if(legalExt(ChannelUtil.extension(str)))
+    		return str;
+    	if(ChannelUtil.empty(videoFormat))
+    		return str+ch.fallBackVideoFormat();
+    	return str+(videoFormat);
+    }
+    
+    public String fullUrl() {
+    	if(ChannelUtil.empty(realUrl))
+    		return url;
+    	else {
+    		return realUrl;
+    	}
     }
 
 	public boolean isValid() {
@@ -255,6 +373,28 @@ public class ChannelMediaStream extends DLNAResource {
 	public void setImdb(String i) {
 		imdb=i;
 	}
-
-
+	
+	private void fixStuff(String str,boolean subs) {
+		String[] splits=str.split("&");
+		for(int i=0;i<splits.length;i++) {
+			if(splits[i].contains("url=")) {
+				String tmp=splits[i].substring(splits[i].indexOf("url=")+4);
+				realUrl=ChannelUtil.unescape(tmp);
+				Channels.debug("set sub url "+realUrl);
+				continue;
+			}
+			if(splits[i].contains("subs=")&&!noSubs&&subs) {
+				DLNAMediaSubtitle sub=new DLNAMediaSubtitle();
+				String tmp=splits[i].substring(splits[i].indexOf("subs=")+5);
+				sub.file=new File(ChannelUtil.unescape(tmp));
+				sub.type=DLNAMediaSubtitle.SUBRIP;
+				sub.id=1;
+				sub.lang="und";
+				media.container="unknown"; // avoid bug in mencvid
+				media_subtitle=sub;
+				Channels.debug("set sub file "+sub.file.getAbsolutePath());
+				continue;
+			}
+		}
+	}
 }

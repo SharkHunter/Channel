@@ -1,4 +1,4 @@
-version=0.35
+version=0.36
 ## NOTE!!
 ## 
 ## We match out both the megavideo play link and megaupload link
@@ -95,12 +95,13 @@ scriptdef imdbThumb {
 
 macrodef mediaMacro {
 	media {
-		name=MegaVideo
 		matcher=<a href=\"([^\"]+)\"\s+class=\"down_links_mv\"
 		order=url
+		name=MegaVideo
+		escript=get_flash_videos.bat
+		prop=concat_name=rear,name_separator=###0,name_index=3+2,script.no_format
 		subtitle=s4u,allSubs,podnapisiTV
 		#nscript=http://navix.turner3d.net/proc/megavideo
-		prop=concat_name=rear,name_separator=###0,name_index=3+2
 	}
 	media {
 		#<div class="down_butt_pad1" style="display:none;" id="downloadlink"><a href="http://www820.megaupload.com/files/e852a3a714538767347d5866d6ad9d7c/big_bang_theory.1x01.dvdrip_xvid-fov.H2020.dvd4arab.com.avi" class="down_butt1"></a>
@@ -144,7 +145,7 @@ macrodef tvMacro {
 				url=http://www.icefilms.info
 				type=empty
 				post_script=iceGo
-			folder {
+				folder {
 					# onclick='go(247108)'>Source #1|PART 1
 					matcher='go\(([0-9]+)\)'>((Source #[0-9]+|PART [0-9]+))
 					order=url,name
@@ -195,7 +196,7 @@ channel IceFilms {
 		associate=meagvideo.com,megaporn.com,megalive.com
 	}
 	folder {
-		name=TV Shows
+	  name=TV Shows
 	  folder {
 		#Popular
 		name=Popular
@@ -224,13 +225,13 @@ channel IceFilms {
 	}
 	
 	folder {
-		name=Movies
+	  name=Movies
 	  folder {
 		name=Popular
 		url=http://www.icefilms.info/movies/popular/1
 		macro=movieMacro
 	  }
-		folder {
+	  folder {
 		name=A-Z
 		type=atzlink
 		url=http://www.icefilms.info/movies/a-z

@@ -74,6 +74,7 @@ public class ChannelFolder implements ChannelProps, SearchObj{
 	
 	private String actionName;
 	private String[] action_prop;
+	private String videoFormat;
 	
 	public ChannelFolder(ArrayList<String> data,Channel parent) {
 		this(data,parent,null);
@@ -104,6 +105,7 @@ public class ChannelFolder implements ChannelProps, SearchObj{
 		switches=cf.switches;
 		actionName=cf.actionName;
 		action_prop=cf.action_prop;
+		videoFormat=cf.videoFormat;
 	}
 	
 	public ChannelFolder(ArrayList<String> data,Channel parent,ChannelFolder pf) {
@@ -126,6 +128,7 @@ public class ChannelFolder implements ChannelProps, SearchObj{
 		action_prop=null;
 		format=-1;
 		hdrs=new HashMap<String,String>();
+		videoFormat=null;
 		if(pf!=null)
 			hdrs.putAll(pf.hdrs);
 		else
@@ -138,6 +141,12 @@ public class ChannelFolder implements ChannelProps, SearchObj{
 			setSearchId();
 		if(!ChannelUtil.empty(actionName))
 			parent.addAction(this);
+		if(ChannelUtil.empty(videoFormat)) {
+			if(parentFolder==null)
+				videoFormat=parent.fallBackVideoFormat();
+			else
+				videoFormat=parentFolder.fallBackVideoFormat();
+		}
 		Ok=true;
 	}
 	
@@ -253,6 +262,8 @@ public class ChannelFolder implements ChannelProps, SearchObj{
 				actionName=keyval[1];
 			if(keyval[0].equalsIgnoreCase("action_prop"))	
 				action_prop=keyval[1].trim().split(",");
+			if(keyval[0].equalsIgnoreCase("fallback_video"))
+				videoFormat=ChannelUtil.ensureDot(keyval[1].trim());
 		}
 	}
 	
@@ -514,13 +525,13 @@ public class ChannelFolder implements ChannelProps, SearchObj{
 			}
 		}
 		int form=format;
-		Channels.debug("format before flipp "+format);
+		//Channels.debug("format before flipp "+format);
 		if(format==-1) // we don't know our format better get it
 			if(parentFolder!=null)
 				format=parentFolder.getFormat();
 			else
 				format=parent.getFormat();
-		Channels.debug("format after flipp "+format);
+		//Channels.debug("format after flipp "+format);
 		ArrayList<ChannelMedia> med=medias;
 		ArrayList<ChannelItem> ite=items;
 		ArrayList<ChannelFolder> fol=subfolders;
@@ -561,6 +572,8 @@ public class ChannelFolder implements ChannelProps, SearchObj{
 	    			someName=nName;
 	    		if(ChannelUtil.empty(imdbId))
 	    			imdbId=imdb;
+	    		Channels.debug("set fb format "+videoFormat);
+	    		m1.setFallBackFormat(videoFormat);
 	    		m1.add(res, someName, mUrl, thumb,
 	    				ChannelUtil.getProperty(prop, "auto_asx"),imdbId,format);
 	    		m1.stash("playpath",playpath);
@@ -751,6 +764,11 @@ public class ChannelFolder implements ChannelProps, SearchObj{
 		try {
 			Channels.debug("do search "+searchString);
 			Channels.addSearch(parent, searchId, searchString);
+			String realStr;
+			searchString=ChannelUtil.escape(searchString);
+			searchString=ChannelUtil.append(ChannelUtil.getPropertyValue(prop, "prepend_url"),null,
+							   ChannelUtil.append(searchString, null, ChannelUtil.getPropertyValue(prop, "append_url")));
+		
 			match(searcher,null,searchString,"","");
 		} catch (MalformedURLException e) {
 		}
@@ -939,5 +957,9 @@ public class ChannelFolder implements ChannelProps, SearchObj{
 		match(res,filter,urlEnd,pThumb,nName,imdb);
 		prop=old_prop;
 		format=old_format;
+	}
+	
+	public String fallBackVideoFormat() {
+		return videoFormat;
 	}
 }

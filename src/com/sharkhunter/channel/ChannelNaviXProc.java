@@ -262,7 +262,7 @@ public class ChannelNaviXProc {
 					if(im.groupCount()>1)
 						op=im.group(2);
 					if(im.groupCount()>2) {
-						String s=im.group(2);
+						String s=im.group(3);
 						comp=fixVar(s.trim(),getVar(s.trim()));
 					}
 				}
@@ -298,7 +298,7 @@ public class ChannelNaviXProc {
 					if(im.groupCount()>1)
 						op=im.group(2);
 					if(im.groupCount()>2) {
-						String s=im.group(2);
+						String s=im.group(3);
 						comp=fixVar(s.trim(),getVar(s.trim()));
 					}
 				}
@@ -341,14 +341,19 @@ public class ChannelNaviXProc {
 				String var=line.substring(6).trim();
 				Pattern re=Pattern.compile(escapeChars(vars.get("regex")));
 				Matcher m=re.matcher(getVar(var));
+				clearVs(maxV);
+				maxV=0;
+				vars.remove("nomatch");
 				if(!m.find()) {
 					Channels.debug("no match "+re.pattern());
 					vars.put("nomatch","1");
 				}
 				else {
 					Channels.debug("match "+m.groupCount());
-					for(int j=1;j<=m.groupCount();j++)	
+					for(int j=1;j<=m.groupCount();j++)	{
+						Channels.debug("match v"+j+" = "+m.group(j));
 						vars.put("v"+String.valueOf(j), m.group(j));
+					}
 					maxV=m.groupCount();
 				}
 				continue;
@@ -426,17 +431,25 @@ public class ChannelNaviXProc {
 			
 			if(line.startsWith("call ")) {
 				String nScript=line.substring(5).trim();
-				ArrayList<String> s=Channels.getScript(nScript);
-				if(s==null) {
+				nScript=fixVar(nScript,getVar(nScript));
+				if(ChannelUtil.empty(nScript)) {
 					Channels.debug("Calling unknown script "+nScript);
 					continue;
 				}
 				String arg=vars.get("url");
 				if(ChannelUtil.empty(arg))
 					arg=url;
-				String[] arr=s.toArray(new String[s.size()]);
 				Channels.debug("call script "+nScript+" arg "+arg);
-				parseV2(arr,0,arg);
+				String r=ChannelScriptMgr.runScript(nScript, arg, null);
+				// extract the url
+				String[] splits=r.split("&");
+				for(int z=0;i<splits.length;z++) {
+					if(splits[z].contains("url=")) {
+						String tmp=splits[i].substring(splits[i].indexOf("url=")+4);
+						putVar("v1",ChannelUtil.unescape(tmp));
+						break;
+					}
+				}
 				continue;
 			}
 			

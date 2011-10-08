@@ -37,7 +37,10 @@ public class ChannelScriptMgr {
 		}
 		// 2nd remote NIPL
 		if(script.startsWith("http://")) {
-			return ChannelNaviXProc.parse(url,script,ch.getFormat(),"",ch);
+			int format=-1;
+			if(ch!=null)
+				format=ch.getFormat();
+			return ChannelNaviXProc.parse(url,script,format,"",ch);
 		}
 		// 3rd external script,assume full path
 		if(isExtScript(script)) {
