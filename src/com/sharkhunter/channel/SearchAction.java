@@ -33,11 +33,6 @@ public class SearchAction extends VirtualFolder {
 		sobj.append(ch);
 		discovered=false;
 	}
-	
-	public boolean refreshChildren() {
-		discovered=false;
-		return false;
-	}
 
 	@Override
 	public String getName() {

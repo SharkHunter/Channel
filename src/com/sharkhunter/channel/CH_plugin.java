@@ -65,6 +65,7 @@ public class CH_plugin implements AdditionalFolderAtRoot, StartStopListener
 			ChannelNaviXNookie.init(new File(dPath+File.separator+"nookie"));
 		}
 		catch (Exception e) {
+			chRoot.debug("init exp "+e);
 			PMS.debug("exp "+e)	;
 		}
 	}
@@ -118,12 +119,17 @@ public class CH_plugin implements AdditionalFolderAtRoot, StartStopListener
 			DLNAResource res, DLNAMediaInfo media, OutputParams params,
 			List<String> cmdList) {
 		/*Channels.debug("finalize args:");
+		Channels.debug("name "+name+" params "+params.toString());
 		for(int i=0;i<cmdList.size();i++)
 			Channels.debug("arg "+i+":"+cmdList.get(i));
 		Channels.debug("############");*/
 		if((!(res instanceof ChannelMediaStream))||
 		   !cfg.netDiscStyle()) // bail early
 			return cmdList;
+		if(player.name().equals("Mencoder")) {
+			cmdList.add("-cookies-file");
+			cmdList.add(cfg.getCookiePath());			
+		}
 		if(!player.name().equals("PMSEncoder"))
 			return cmdList;
 		return cmdList;

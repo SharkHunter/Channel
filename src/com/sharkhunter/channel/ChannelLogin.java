@@ -38,6 +38,8 @@ public class ChannelLogin {
 	private boolean mediaOnly;
 	private String[] associated;
 	private long ttd;
+	private ChannelSimple pre_fetch;
+	private boolean preFetched;
 	
 	public ChannelLogin(ArrayList<String> data,Channel parent) {
 		this.parent=parent;
@@ -46,6 +48,8 @@ public class ChannelLogin {
 		mediaOnly=false;
 		associated=null;
 		ttd=0;
+		pre_fetch=null;
+		preFetched=false;
 		parse(data);
 	}
 	
@@ -54,6 +58,12 @@ public class ChannelLogin {
 			String line=data.get(i).trim();
 			if(line==null)
 				continue;
+			if(line.contains("pre_fetch {")) {
+				ArrayList<String> pf=ChannelUtil.gatherBlock(data,i+1);
+				i+=pf.size();
+				pre_fetch=new ChannelSimple(pf,parent);
+				continue;
+			}
 			String[] keyval=line.split("\\s*=\\s*",2);
 			if(keyval.length<2)
 				continue;
@@ -268,6 +278,24 @@ public class ChannelLogin {
 		if(!media&&mediaOnly)
 			return a;
 		try {
+			Channels.debug("pre_fetch "+pre_fetch+" prefecth "+preFetched);
+			if(pre_fetch!=null&&!preFetched) {
+				String page=pre_fetch.fetch();
+				Channels.debug("pre_fetch page "+page);
+				if(ChannelUtil.empty(page))
+					throw new Exception("Bad pre_fetch reply");
+				ChannelMatcher m=pre_fetch.getMatcher();
+				m.startMatch(page);
+				if(!m.match())
+					throw new Exception("Bad pre_fetch reply");
+				String name=m.getMatch("name",false);
+				String url=m.getMatch("url",true);
+				Channels.debug("pre_fetch name "+name+" url "+url);
+				if(ChannelUtil.empty(name)||ChannelUtil.empty(url))
+					throw new Exception("Bad pre_fetch reply");
+				ChannelUtil.append(params, "&", name+"="+url);
+				preFetched=true;
+			}
 			if(type==ChannelLogin.AUTO_COOKIE)
 				return mkResult(a);
 			if(type==ChannelLogin.SIMPLE_COOKIE)

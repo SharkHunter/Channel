@@ -6,6 +6,7 @@ import java.net.Proxy;
 import java.net.URLConnection;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 
 import net.pms.PMS;
 import net.pms.dlna.DLNAResource;
@@ -187,10 +188,6 @@ public class Channel extends VirtualFolder {
 		this.children.clear();
 	}
 	
-	public boolean refreshChildren() {
-		return true; // always re resolve
-	}
-	
 	public void discoverChildren(String s) {
 		discoverChildren();
 	}
@@ -357,7 +354,7 @@ public class Channel extends VirtualFolder {
 	}
 	
 	private void open(DLNAResource res,String[] names,int pos,DLNAResource child) {
-		ArrayList<DLNAResource> children=child.getChildren();
+		List<DLNAResource> children=child.getChildren();
 		for(int j=0;j<children.size();j++) {
 			DLNAResource nxt=children.get(j);
 			if(!names[pos].equals(nxt.getDisplayName()))

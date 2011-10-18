@@ -67,15 +67,21 @@ public class ChannelCookie {
 	 		if(a==null)
 	 			a=new ChannelAuth();
 	 		a.method=ChannelLogin.SIMPLE_COOKIE;
-	 		a.authStr=cookie;
+	 		a.authStr=ChannelUtil.append(a.authStr,"; ",cookie);
 	 		a.ttd=ttd;
 	 		if(skipUpdate)
 	 			return a.authStr;
-	 		Channels.debug("adding cookie "+cookie+" to url "+trimUrl(url));
-	 		update|=Channels.addCookie(trimUrl(url), a);	
+	 		Channels.debug("adding (stat) cookie "+cookie+" to url "+trimUrl(url));
+	 		update|=fixCookie(trimUrl(url), cookie);	
 		}
 		if(update)
 			Channels.mkCookieFile();
 		return null;
+	}
+	
+	private static boolean fixCookie(String url, String cookie) {
+		ChannelAuth b=new ChannelAuth();
+		b.authStr=cookie;
+		return Channels.addCookie(url, b);
 	}
 }

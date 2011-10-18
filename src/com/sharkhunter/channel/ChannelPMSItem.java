@@ -27,8 +27,8 @@ public class ChannelPMSItem extends VirtualFolder implements ChannelFilter{
 		}
 	}
 	
-	public boolean refreshChildren() { // Always update
-		return true;
+	public boolean isTranscodeFolderAvailable() {
+		return false;
 	}
 	
 	public InputStream getThumbnailInputStream() {

@@ -283,4 +283,14 @@ public class ChannelSubs implements ChannelProps {
 	public String separator(String base) {
 		return null;
 	}
+
+	@Override
+	public String append(String base) {
+		return null;
+	}
+
+	@Override
+	public String prepend(String base) {
+		return null;
+	}
 }

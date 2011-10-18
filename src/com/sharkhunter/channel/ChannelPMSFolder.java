@@ -80,8 +80,8 @@ public class ChannelPMSFolder extends VirtualFolder implements ChannelFilter{
 			this.children.clear();
 		}
 		
-		public boolean refreshChildren() { // Always update
-			return true;
+		public boolean isTranscodeFolderAvailable() {
+			return false;
 		}
 		
 		public boolean filter(String str) {

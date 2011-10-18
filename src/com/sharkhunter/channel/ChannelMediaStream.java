@@ -22,6 +22,7 @@ import net.pms.dlna.DLNAMediaAudio;
 import net.pms.dlna.DLNAMediaInfo;
 import net.pms.dlna.DLNAMediaSubtitle;
 import net.pms.dlna.DLNAResource;
+import net.pms.dlna.Range;
 import net.pms.encoders.Player;
 import net.pms.formats.Format;
 import net.pms.formats.WEB;
@@ -160,10 +161,7 @@ public class ChannelMediaStream extends DLNAResource {
         	player=pl;
     }
     
-    public InputStream getInputStream(long low, long high, double timeseek, RendererConfiguration mediarenderer) throws IOException {
-    	if(parent instanceof ChannelPMSSaveFolder)
-    		if(((ChannelPMSSaveFolder)parent).preventAutoPlay())
-    			return null;
+    private void scrape() {
     	Channels.debug("scrape "+name+" nosubs "+noSubs);
     	fool=Channels.cfg().netDiscStyle();
     	if(!scraped) {
@@ -174,7 +172,7 @@ public class ChannelMediaStream extends DLNAResource {
     	}
     	scraped=true;
     	if(ChannelUtil.empty(realUrl))
-    		return null;
+    		return ;
     	Channels.debug("real "+realUrl+" nd "+Channels.cfg().netDiscStyle()+" noSubs "+noSubs);
     	if(Channels.cfg().netDiscStyle()) {
     		if(realUrl.startsWith("subs://"))
@@ -194,7 +192,28 @@ public class ChannelMediaStream extends DLNAResource {
     		media.audioCodes=new ArrayList<DLNAMediaAudio>();
     	}
     	ch.prepareCom();
-    	InputStream is=super.getInputStream(low,high,timeseek,mediarenderer);
+    }
+    
+    public InputStream getInputStream(long low, long high, double timeseek, RendererConfiguration mediarenderer) throws IOException {
+    	if(parent instanceof ChannelPMSSaveFolder)
+    		if(((ChannelPMSSaveFolder)parent).preventAutoPlay())
+    			return null;
+    	scrape();
+    	InputStream is=null;//super.getInputStream(low,high,timeseek,mediarenderer);
+    	if((saveName!=null)||Channels.cache()) {
+    		return startSave(is);
+    	}
+    	else
+    	    return is;
+    }
+    
+    //public InputStream getInputStream(long low, long high, double timeseek, RendererConfiguration mediarenderer) throws IOException {
+    public InputStream getInputStream(Range range, RendererConfiguration mediarenderer) throws IOException {
+    	if(parent instanceof ChannelPMSSaveFolder)
+    		if(((ChannelPMSSaveFolder)parent).preventAutoPlay())
+    			return null;
+    	scrape();
+    	InputStream is=super.getInputStream(range,mediarenderer);
     	if((saveName!=null)||Channels.cache()) {
     		return startSave(is);
     	}

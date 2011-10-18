@@ -87,4 +87,11 @@ public class ChannelSwitch implements ChannelProps {
 	public boolean onlyFirst() {
 		return false;
 	}
+
+	public String append(String base) {
+		return ChannelUtil.getPropertyValue(prop,"append_"+base);
+	}
+	public String prepend(String base) {
+		return ChannelUtil.getPropertyValue(prop,"prepend_"+base);
+	}
 }

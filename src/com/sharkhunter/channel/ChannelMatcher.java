@@ -57,9 +57,12 @@ public class ChannelMatcher implements ChannelProps{
 	 public String getMatch(String field,boolean fallbackFirst) {
 		 return getMatch(field,fallbackFirst,"");
 	 }
-
-	      
+	 
 	 public String getMatch(String field,boolean fallbackFirst,String def) {
+		 return pend(getMatch_i(field,fallbackFirst,def),field);
+	 }
+
+	 private String getMatch_i(String field,boolean fallbackFirst,String def) {
 		 String res="";
 		 if(properties==null)
 			 properties=this;
@@ -95,6 +98,11 @@ public class ChannelMatcher implements ChannelProps{
 			 return def;
 	 }
 	 
+	 private String pend(String str,String field) {
+		 String r1=ChannelUtil.append(str, null, properties.append(field));
+		 return ChannelUtil.append(properties.prepend(field), null, r1);
+	 }
+	 
 	 private String fixSep(String s) {
 		 return ChannelUtil.separatorToken(s);
 	 }
@@ -128,5 +136,15 @@ public class ChannelMatcher implements ChannelProps{
 		 sb.append("order=");
 		 ChannelUtil.list2file(sb, order);
 	 }
+
+	@Override
+	public String append(String base) {
+		return null;
+	}
+
+	@Override
+	public String prepend(String base) {
+		return null;
+	}
 	 
 }

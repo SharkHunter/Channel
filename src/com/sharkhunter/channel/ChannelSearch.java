@@ -98,11 +98,6 @@ public class ChannelSearch extends VirtualFolder {
 		addItem(ch,id,str);
 	}
 	
-	public boolean refreshChildren() {
-		//children.clear();
-		return true; // always re resolve
-	}
-	
 	public void discoverChildren() {
 		for(int i=0;i<searchList.size();i++) {
 			addChild(searchList.get(i));

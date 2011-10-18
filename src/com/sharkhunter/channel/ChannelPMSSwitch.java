@@ -28,6 +28,10 @@ public class ChannelPMSSwitch extends VirtualFolder implements ChannelFilter{
 		thumbScriptRun=false;
 	}
 	
+	public boolean isTranscodeFolderAvailable() {
+		return false;
+	}
+	
 	public void setFormat(int f) {
 		if(f==-1)
 			return;

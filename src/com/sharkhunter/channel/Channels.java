@@ -28,7 +28,7 @@ import no.geosoft.cc.io.FileMonitor;
 public class Channels extends VirtualFolder implements FileListener {
 
 	// Version string
-	public static final String VERSION="1.46";
+	public static final String VERSION="1.47";
 	
 	// Constants for RTMP string constructions
 	public static final int RTMP_MAGIC_TOKEN=1;
@@ -389,7 +389,7 @@ public class Channels extends VirtualFolder implements FileListener {
 					continue;
 				if(!s1[0].equalsIgnoreCase("channel"))
 					continue;
-				String[] s2=s[1].split(",");
+				String[] s2=s[1].split(",",2);
 				if(s2.length<2)
 					continue;
 				String chName=s1[1];
@@ -408,7 +408,8 @@ public class Channels extends VirtualFolder implements FileListener {
 			}
 			addCred();
 		}
-    	catch (Exception e) {} 
+    	catch (Exception e) {
+    	} 
     }
     
     private void handleVCR(File f) throws IOException {
@@ -458,7 +459,7 @@ public class Channels extends VirtualFolder implements FileListener {
 						if(fileMonitor!=null)
 							fileMonitor.addFile(f);
 					} catch (Exception e) {
-						PMS.minimal("Error parsing file "+f.toString()+" ("+e.toString()+")");
+						debug("Error parsing file "+f.toString()+" ("+e.toString()+")");
 						//e.printStackTrace();
 					}	
 				}
@@ -660,6 +661,7 @@ public class Channels extends VirtualFolder implements FileListener {
 			if(fileMonitor!=null)
 				fileMonitor.addFile(f);
 			handleCred(f);
+
 		}
 		if(readCookieFile(cfg.getCookiePath())) // only need to write back if we removed some
 			writeCookieFile(cfg.getCookiePath());

@@ -758,6 +758,13 @@ public class ChannelFolder implements ChannelProps, SearchObj{
 	public boolean onlyFirst() {
 		return ChannelUtil.getProperty(prop, "only_first");
 	}
+	
+	public String append(String base) {
+		return ChannelUtil.getPropertyValue(prop,"append_"+base);
+	}
+	public String prepend(String base) {
+		return ChannelUtil.getPropertyValue(prop,"prepend_"+base);
+	}
 
 	@Override
 	public void search(String searchString, DLNAResource searcher) {

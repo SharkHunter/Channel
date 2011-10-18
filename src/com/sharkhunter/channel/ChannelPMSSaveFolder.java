@@ -51,10 +51,6 @@ public class ChannelPMSSaveFolder extends VirtualFolder {
 		subs=b;
 	}
 	
-	public boolean refreshChildren() { // Always update
-		return true;
-	}
-	
 	public void setSaveMode(boolean raw) {
 		rawSave=raw;
 	}
