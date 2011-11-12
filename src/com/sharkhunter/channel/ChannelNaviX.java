@@ -244,6 +244,10 @@ public class ChannelNaviX extends VirtualFolder implements ChannelScraper {
 		return parent;
 	}
 	
+	public boolean isTranscodeFolderAvailable() {
+		return false;
+	}
+	
 	public InputStream getThumbnailInputStream() {
 		try {
 			return downloadAndSend(thumbnailIcon,true);

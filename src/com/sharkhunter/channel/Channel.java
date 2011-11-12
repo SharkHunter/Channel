@@ -60,9 +60,7 @@ public class Channel extends VirtualFolder {
 	
 	public void parse(ArrayList<String> data,ArrayList<ChannelMacro> macros) {
 		folders.clear();
-		children.clear();
-		childrenNumber=0;
-		discovered=false;
+		getChildren().clear();
 		debug("parse channel "+name+" data "+data.toString());
 		this.macros=macros;
 		for(int i=0;i<data.size();i++) {
@@ -183,9 +181,7 @@ public class Channel extends VirtualFolder {
 	}
 	
 	public void resolve() {
-		this.discovered=false;
-		this.childrenNumber=0;
-		this.children.clear();
+//		this.getChildren().clear();
 	}
 	
 	public void discoverChildren(String s) {
@@ -213,6 +209,10 @@ public class Channel extends VirtualFolder {
 				} catch (MalformedURLException e) {
 				}
 		}
+	}
+	
+	public boolean isRefreshNeeded() {
+		return true;
 	}
 	
 	public InputStream getThumbnailInputStream() {

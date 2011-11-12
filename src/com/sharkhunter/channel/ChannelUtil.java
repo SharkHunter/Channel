@@ -112,8 +112,10 @@ public class ChannelUtil {
 		try {
 //			URLConnection connection=url.openConnection();
 			URL url=connection.getURL();
+			connection.setConnectTimeout(10000);
 			connection.setRequestProperty("User-Agent",defAgentString);
 			if(auth!=null) {
+				Channels.debug("auth "+auth.method+" authstr "+auth.authStr);
 				if(auth.method==ChannelLogin.STD)
 					connection.setRequestProperty("Authorization", auth.authStr);
 				else if(auth.method==ChannelLogin.COOKIE) 

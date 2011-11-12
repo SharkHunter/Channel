@@ -15,6 +15,8 @@ import java.util.ArrayList;
 
 import javax.net.ssl.HttpsURLConnection;
 
+import com.sun.syndication.io.impl.Base64;
+
 import net.pms.PMS;
 
 public class ChannelLogin {
@@ -24,7 +26,8 @@ public class ChannelLogin {
 	public static final int APIKEY=2;
 	public static final int SIMPLE_COOKIE=3;
 	public static final int AUTO_COOKIE=4;
-	
+	public static final int BASIC=5;
+
 	private Channel parent;
 	private String user;
 	private String pwd;
@@ -91,6 +94,8 @@ public class ChannelLogin {
 				if(keyval[1].equalsIgnoreCase("standard")||
 				   keyval[1].equalsIgnoreCase("std"))
 					type=ChannelLogin.STD;
+				if(keyval[1].equalsIgnoreCase("basic"))
+					type=ChannelLogin.BASIC;
 			}
 			if(keyval[0].equalsIgnoreCase("media_only")) {
 				if(keyval[1].equalsIgnoreCase("true"))
@@ -267,6 +272,14 @@ public class ChannelLogin {
 		}
 	}
 	
+	private ChannelAuth basicLogin(String usr,String pass,ChannelAuth a) {
+		String tmp=usr+":"+pass;
+		tokenStr=Base64.encode(tmp);
+		loggedOn=true;
+		type=ChannelLogin.STD;
+		return mkResult(a);
+	}
+	
 	public ChannelAuth getAuthStr(String usr,String pass,ChannelAuth a) {
 		return getAuthStr(usr,pass,false,a);
 	}
@@ -306,6 +319,8 @@ public class ChannelLogin {
 				return stdLogin(usr,pass,a);
 			else if(type==ChannelLogin.COOKIE)
 				return cookieLogin(usr,pass,a);
+			else if(type==ChannelLogin.BASIC)
+				return basicLogin(usr,pass,a);
 			return a;
 		}
 		catch (Exception e) {

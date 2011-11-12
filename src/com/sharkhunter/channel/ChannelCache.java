@@ -60,6 +60,10 @@ public class ChannelCache extends VirtualFolder {
 		}
 	}
 	
+	public boolean isRefreshNeeded() {
+		return true;
+	}
+	
 	private ArrayList<String> updateCache(File data,File save) throws Exception {
 		ArrayList<String> keep=gatherCache(data,save);
 		File cache=new File(data+File.separator+"cache");

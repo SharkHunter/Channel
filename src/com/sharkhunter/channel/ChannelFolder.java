@@ -510,8 +510,11 @@ public class ChannelFolder implements ChannelProps, SearchObj{
 				}
 				Proxy p=ChannelUtil.proxy(a);
 				URLConnection conn=urlobj.openConnection(p);
-				if(post) 
-					page=ChannelUtil.postPage(conn, urlEnd,"",hdrs);
+				if(post) {
+					String q=ChannelUtil.append(urlEnd, "&", 
+							ChannelUtil.getPropertyValue(prop, "post_data"));
+					page=ChannelUtil.postPage(conn, q,"",hdrs);
+				}
 				else
 					page=ChannelUtil.fetchPage(conn,a,"",hdrs);
 				ChannelCookie.parseCookie(conn, a, realUrl);
@@ -544,20 +547,43 @@ public class ChannelFolder implements ChannelProps, SearchObj{
 		}
 		// 1st Media
 		// Channels.debug("matching media "+medias.size());
+		DLNAResource allPlay=null;
+		DLNAResource allSave=null;
 	    for(int i=0;i<med.size();i++) {
 	    	ChannelMedia m1=med.get(i);
 	    	ChannelMatcher m=m1.getMatcher();
 	    	Channels.debug("media "+m+" sc "+m1.scriptOnly());
 	    	if(m==null) { // no matcher => static media
 	    		String thumb=ChannelUtil.getThumb(null, pThumb, parent);
-	    		if(m1.scriptOnly())
-	    			m1.add(res, nName, realUrl, thumb, ChannelUtil.getProperty(prop, "auto_asx"));
-	    		else
-	    			m1.add(res,nName,null,thumb,ChannelUtil.getProperty(prop, "auto_asx"));
+	    		if(allPlay==null&&Channels.cfg().allPlay()) {
+	    			allPlay=new ChannelPMSAllPlay("PLAY",pThumb);
+	    			res.addChild(allPlay);
+	    			if(Channels.save()) {
+	    				allSave=new ChannelPMSAllPlay("SAVE&PLAY",pThumb);
+	    				res.addChild(allSave);
+	    			}
+	    		}
+	    		String ru=(m1.scriptOnly()?realUrl:null);
+	    		boolean asx=ChannelUtil.getProperty(prop, "auto_asx");
+	    		m1.add(res, nName, ru, thumb, asx);
+	    		if(allPlay!=null) {
+	    			m1.add(allPlay, nName,ru, thumb, asx,ChannelMedia.SAVE_OPT_PLAY);
+	    			if(Channels.save())
+	    				m1.add(allSave, nName,ru, thumb, asx,ChannelMedia.SAVE_OPT_SAVE);
+	    		}
 	    		continue;
 	    	}
 	    	m.startMatch(page);
 	    	while(m.match()) {
+	    		Channels.debug("allplay "+allPlay+" cfg "+Channels.cfg().allPlay());
+	    		if(allPlay==null&&Channels.cfg().allPlay()) {
+	    			allPlay=new ChannelPMSAllPlay("PLAY",pThumb);
+	    			res.addChild(allPlay);
+	    			if(Channels.save()) {
+	    				allSave=new ChannelPMSAllPlay("SAVE&PLAY",pThumb);
+	    				res.addChild(allSave);
+	    			}
+	    		}
 	    		String someName=m.getMatch("name",false);
 	    		//if(filter!=null&&!filter.filter(someName))
 	    			//continue;
@@ -574,10 +600,18 @@ public class ChannelFolder implements ChannelProps, SearchObj{
 	    			imdbId=imdb;
 	    		Channels.debug("set fb format "+videoFormat);
 	    		m1.setFallBackFormat(videoFormat);
+    			boolean asx=ChannelUtil.getProperty(prop, "auto_asx");
 	    		m1.add(res, someName, mUrl, thumb,
-	    				ChannelUtil.getProperty(prop, "auto_asx"),imdbId,format);
+	    				asx,imdbId,format);
 	    		m1.stash("playpath",playpath);
 	    		m1.stash("swfVfy",swfplayer);
+	    		if(allPlay!=null) {
+	    			m1.add(allPlay, someName, mUrl, thumb,
+		    				asx,imdbId,format,ChannelMedia.SAVE_OPT_PLAY);
+	    			if(Channels.save())
+	    				m1.add(allSave, someName, mUrl, thumb,
+	    	    				asx,imdbId,format,ChannelMedia.SAVE_OPT_SAVE);
+	    		}
 	    		if(m1.onlyFirst())
 	    			break;
 	    	}
@@ -969,4 +1003,5 @@ public class ChannelFolder implements ChannelProps, SearchObj{
 	public String fallBackVideoFormat() {
 		return videoFormat;
 	}
+	
 }

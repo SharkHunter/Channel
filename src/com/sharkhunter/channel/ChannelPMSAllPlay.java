@@ -1,17 +1,13 @@
 package com.sharkhunter.channel;
 
 import java.io.InputStream;
-import java.util.ArrayList;
 
 import net.pms.dlna.virtual.VirtualFolder;
 
-public class ChannelGroupFolder extends VirtualFolder{
+public class ChannelPMSAllPlay extends VirtualFolder {
 	
-	ArrayList<ChannelPMSFolder> members;
-	
-	public ChannelGroupFolder(String name,ArrayList<ChannelPMSFolder> data,String thumb) {
-		super(name,thumb);
-		members=data;
+	public ChannelPMSAllPlay(String name,String thumb) {
+		super(name+" - ALL",thumb);
 	}
 	
 	public InputStream getThumbnailInputStream() {
@@ -21,11 +17,6 @@ public class ChannelGroupFolder extends VirtualFolder{
 		catch (Exception e) {
 			return super.getThumbnailInputStream();
 		}
-	}
-	
-	public void discoverChildren() {
-		for(int i=0;i<members.size();i++)
-			addChild(members.get(i));
 	}
 	
 	public boolean isRefreshNeeded() {

@@ -42,6 +42,7 @@ public class ChannelCfg {
 	private boolean noPlay;
 	private boolean netDisc;
 	private boolean rawSave;
+	private boolean allPlay;
 	
 	public ChannelCfg(Channels top) {
 		chPath=null;
@@ -59,6 +60,7 @@ public class ChannelCfg {
 		netDisc=false;
 		//netDisc=true;
 		rawSave=false;
+		allPlay=true;
 	}
 	
 	///////////////////////////////////
@@ -201,6 +203,10 @@ public class ChannelCfg {
 		return rawSave;
 	}
 	
+	public boolean allPlay() {
+		return allPlay;
+	}
+	
 	////////////////////////////////////////
 	// Misc. methods
 	////////////////////////////////////////
@@ -240,6 +246,7 @@ public class ChannelCfg {
 		String nd=(String)PMS.getConfiguration().getCustomProperty("channels.net_disc");
 		String rs=(String)PMS.getConfiguration().getCustomProperty("channels.raw_save");
 		navixUploadList=(String)PMS.getConfiguration().getCustomProperty("channels.navix_upload");
+		String ap=(String)PMS.getConfiguration().getCustomProperty("channels.all_play");
 		if(rtmpMode!=null) {
 			if(rtmpMode.trim().equalsIgnoreCase("1"))
 				Channels.rtmpMethod(Channels.RTMP_MAGIC_TOKEN);
@@ -291,6 +298,8 @@ public class ChannelCfg {
 			netDisc=true;
 		if(!ChannelUtil.empty(rs)&&rs.equalsIgnoreCase("true"))
 			rawSave=true;
+		if(!ChannelUtil.empty(ap)&&ap.equalsIgnoreCase("false"))
+			allPlay=false;
 	}
 
 	private void configPath(String key,String val) {

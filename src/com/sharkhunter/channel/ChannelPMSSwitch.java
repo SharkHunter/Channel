@@ -32,6 +32,10 @@ public class ChannelPMSSwitch extends VirtualFolder implements ChannelFilter{
 		return false;
 	}
 	
+	public boolean isRefreshNeeded() {
+		return true;
+	}
+	
 	public void setFormat(int f) {
 		if(f==-1)
 			return;

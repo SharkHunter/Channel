@@ -173,8 +173,8 @@ public class ChannelMediaStream extends DLNAResource {
     	scraped=true;
     	if(ChannelUtil.empty(realUrl))
     		return ;
-    	Channels.debug("real "+realUrl+" nd "+Channels.cfg().netDiscStyle()+" noSubs "+noSubs);
-    	if(Channels.cfg().netDiscStyle()) {
+    	Channels.debug("real "+realUrl+" nd "+fool+" noSubs "+noSubs);
+    	if(fool) {
     		if(realUrl.startsWith("subs://"))
     			fixStuff(realUrl.substring(7),true);
     		else if(realUrl.startsWith("navix://")) {
@@ -185,6 +185,7 @@ public class ChannelMediaStream extends DLNAResource {
 			media_subtitle=new DLNAMediaSubtitle();
 			media_subtitle.id=-1;
 		}
+    	Channels.debug("call update");
     	updateStreamDetails();
     	fool=false;
     	if(media==null) {
@@ -330,6 +331,7 @@ public class ChannelMediaStream extends DLNAResource {
     	else {
     		u= realUrl;
     	}
+    	Channels.debug("getsysname "+u+" fool "+fool);
 		if(format==Format.AUDIO)
 			return u.substring(u.lastIndexOf("/")+1);
 		if(u.startsWith("http")&&fool)

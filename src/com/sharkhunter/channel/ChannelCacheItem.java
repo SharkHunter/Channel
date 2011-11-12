@@ -50,5 +50,9 @@ public class ChannelCacheItem extends VirtualFolder {
             }
 		});
 	}
+	
+	public boolean isRefreshNeeded() {
+		return true;
+	}
 
 }

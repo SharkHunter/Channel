@@ -15,6 +15,10 @@ public class ChannelMedia implements ChannelProps,ChannelScraper {
 	public static final int TYPE_NORMAL=0;
 	public static final int TYPE_ASX=1;
 	
+	public static final int SAVE_OPT_NONE=0;
+	public static final int SAVE_OPT_SAVE=1;
+	public static final int SAVE_OPT_PLAY=2;
+	
 	public static final int SCRIPT_LOCAL=0;
 	public static final int SCRIPT_NET=1;
 	public static final int SCRIPT_EXT=2;
@@ -153,16 +157,25 @@ public class ChannelMedia implements ChannelProps,ChannelScraper {
 			return;
 		params.put(key, val);
 	}
-	
 	public void add(DLNAResource res,String nName,String url,String thumb,boolean autoASX) {
-		add(res,nName,url,thumb,autoASX,null,-1);
+		add(res,nName,url,thumb,autoASX,null,-1,ChannelMedia.SAVE_OPT_NONE);
+	}
+
+	public void add(DLNAResource res,String nName,String url,String thumb,boolean autoASX,int sOpt) {
+		add(res,nName,url,thumb,autoASX,null,-1,sOpt);
 	}
 	
 	public void add(DLNAResource res,String nName,String url,String thumb,boolean autoASX,String imdb) {
-		add(res,nName,url,thumb,autoASX,imdb,-1);
+		add(res,nName,url,thumb,autoASX,imdb,-1,ChannelMedia.SAVE_OPT_NONE);
 	}
 	
-	public void add(DLNAResource res,String nName,String url,String thumb,boolean autoASX,String imdb,int f) {
+	public void add(DLNAResource res,String nName,String url,String thumb,
+			boolean autoASX,String imdb,int f) {
+		add(res,nName,url,thumb,autoASX,imdb,f,ChannelMedia.SAVE_OPT_NONE);
+	}
+	
+	public void add(DLNAResource res,String nName,String url,String thumb,
+			boolean autoASX,String imdb,int f,int sOpt) {
 		if(!ChannelUtil.empty(thumbURL)) {
 			if(ChannelUtil.getProperty(prop, "use_conf_thumb"))
 				thumb=thumbURL;
@@ -197,7 +210,7 @@ public class ChannelMedia implements ChannelProps,ChannelScraper {
 		if(type==ChannelMedia.TYPE_ASX)
 			asx=ChannelUtil.ASXTYPE_FORCE;
 		int resF=(format==-1?(f==-1?parent.getFormat():f):format);
-		if(Channels.save())  { // Add save version
+		if(Channels.save()&&sOpt==ChannelMedia.SAVE_OPT_NONE)  { // Add save version
 			ChannelPMSSaveFolder sf=new ChannelPMSSaveFolder(parent,nName,url,thumb,script,asx,
 					                resF,this);
 			sf.setImdb(imdb);
@@ -207,7 +220,13 @@ public class ChannelMedia implements ChannelProps,ChannelScraper {
 			res.addChild(sf);
 		}
 		else {
-			ChannelMediaStream cms=new ChannelMediaStream(parent,nName,url,thumb,script,resF,asx,this);
+			ChannelMediaStream cms;
+			if(sOpt==ChannelMedia.SAVE_OPT_PLAY)
+				cms=new ChannelMediaStream(parent,nName,url,thumb,script,resF,asx,this,name,null);
+			else if(sOpt==ChannelMedia.SAVE_OPT_SAVE)
+				cms=new ChannelMediaStream(parent,nName,url,thumb,script,resF,asx,this,name,name);
+			else
+				cms=new ChannelMediaStream(parent,nName,url,thumb,script,resF,asx,this);
 			cms.setImdb(imdb);
 			cms.setSaveMode(ChannelUtil.getProperty(prop, "raw_save"));
 			cms.setFallbackFormat(videoFormat);
