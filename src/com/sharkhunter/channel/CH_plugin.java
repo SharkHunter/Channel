@@ -113,6 +113,24 @@ public class CH_plugin implements AdditionalFolderAtRoot, StartStopListener
 		if(arg1 instanceof ChannelMediaStream)
 			((ChannelMediaStream)arg1).nowPlaying();
 	}
+	
+	private void removeArg(List<String> list,String arg) {
+		removeArg(list,arg,false);
+	}
+	
+	private void removeArg(List<String> list,String arg,boolean boolOp) {
+		int pos;
+		if((pos=list.indexOf(arg))!=-1) {
+			list.set(pos,"-vcodec");
+			list.set(pos+1, "libx264");
+		}
+	}
+	
+	private void dbgArg(List<String> cmdList) {
+		for(int i=0;i<cmdList.size();i++)
+			Channels.debug("arg "+i+":"+cmdList.get(i));
+		Channels.debug("############");
+	}
 
 	@Override
 	public List<String> finalizeTranscoderArgs(Player player, String name,
@@ -120,18 +138,27 @@ public class CH_plugin implements AdditionalFolderAtRoot, StartStopListener
 			List<String> cmdList) {
 		/*Channels.debug("finalize args:");
 		Channels.debug("name "+name+" params "+params.toString());
-		for(int i=0;i<cmdList.size();i++)
-			Channels.debug("arg "+i+":"+cmdList.get(i));
-		Channels.debug("############");*/
-		if((!(res instanceof ChannelMediaStream))||
-		   !cfg.netDiscStyle()) // bail early
+		Channels.debug("player "+player.name());
+		dbgArg(cmdList);*/
+		if((!(res instanceof ChannelMediaStream)))
+			return cmdList;	
+	/*	if(res.getSystemName().startsWith("rtmp")&&player.name().equals("PMSEncoder")) {
+			RendererConfiguration r=params.mediaRenderer;
+			//if(r.isPS3()||r.isXBOX())
+			if(!r.isBRAVIA())
+				removeArg(cmdList,"-target");
+			dbgArg(cmdList);
 			return cmdList;
-		if(player.name().equals("Mencoder")) {
+		}*/
+		if(!cfg.netDiscStyle()) // bail early
+			return cmdList;
+		if(player.name().equals("MEncoder")) {
 			cmdList.add("-cookies-file");
 			cmdList.add(cfg.getCookiePath());			
 		}
 		if(!player.name().equals("PMSEncoder"))
 			return cmdList;
+		
 		return cmdList;
 	}
 	

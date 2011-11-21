@@ -1,4 +1,4 @@
-version=0.12
+version=0.20
 
 scriptdef wsTrix {
 	tmp='http://www.watchseries.eu/open_link.php?vari=
@@ -9,6 +9,14 @@ scriptdef wsTrix {
 	url=v1
 	play
 }
+
+scriptdef wsTrix2 {
+	s_action='geturl
+	scrape
+	url=v1
+	play
+}
+
 
 scriptdef wsSubs {
 	url=s_url
@@ -22,7 +30,10 @@ scriptdef wsSubs {
 }
 
 scriptdef wsScript {
-	url=s_url
+	s_action='geturl
+	scrape
+	url=v1
+	#url=s_url
 	regex='(movshare)
 	match url
 	if v1 
@@ -97,13 +108,15 @@ macrodef wsMacro {
 					matcher=<div class=\"site\">\s+(\S+)\s+</div>\s+<div .*?>\s+<a href=\"..([^\"]+)
 					order=name,url
 					url=http://watchseries.eu/
-					post_script=wsTrix
+					#post_script=wsTrix
 					folder {
 						# Trix
 						# FlashVars="input=ZWRkaGNlaoSEZA=="
-						matcher=FlashVars=\"input=([^\"]+)\"
+					#	matcher=FlashVars=\"input=([^\"]+)\"
+					#<a href="http://watchseries.eu/gateway.php?link=YmZhaGRlY2ZiZ2tpbGFkaGppbGNmaGlqYWFoZGdjZmhhY1NkZmNiaGNrZGVogoKCgoSEaGNiY2RlaGlqa2piamdjZ2ppYmZjZmxra2hjYV9mZGdkbGdhYmNmZ2hpaGlqZWZnY2yCgoKChIRkY2lkaGZoZ2pjaWJjZGVja2RkYV9mZGdlaWeCgoKEhIRkgoKCgoSEZGRiZF9mZGdlamJiaGJkZmVmZ2dmZWhnbGtlYmJiYWhkZ2NoZYKEhISEgmJkY2RqZWtiY2Y=" class="myButton">Click Here to Play</a>
+						matcher=a href=\"([^\"]+)\" .*?>Click Here to Play<
 						order=url
-						type=empty
+						type=empty							
 						media {
 							script=wsScript
 							subtitle=s4u,allSubs,podnapisiTV

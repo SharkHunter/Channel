@@ -441,15 +441,17 @@ public class ChannelNaviXProc {
 					arg=url;
 				Channels.debug("call script "+nScript+" arg "+arg);
 				String r=ChannelScriptMgr.runScript(nScript, arg, null);
+				Channels.debug("script returned "+r);
 				// extract the url
 				String[] splits=r.split("&");
-				for(int z=0;i<splits.length;z++) {
+				putVar("v1",r); // fallback data
+				for(int z=0;z<splits.length;z++) {
 					if(splits[z].contains("url=")) {
-						String tmp=splits[i].substring(splits[i].indexOf("url=")+4);
+						String tmp=splits[z].substring(splits[z].indexOf("url=")+4);
 						putVar("v1",ChannelUtil.unescape(tmp));
 						break;
 					}
-				}
+				}					
 				continue;
 			}
 			

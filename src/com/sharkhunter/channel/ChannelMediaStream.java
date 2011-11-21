@@ -164,13 +164,13 @@ public class ChannelMediaStream extends DLNAResource {
     private void scrape() {
     	Channels.debug("scrape "+name+" nosubs "+noSubs);
     	fool=Channels.cfg().netDiscStyle();
-    	if(!scraped) {
+    	//if(!scraped) {
     		if(scraper!=null)
     			realUrl=scraper.scrape(ch,url,processor,format,this,noSubs,imdb);
     		else
     			realUrl=ChannelUtil.parseASX(url, ASX);
-    	}
-    	scraped=true;
+    	/*}
+    	scraped=true;*/
     	if(ChannelUtil.empty(realUrl))
     		return ;
     	Channels.debug("real "+realUrl+" nd "+fool+" noSubs "+noSubs);
@@ -200,7 +200,7 @@ public class ChannelMediaStream extends DLNAResource {
     		if(((ChannelPMSSaveFolder)parent).preventAutoPlay())
     			return null;
     	scrape();
-    	InputStream is=null;//super.getInputStream(low,high,timeseek,mediarenderer);
+    	InputStream is=super.getInputStream(low,high,timeseek,mediarenderer);
     	if((saveName!=null)||Channels.cache()) {
     		return startSave(is);
     	}

@@ -244,8 +244,9 @@ public class ChannelMedia implements ChannelProps,ChannelScraper {
 		ch.debug("scrape sub "+subtitle+" format "+format);
 		String subFile="";
 		boolean live=ChannelUtil.getProperty(prop, "live");
+		HashMap<String,String> vars=new HashMap<String,String>(params);
 		if(live)
-			params.put("live", "true");
+			vars.put("live", "true");
 		int asx=ChannelUtil.ASXTYPE_NONE;
 		if(ChannelUtil.getProperty(prop, "auto_asx"))
 			asx=ChannelUtil.ASXTYPE_AUTO;
@@ -269,15 +270,15 @@ public class ChannelMedia implements ChannelProps,ChannelScraper {
 					subName.put("imdb", imdb);
 				subFile=subs.getSubs(subName);
 				parent.debug("subs "+subFile);
-				params.put("subtitle",subFile);
+				vars.put("subtitle",subFile);
 				if(!ChannelUtil.empty(subFile))
 					break;
 			}
 		}	
 		Channels.debug("scrape script name "+scriptName);
 		if(ChannelUtil.empty(scriptName)) { // no script just return what we got
-			params.put("url", ChannelUtil.parseASX(url,asx));
-			return ChannelUtil.createMediaUrl(params,format,ch);
+			vars.put("url", ChannelUtil.parseASX(url,asx));
+			return ChannelUtil.createMediaUrl(vars,format,ch);
 		}
 		ch.debug("media scrape type "+scriptType+" name "+scriptName);
 		if(scriptType==ChannelMedia.SCRIPT_NET) 
@@ -289,7 +290,7 @@ public class ChannelMedia implements ChannelProps,ChannelScraper {
 			boolean no_format=ChannelUtil.getProperty(prop, "script.no_format");
 			String rUrl=ChannelScriptMgr.runScript(scriptName,url,parent,no_format);
 			if(rUrl.startsWith("RTMPDUMP")) { // rtmpdump magic
-				params.put("__type__", "RTMPDUMP");
+				vars.put("__type__", "RTMPDUMP");
 				String tmp=rUrl.replace("RTMPDUMP", "");
 				asx=ChannelUtil.ASXTYPE_NONE; // force none
 				int first=tmp.indexOf("###");
@@ -299,14 +300,14 @@ public class ChannelMedia implements ChannelProps,ChannelScraper {
 					rUrl=tmp.substring(first+3, last-3);
 				}
 			}
-			params.put("url",  ChannelUtil.parseASX(rUrl,asx));
-			return ChannelUtil.createMediaUrl(params, format,ch);
+			vars.put("url",  ChannelUtil.parseASX(rUrl,asx));
+			return ChannelUtil.createMediaUrl(vars, format,ch);
 		}	
 		ArrayList<String> sData=Channels.getScript(scriptName);
 		if(sData==null) { // weird no script found, log and bail out
 			ch.debug("no script "+scriptName+" defined");
-			params.put("url", url);
-			return ChannelUtil.createMediaUrl(params,format,ch);
+			vars.put("url", url);
+			return ChannelUtil.createMediaUrl(vars,format,ch);
 		}
 		HashMap<String,String> res=ChannelNaviXProc.lite(url,sData,asx,ch);
 		if(res==null) {
