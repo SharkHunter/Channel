@@ -1,4 +1,4 @@
-version=0.25
+version=0.26
 channel SVTPlay {
 	img=http://svtplay.se/img/brand/svt-play.png
 	folder {
@@ -10,12 +10,26 @@ channel SVTPlay {
 			 order=url,name
 			 url=http://svtplay.se
 			 item {
+				# Regular items
 				url=http://svtplay.se
-		  		matcher=<a href=\"(/v/[^\?]+)[^\"]+\" title=\"[^\"]+\" [^>]+>[^<]*<img class=\"thumbnail\" src=\"([^\"]+)\"[^>]+>[^>]+>([^<]+)</span>
+		  		matcher=<a href=\"(/v/[^\?]+)[^\"]+\" title=\"[^\"]*\" [^>]+>[^<]*<img class=\"thumbnail\" src=\"([^\"]+)\"[^>]+>[^>]+>([^<]+)</span>
 				order=url,thumb,name
 		  		prop=auto_media
 				media {
-		  			matcher=url:(rtmp[^,]+),bitrate:2400
+					matcher=url:(rtmp[^,]+),bitrate:(2400|850)
+					order=url
+					prop=only_first,
+				}
+			}
+			item {
+				# Live items
+				url=http://svtplay.se
+		  		matcher=<a href=\"(/v/[^\?]+)[^\"]+\" title=\"[^\"]*\" [^>]+>[^<]*<img class=\"icon-live\" src=\"([^\"]+)\" .*? alt=\"(Live)\" [^>]+>
+				order=url,thumb,name
+		  		prop=auto_media
+				media {
+					matcher=url:(rtmp[^,]+),bitrate:(2400|850)
+					order=url
 					prop=only_first,
 				}
 			}

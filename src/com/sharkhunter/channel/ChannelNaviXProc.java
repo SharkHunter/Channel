@@ -13,6 +13,7 @@ import java.util.HashMap;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import net.pms.PMS;
 import net.pms.dlna.DLNAResource;
 
 
@@ -156,6 +157,18 @@ public class ChannelNaviXProc {
 			if(if_skip&&!line.startsWith("else")&&!line.startsWith("elseif")&&!line.startsWith("endif"))
 				continue;
 			if_skip=false;
+			
+			if(line.equalsIgnoreCase("print")) {
+				String var=line.substring(6).trim();
+				String msg;
+				if(var.startsWith("\'"))
+					msg = var.substring(1);
+				else
+					msg = var + "=" + getVar(var);
+				PMS.debug(msg);
+				Channels.debug(msg);
+				continue;
+			}
 			
 			if(line.equalsIgnoreCase("scrape")) { // scrape, fetch page...
 				String sUrl=vars.get((String)"s_url");

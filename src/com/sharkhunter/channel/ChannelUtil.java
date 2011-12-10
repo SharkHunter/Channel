@@ -183,6 +183,9 @@ public class ChannelUtil {
 			URL u=new URL(url);
 			URLConnection connection=u.openConnection();
 			connection.setRequestProperty("User-Agent",ChannelUtil.defAgentString);
+			String cookie=ChannelCookie.getCookie(url);
+			if(!empty(cookie))
+				connection.setRequestProperty("Cookie",cookie);
 			connection.setDoInput(true);
 			connection.setDoOutput(true);
 			InputStream in=connection.getInputStream();

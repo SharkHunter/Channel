@@ -239,7 +239,7 @@ public class ChannelCfg {
 		String sub=(String) PMS.getConfiguration().getCustomProperty("channels.subtitles");
 		String cacheStr=(String) PMS.getConfiguration().getCustomProperty("channels.cache");
 		String rtmpMode=(String)PMS.getConfiguration().getCustomProperty("channels.rtmp");
-		String group=(String)PMS.getConfiguration().getCustomProperty("channels.group_folder");
+		String group=(String)PMS.getConfiguration().getCustomProperty("channels.group");
 		String mi=(String)PMS.getConfiguration().getCustomProperty("channels.movieinfo");
 		String fav=(String)PMS.getConfiguration().getCustomProperty("channels.favorite");
 		String nop=(String)PMS.getConfiguration().getCustomProperty("channels.no_play");

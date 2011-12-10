@@ -118,10 +118,6 @@ public class ChannelPMSSaveFolder extends VirtualFolder {
 		}
 	}
 	
-	public boolean isRefreshNeeded() {
-		return true;
-	}
-	
 	public InputStream getThumbnailInputStream() {
 		try {
 			return downloadAndSend(thumbnailIcon,true);

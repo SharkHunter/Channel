@@ -1,9 +1,11 @@
 package com.sharkhunter.channel;
 
 import java.io.InputStream;
+import java.util.List;
 
 import org.apache.commons.lang.StringEscapeUtils;
 
+import net.pms.dlna.DLNAResource;
 import net.pms.dlna.virtual.VirtualFolder;
 import net.pms.dlna.virtual.VirtualVideoAction;
 
@@ -81,10 +83,6 @@ public class ChannelPMSFolder extends VirtualFolder implements ChannelFilter{
 		
 		public boolean isTranscodeFolderAvailable() {
 			return false;
-		}
-		
-		public boolean isRefreshNeeded() {
-			return true;
 		}
 		
 		public boolean filter(String str) {

@@ -50,17 +50,9 @@ public class Search extends VirtualFolder {
 	
 	public void discoverChildren() {
 		if(searched) {
-			children.clear();
+			getChildren().clear();
 		}
 		this.sobj.search(sb.toString(),this);
 		searched=true;
-	}
-
-	
-	public boolean refreshChildern() {
-		discovered=false;
-		return true;
-	}
-	
-	
+	}	
 }

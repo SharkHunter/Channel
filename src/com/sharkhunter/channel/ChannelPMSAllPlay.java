@@ -18,8 +18,4 @@ public class ChannelPMSAllPlay extends VirtualFolder {
 			return super.getThumbnailInputStream();
 		}
 	}
-	
-	public boolean isRefreshNeeded() {
-		return true;
-	}
 }

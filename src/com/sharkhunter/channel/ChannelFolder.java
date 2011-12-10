@@ -549,6 +549,7 @@ public class ChannelFolder implements ChannelProps, SearchObj{
 		// Channels.debug("matching media "+medias.size());
 		DLNAResource allPlay=null;
 		DLNAResource allSave=null;
+		int medCnt=0;
 	    for(int i=0;i<med.size();i++) {
 	    	ChannelMedia m1=med.get(i);
 	    	ChannelMatcher m=m1.getMatcher();
@@ -557,15 +558,16 @@ public class ChannelFolder implements ChannelProps, SearchObj{
 	    		String thumb=ChannelUtil.getThumb(null, pThumb, parent);
 	    		if(allPlay==null&&Channels.cfg().allPlay()) {
 	    			allPlay=new ChannelPMSAllPlay("PLAY",pThumb);
-	    			res.addChild(allPlay);
+	    			//res.addChild(allPlay);
 	    			if(Channels.save()) {
 	    				allSave=new ChannelPMSAllPlay("SAVE&PLAY",pThumb);
-	    				res.addChild(allSave);
+	    				//res.addChild(allSave);
 	    			}
 	    		}
 	    		String ru=(m1.scriptOnly()?realUrl:null);
 	    		boolean asx=ChannelUtil.getProperty(prop, "auto_asx");
 	    		m1.add(res, nName, ru, thumb, asx);
+	    		medCnt++;
 	    		if(allPlay!=null) {
 	    			m1.add(allPlay, nName,ru, thumb, asx,ChannelMedia.SAVE_OPT_PLAY);
 	    			if(Channels.save())
@@ -578,10 +580,10 @@ public class ChannelFolder implements ChannelProps, SearchObj{
 	    		Channels.debug("allplay "+allPlay+" cfg "+Channels.cfg().allPlay());
 	    		if(allPlay==null&&Channels.cfg().allPlay()) {
 	    			allPlay=new ChannelPMSAllPlay("PLAY",pThumb);
-	    			res.addChild(allPlay);
+	    			//res.addChild(allPlay);
 	    			if(Channels.save()) {
 	    				allSave=new ChannelPMSAllPlay("SAVE&PLAY",pThumb);
-	    				res.addChild(allSave);
+	    				//res.addChild(allSave);
 	    			}
 	    		}
 	    		String someName=m.getMatch("name",false);
@@ -605,6 +607,7 @@ public class ChannelFolder implements ChannelProps, SearchObj{
 	    				asx,imdbId,format);
 	    		m1.stash("playpath",playpath);
 	    		m1.stash("swfVfy",swfplayer);
+	    		medCnt++;
 	    		if(allPlay!=null) {
 	    			m1.add(allPlay, someName, mUrl, thumb,
 		    				asx,imdbId,format,ChannelMedia.SAVE_OPT_PLAY);
@@ -616,6 +619,12 @@ public class ChannelFolder implements ChannelProps, SearchObj{
 	    			break;
 	    	}
 	    } 
+	    if(medCnt>1) {
+	    	if(allPlay!=null)
+	    		res.addChild(allPlay);
+	    	if(allSave!=null)
+	    		res.addChild(allSave);
+	    }
 	    // 2nd items
 		// PMS.debug("items "+items.size());
 	    for(int i=0;i<ite.size();i++) {
@@ -698,6 +707,9 @@ public class ChannelFolder implements ChannelProps, SearchObj{
 	    	m.startMatch(page);
 	    	parent.debug("folder matching using expr "+m.getRegexp().pattern());
 	    	HashMap<String,ArrayList<ChannelPMSFolder>> groups=new HashMap<String,ArrayList<ChannelPMSFolder>>();
+	    	HashMap<String,String> uniqueNames = new HashMap<String,String>();   // from matched name to matched URL
+	    	boolean discardDuplicates = ChannelUtil.getProperty(prop, "discard_duplicates");
+	    	boolean ignoreMatch = ChannelUtil.getProperty(prop, "ignore_match");
 	    	while(m.match()) {
 	    		String someName=m.getMatch("name",false);
 	    		if(filter!=null&&!filter.filter(someName))
@@ -721,12 +733,20 @@ public class ChannelFolder implements ChannelProps, SearchObj{
 	    		parent.debug("matching "+someName+" url "+fUrl+" thumb "+thumb+" group "+group+" imdb "+imdbId);
 	    		if(ChannelUtil.empty(someName))
 	    				someName=nName;
-	    		parent.debug("cf.name "+cf.name+" ignore "+ChannelUtil.getProperty(cf.prop, "ignore_match"));
-	    		if(ChannelUtil.getProperty(cf.prop, "ignore_match"))
+	    		parent.debug("cf.name "+cf.name+" ignore "+ignoreMatch);
+	    		if(ignoreMatch)
 	    				someName=cf.name;
 	    		if(ChannelUtil.getProperty(cf.prop, "prepend_parenturl"))
 	    			fUrl=ChannelUtil.concatURL(realUrl,fUrl);
 	    		fUrl=ChannelScriptMgr.runScript(post_script, fUrl, parent,page);
+	    		if (discardDuplicates && !ignoreMatch) {
+	    			if (uniqueNames.containsKey(someName)) {
+	    				String uniqueURL = uniqueNames.get(someName);
+	    				if (uniqueURL.equalsIgnoreCase(fUrl)) 
+	    					continue;
+	    			}
+	    			uniqueNames.put(someName, fUrl);
+	    		}
 	    		PeekRes pr=cf.peek(fUrl,prop);
 	    		if(!pr.res)
 	    			continue;

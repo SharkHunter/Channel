@@ -1,4 +1,4 @@
-version=0.36
+version=0.37
 ## NOTE!!
 ## 
 ## We match out both the megavideo play link and megaupload link
@@ -95,25 +95,32 @@ scriptdef imdbThumb {
 
 macrodef mediaMacro {
 	media {
-		matcher=<a href=\"([^\"]+)\"\s+class=\"down_links_mv\"
+		# MegaVideo Link
+		#<a href="http://www.megavideo.com/?d=XVH4UK2J" class="download_view_but" target="_blank"
+		#matcher=<a href=\"([^\"]+)\"\s+class=\"down_links_mv\"
+		matcher=<a href=\"([^\"]+)\"\s+class=\"download_view_but\"
 		order=url
 		name=MegaVideo
-		escript=get_flash_videos.bat
+		#escript=get_flash_videos.bat
 		prop=concat_name=rear,name_separator=###0,name_index=3+2,script.no_format
 		subtitle=s4u,allSubs,podnapisiTV
-		#nscript=http://navix.turner3d.net/proc/megavideo
+		nscript=http://navix.turner3d.net/proc/megavideo
 	}
 	media {
-		#<div class="down_butt_pad1" style="display:none;" id="downloadlink"><a href="http://www820.megaupload.com/files/e852a3a714538767347d5866d6ad9d7c/big_bang_theory.1x01.dvdrip_xvid-fov.H2020.dvd4arab.com.avi" class="down_butt1"></a>
-		matcher=<div class=\"down_butt_pad1\" style=\"display:none;\" id=\"downloadlink\"><a href="([^\"]+)"
+		  # Cheap style link
+		 #<a href="http://www1361.megaupload.com/files/7365f5a2ec3916f3572eb16df83531a7/The.Big.Bang.Theory.S05E11.HDTV.XviD-ASAP.avi" class="download_regular_usual"  style="display:none;" id="dlbutton"></a>
+		 matcher=<a href=\"([^\"]+)\" class=\"download_regular_usual\"
 		name=MegaUpload
 		order=url
 		subtitle=s4u,allSubs,podnapisiTV
 		prop=concat_name=rear,name_separator=###0,name_index=3+2
 	}	
 	media {
+		# Premium link
 		# <a href="http://www68.megaupload.com/files/f27f675c5fd22f12f08a4e03fc2d4522/Game.of.Thrones.S01E01.HDTV.XviD-FEVER.avi" class="down_ad_butt1"></a> 
-		matcher=<a href="([^\"]+)" class="down_ad_butt1"> 
+		#matcher=<a href="([^\"]+)" class="down_ad_butt1">
+		#<a href="?c=premium" class="download_premium_but"></a>
+		matcher=<a href="([^\"]+)" class=\"download_premium_but"
 		name=MegaUpload Premium
 		order=url
 		subtitle=s4u,allSubs,podnapisiTV
