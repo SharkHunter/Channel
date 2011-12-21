@@ -600,7 +600,7 @@ public class ChannelFolder implements ChannelProps, SearchObj{
 	    			someName=nName;
 	    		if(ChannelUtil.empty(imdbId))
 	    			imdbId=imdb;
-	    		Channels.debug("set fb format "+videoFormat);
+	    		Channels.debug("set fb format "+videoFormat+" url "+mUrl);
 	    		m1.setFallBackFormat(videoFormat);
     			boolean asx=ChannelUtil.getProperty(prop, "auto_asx");
 	    		m1.add(res, someName, mUrl, thumb,
@@ -739,6 +739,7 @@ public class ChannelFolder implements ChannelProps, SearchObj{
 	    		if(ChannelUtil.getProperty(cf.prop, "prepend_parenturl"))
 	    			fUrl=ChannelUtil.concatURL(realUrl,fUrl);
 	    		fUrl=ChannelScriptMgr.runScript(post_script, fUrl, parent,page);
+	    		Channels.debug("xxxx "+fUrl+" disc "+discardDuplicates);
 	    		if (discardDuplicates && !ignoreMatch) {
 	    			if (uniqueNames.containsKey(someName)) {
 	    				String uniqueURL = uniqueNames.get(someName);
@@ -748,6 +749,7 @@ public class ChannelFolder implements ChannelProps, SearchObj{
 	    			uniqueNames.put(someName, fUrl);
 	    		}
 	    		PeekRes pr=cf.peek(fUrl,prop);
+	    		Channels.debug("peek re "+pr.res);
 	    		if(!pr.res)
 	    			continue;
 	    		cf.ignoreFav=ignoreFav; // forward this along the path
@@ -769,6 +771,7 @@ public class ChannelFolder implements ChannelProps, SearchObj{
 	    		if(cf.type==ChannelFolder.TYPE_EMPTY)
 	    			cf.match(res,null,fUrl,thumb,someName,imdbId);
 	    		else {
+	    			Channels.debug("add "+someName+" furl "+fUrl);
 	    			ChannelPMSFolder cpf=new ChannelPMSFolder(cf,someName,null,fUrl,thumb);
 	    			cpf.setImdb(imdbId);
 	    			res.addChild(cpf);

@@ -30,7 +30,7 @@ public class Channel extends VirtualFolder {
 	private int searchId;
 	private HashMap<String,SearchObj> searchFolders;
 	
-	private String subScript;
+	private String[] subScript;
 	
 	private String[] proxies;
 	private ChannelProxy activeProxy;
@@ -99,7 +99,7 @@ public class Channel extends VirtualFolder {
 					thumbnailContentType = HTTPResource.JPEG_TYPEMIME;
 			}
 			if(keyval[0].equalsIgnoreCase("subscript")) {
-				subScript=keyval[1];
+				subScript=keyval[1].trim().split(",");
 			}
 			if(keyval[0].equalsIgnoreCase("proxy")) {
 				proxies=keyval[1].trim().split(",");
@@ -308,12 +308,19 @@ public class Channel extends VirtualFolder {
 		obj.search(str, res);
 	}
 	
-	public HashMap<String,String> getSubMap(String realName) {
+	public HashMap<String,String> getSubMap(String realName,int id) {
 		HashMap<String,String> res=new HashMap<String,String>();
 		res.put("url", realName);
-		ArrayList<String> s=Channels.getScript(subScript);
-		if(s==null)
+		if(subScript==null)
 			return res;
+		if(id>(subScript.length-1))
+			return null;
+		ArrayList<String> s=Channels.getScript(subScript[id]);
+		if(s==null)
+			if(id==0)
+				return res;
+			else
+				return null;
 		return ChannelNaviXProc.lite(realName,s,res);
 	}
 	

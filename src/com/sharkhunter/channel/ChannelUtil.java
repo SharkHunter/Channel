@@ -308,6 +308,7 @@ public class ChannelUtil {
 	public static String pendData(String src,String[] props,String field,String sep) {
 		String p=getPropertyValue(props,"prepend_"+field);
 		String a=getPropertyValue(props,"append_"+field);
+		Channels.debug("prepend "+p+" append "+a+" src "+src+" f "+field);
 		return append(p,sep,append(src,sep,a));
 	}
 	

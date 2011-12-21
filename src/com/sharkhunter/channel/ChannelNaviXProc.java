@@ -158,7 +158,7 @@ public class ChannelNaviXProc {
 				continue;
 			if_skip=false;
 			
-			if(line.equalsIgnoreCase("print")) {
+			if(line.startsWith("print")) {
 				String var=line.substring(6).trim();
 				String msg;
 				if(var.startsWith("\'"))

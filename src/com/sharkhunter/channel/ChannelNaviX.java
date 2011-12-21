@@ -220,7 +220,7 @@ public class ChannelNaviX extends VirtualFolder implements ChannelScraper {
 			String nameMangle=ChannelUtil.getPropertyValue(props, "name_mangle");
 			realName=ChannelUtil.mangle(nameMangle, realName);
 			parent.debug("backtracked name "+realName);
-			HashMap<String,String> subName=parent.getSubMap(realName);
+			HashMap<String,String> subName=parent.getSubMap(realName,0);
 			if(!ChannelUtil.empty(imdb))
 				subName.put("imdb", imdb);
 			String subFile=subs.getSubs(subName);
@@ -308,6 +308,11 @@ public class ChannelNaviX extends VirtualFolder implements ChannelScraper {
 		} catch (Exception e) {
 			Channels.debug("navix update error "+e);
 		}
+	}
+
+	@Override
+	public long delay() {
+		return 0;
 	}
 		
 }

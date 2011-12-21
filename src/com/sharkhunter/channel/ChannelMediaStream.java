@@ -51,6 +51,7 @@ public class ChannelMediaStream extends DLNAResource {
 	private boolean rawSave;
 	private boolean fool;
 	private String videoFormat;
+	private long scrapeTime;
 	
 	public ChannelMediaStream(Channel ch,String name,String nextUrl,
 			  String thumb,String proc,int type,int asx,
@@ -87,6 +88,7 @@ public class ChannelMediaStream extends DLNAResource {
 		rawSave=false;
 		fool=Channels.cfg().netDiscStyle();
 		videoFormat=null;
+		scrapeTime=0;
 	}
 	
 	public void noSubs() {
@@ -200,6 +202,11 @@ public class ChannelMediaStream extends DLNAResource {
     		if(((ChannelPMSSaveFolder)parent).preventAutoPlay())
     			return null;
     	scrape();
+    	long now=System.currentTimeMillis();
+    	if(scrapeTime==0)
+    		scrapeTime=now;
+    	if((scraper!=null&&((scraper.delay()+scrapeTime)>now)))
+    		return null;
     	InputStream is=super.getInputStream(low,high,timeseek,mediarenderer);
     	if((saveName!=null)||Channels.cache()) {
     		return startSave(is);
@@ -214,6 +221,11 @@ public class ChannelMediaStream extends DLNAResource {
     		if(((ChannelPMSSaveFolder)parent).preventAutoPlay())
     			return null;
     	scrape();
+    	long now=System.currentTimeMillis();
+    	if(scrapeTime==0)
+    		scrapeTime=now;
+    	if((scraper!=null&&((scraper.delay()+scrapeTime)>now)))
+    		return null;
     	InputStream is=super.getInputStream(range,mediarenderer);
     	if((saveName!=null)||Channels.cache()) {
     		return startSave(is);

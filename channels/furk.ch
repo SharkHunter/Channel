@@ -1,11 +1,32 @@
-version=0.24
+version=0.26
 
 scriptdef furkSubs {
 	release='1
 	stripExt s_url
+	regex='\.\[.*?\]
+	replace s_url '
 	url=s_url
 	play
 }
+
+scriptdef furkSubs1 {
+	fname='1
+	stripExt s_url
+	regex='\.\[.*?\]
+	replace s_url '
+	url=s_url
+	play
+}
+
+scriptdef furkSubs2 {
+	regex='(.*?)s(\d+)e(\d+) 
+	match s_url
+	url=v1
+	season=v2
+	episode=v3
+	play
+}
+
 
 scriptdef furkUpload {
 	url='------WebKitFormBoundaryoMPSU04IfEvfFd9N
@@ -67,7 +88,7 @@ macrodef furkFolder {
 }
 
 channel Furk {
-   subscript=furkSubs
+   subscript=furkSubs,furkSubs1,furkSubs2
    login {
       url=http://www.furk.net/login/login/
       passwd=pwd

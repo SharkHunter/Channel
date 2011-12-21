@@ -195,7 +195,7 @@ public class ChannelMedia implements ChannelProps,ChannelScraper {
 		if(ChannelUtil.getProperty(prop, "unescape_url"))
 			url=ChannelUtil.unescape(url);
 		thumb=ChannelUtil.pendData(thumb, prop, "thumb");
-		url=ChannelUtil.pendData(url,prop,"url");
+	//	url=ChannelUtil.pendData(url,prop,"url");
 		if(ChannelUtil.empty(url)&&!scriptOnly())
 			return;
 		if(ChannelUtil.empty(nName))
@@ -265,12 +265,18 @@ public class ChannelMedia implements ChannelProps,ChannelScraper {
 				String nameMangle=ChannelUtil.getPropertyValue(prop, "name_mangle");
 				realName=ChannelUtil.mangle(nameMangle, realName);
 				parent.debug("backtracked name "+realName);
-				HashMap<String,String> subName=parent.getSubMap(realName);
-				if(!ChannelUtil.empty(imdb))
-					subName.put("imdb", imdb);
-				subFile=subs.getSubs(subName);
-				parent.debug("subs "+subFile);
-				vars.put("subtitle",subFile);
+				HashMap<String,String> subName;
+				int subScript=0;
+				while((subName=parent.getSubMap(realName,subScript))!=null) {
+					if(!ChannelUtil.empty(imdb))
+						subName.put("imdb", imdb);
+					subFile=subs.getSubs(subName);
+					parent.debug("subs "+subFile);
+					vars.put("subtitle",subFile);
+					if(!ChannelUtil.empty(subFile))
+						break;
+					subScript++;
+				}
 				if(!ChannelUtil.empty(subFile))
 					break;
 			}
@@ -373,6 +379,18 @@ public class ChannelMedia implements ChannelProps,ChannelScraper {
 		}
 		sb.append("\n}\n");
 		return sb.toString();
+	}
+	
+	public long delay() {
+		String x=ChannelUtil.getPropertyValue(prop, "delay");
+		if(ChannelUtil.empty(x))
+			return 0;
+		try {
+			return 1000*Long.parseLong(x);
+		}
+		catch (Exception e) {
+			return 0;
+		}
 	}
 	
 }

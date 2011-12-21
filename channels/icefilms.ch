@@ -1,4 +1,4 @@
-version=0.37
+version=0.39
 ## NOTE!!
 ## 
 ## We match out both the megavideo play link and megaupload link
@@ -49,6 +49,7 @@ scriptdef iceGo {
 	scrape
 	url=v1
 	unescape url
+	concat url '&login=1
 	print url
 	play
 }
@@ -104,12 +105,12 @@ macrodef mediaMacro {
 		#escript=get_flash_videos.bat
 		prop=concat_name=rear,name_separator=###0,name_index=3+2,script.no_format
 		subtitle=s4u,allSubs,podnapisiTV
-		nscript=http://navix.turner3d.net/proc/megavideo
+		#nscript=http://navix.turner3d.net/proc/megavideo
 	}
 	media {
-		  # Cheap style link
-		 #<a href="http://www1361.megaupload.com/files/7365f5a2ec3916f3572eb16df83531a7/The.Big.Bang.Theory.S05E11.HDTV.XviD-ASAP.avi" class="download_regular_usual"  style="display:none;" id="dlbutton"></a>
-		 matcher=<a href=\"([^\"]+)\" class=\"download_regular_usual\"
+		# Cheap style link
+		#<a href="http://www1361.megaupload.com/files/7365f5a2ec3916f3572eb16df83531a7/The.Big.Bang.Theory.S05E11.HDTV.XviD-ASAP.avi" class="download_regular_usual"  style="display:none;" id="dlbutton"></a>
+		matcher=<a href=\"([^\"]+)\" class=\"download_regular_usual\"
 		name=MegaUpload
 		order=url
 		subtitle=s4u,allSubs,podnapisiTV
@@ -192,7 +193,7 @@ macrodef movieMacro {
 channel IceFilms {
 	img=http://img.icefilms.info/logo.png
 	subscript=iceSubs
-	hdr=Referer=http:/www.icefilms.info/index
+	hdr=Referer=http://www.megaupload.com/?c=login
   login {
 		# Login data
 		url=http://www.megaupload.com/?c=
