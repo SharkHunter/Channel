@@ -20,4 +20,5 @@ public class ChannelNaviXSearch implements SearchObj {
 		Channels.addSearch(parent.getChannel(), "navix:"+url, searchString);
 		parent.readPlx(realUrl,searcher);
 	}
+
 }

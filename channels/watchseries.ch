@@ -1,4 +1,4 @@
-version=0.20
+version=0.21
 
 scriptdef wsTrix {
 	tmp='http://www.watchseries.eu/open_link.php?vari=
@@ -100,7 +100,7 @@ macrodef wsMacro {
 			folder {
 				# Episodes
 				#<li><a href="../episode/a_gifted_man_s1_e0-108029.html">0. Episode 0&nbsp;&nbsp;&nbsp;Preview </a></li>
-				matcher=href=\"..(/episode[^\"]+)\">([^<]+)
+				matcher=href=\"..(/episode[^\"]+)\"><[^>]+>([^<]+)
 				order=url,name
 				url=http://watchseries.eu/
 				folder {

@@ -1,4 +1,5 @@
-version=0.48
+version=0.50
+
 ###########################
 ## s4u
 ###########################
@@ -17,6 +18,10 @@ scriptdef s4uName {
 	   concat url '/rls/
 	   escape s_url
 	   concat url s_url
+	elseif fname
+		concat url '/fname/
+		escape s_url
+		concat url s_url
 	else
 	   concat url '/title/
 	   escape s_url
@@ -101,9 +106,7 @@ scriptdef podnapisinameMov {
    play
 }
 
-subdef podnapisiMovie {
-
-   
+subdef podnapisiMovie {   
     #matcher=podnapis_tabele_download[^\*]+?href="([^\"]+)"
    order=url
    best_match=1
@@ -229,4 +232,43 @@ stash podnapisis {
 #Argentino   14
 #Serb.(Cyrillic)47
 
+#####################################################
+## Subscene
+#####################################################
 
+scriptdef subscene_matcher {
+	#regex='a class=\"a1\" href=\"([^\"]+)\" [^>]+>\s*<[^>]+>\s*([^<]+)<
+	regex='<span id="r([^\"]+)"
+	match s_url
+	id=v1
+	#<small>Download problems?<a href='/downloadissue.aspx?subtitleId=525340&contentType=zip'>Click here</a>
+	s_url='http://subscene.com/downloadissue.aspx?subtitleId=
+	concat s_url id
+	concat s_url '&contentType=zip
+	#	<a id="s_lc_bcr_downloadlink" href="/Downloads/Temporary/Subtitles/tinker-tailor-soldier-spy-2011-dvdrip-xvid-bhrg_3323781.zip">
+	regex='id="s_lc_bcr_downloadlink" href="([^\"]+)"
+	scrape
+	url='http://subscene.com
+	concat url v1
+	play
+}
+
+scriptdef subsceneName {
+	if release
+		url='s.aspx?q=
+	else
+		url='filmsearch.aspx?q=
+	endif
+	play
+}
+
+subdef subscene {
+   # http://s4u.se/?film=Airplane!
+   #Http://api.s4u.se/ Version / ApiKey / xml | json | serialize / movie | serie | all / imdb | tmdb | tvdb | title | rls | fname / SearchString / 
+   url=http://subscene.com/
+   # <a class="a1" href="/english/Tinker-Tailor-Solider-Spy/subtitle-525340.aspx" title="Subtitle - Tinker Tailor Solider Spy - English"><span class="r0" >English</span>   
+   name_script=subsceneName
+   script=subscene_matcher
+   lang=eng
+   prop=zip_force
+}

@@ -127,4 +127,8 @@ public class ChannelPMSFolder extends VirtualFolder implements ChannelFilter{
 			ChannelUtil.RemoveFromFavFile(name,cf.getURL());
 			cf.remove();
 		}
+		
+		public boolean lastThumb() {
+			return (cf.getProp("last_thumb")!=null);
+		}
 }

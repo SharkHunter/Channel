@@ -314,5 +314,10 @@ public class ChannelNaviX extends VirtualFolder implements ChannelScraper {
 	public long delay() {
 		return 0;
 	}
+
+	@Override
+	public String backtrackedName(DLNAResource start) {
+		return null;
+	}
 		
 }

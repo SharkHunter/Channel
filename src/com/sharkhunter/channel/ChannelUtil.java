@@ -574,6 +574,8 @@ public class ChannelUtil {
 		if(empty(sep))
 			sep=" ";
 		String res="";
+		if(stops==null)
+			return backTrack(start,0);
 		for(int i=0;i<stops.length;i++) {
 			res=append(res,sep,backTrack(start,stops[i]));
 		}
@@ -681,16 +683,18 @@ public class ChannelUtil {
 	}
 	
 	public static Thread backgroundDownload(String name,String url,boolean cache) {
-		final String fName=ChannelUtil.guessExt(Channels.fileName(name, cache),
+		String fName=ChannelUtil.guessExt(Channels.fileName(name, cache),
 				url);
 		if(ChannelUtil.rtmpStream(url)) {
 			try {
 				//		URL u=new URL(url); 
 				// rtmp stream special fix
+				if(empty(extension(fName))) // no extension. Rtmp is normally mp4
+					fName=fName+".mp4";
 				final ProcessBuilder pb=buildPid(fName,url);
 				if(pb==null)
 					return null;
-				Channels.debug("start process");
+				Channels.debug("start process ");
 				Runnable r = new Runnable() {
 					public void run() {
 						ChannelUtil.execute(pb);
@@ -725,9 +729,12 @@ public class ChannelUtil {
 				return null;
 			final String rUrl=url;
 			final String sFile=subFile;
+			if(empty(extension(fName))) // no ext guess mpg as ext
+				fName=fName+".mpg";
+			final String fName1=fName;
 			Runnable r = new Runnable() {
 				public void run() {
-					File f=new File(fName);
+					File f=new File(fName1);
 					if(!empty(sFile)) {
 						File s=new File(sFile);
 						byte[] buf=new byte[4096];

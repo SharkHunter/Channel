@@ -883,7 +883,7 @@ public class ChannelFolder implements ChannelProps, SearchObj{
 		
 		if(matcher!=null) {
 			sb.append("matcher=");
-			sb.append(matcher.getRegexp().toString());
+			sb.append(matcher.regString());
 			sb.append("\n");
 			matcher.orderString(sb);
 			sb.append("\n");
@@ -1026,5 +1026,4 @@ public class ChannelFolder implements ChannelProps, SearchObj{
 	public String fallBackVideoFormat() {
 		return videoFormat;
 	}
-	
 }

@@ -1,4 +1,4 @@
-version=0.26
+version=0.27
 
 scriptdef furkSubs {
 	release='1
@@ -88,6 +88,7 @@ macrodef furkFolder {
 }
 
 channel Furk {
+   img=http://www.furk.net/img/logo.png?249
    subscript=furkSubs,furkSubs1,furkSubs2
    login {
       url=http://www.furk.net/login/login/

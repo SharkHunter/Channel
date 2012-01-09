@@ -1,25 +1,22 @@
 package com.sharkhunter.channel;
+import java.io.File;
+import java.util.List;
+
+import javax.swing.JComponent;
+
 import net.pms.PMS;
-import net.pms.configuration.RendererConfiguration;
 import net.pms.dlna.DLNAMediaInfo;
 import net.pms.dlna.DLNAResource;
 import net.pms.encoders.Player;
 import net.pms.external.AdditionalFolderAtRoot;
+//import net.pms.external.ExternalPlaylist;
 import net.pms.external.FinalizeTranscoderArgsListener;
 import net.pms.external.StartStopListener;
 import net.pms.io.OutputParams;
-import net.pms.io.WindowsNamedPipe;
-
-import javax.swing.*;
-
-import com.sun.jna.Platform;
-
-import java.io.*;
-import java.util.ArrayList;
-import java.util.List;
 
 public class CH_plugin implements AdditionalFolderAtRoot, StartStopListener
-						, FinalizeTranscoderArgsListener {
+						, FinalizeTranscoderArgsListener/*,
+						ExternalPlaylist*/ {
 
 	private static final long DEFAULT_POLL_INTERVAL=20000;
 	private Channels chRoot;
@@ -48,6 +45,7 @@ public class CH_plugin implements AdditionalFolderAtRoot, StartStopListener
 			cfg=new ChannelCfg(chRoot);
 			cfg.init();
 			chRoot.setCfg(cfg);
+			Channels.debug("starting");
 			chRoot.start(getInterval());
 			if(save!=null) {
 				String ts=(String)PMS.getConfiguration().getCustomProperty("channels.save_ts");
@@ -161,5 +159,26 @@ public class CH_plugin implements AdditionalFolderAtRoot, StartStopListener
 		
 		return cmdList;
 	}
+	
+	/*public DLNAResource fromPlaylist(String name,String uri,String thumb,
+									 String extra,String className) {
+		Channels.debug("call from pl "+name+" "+uri+" "+extra);
+		String[] es=extra.split(",");
+		Channel ch=Channels.findChannel(es[0]);
+		Channels.debug("ch is "+ch+" es "+es[0]);
+		if(ch==null)
+			return null;
+		String proc=null;
+		int type=ch.getFormat();
+		int asx=ChannelUtil.ASXTYPE_AUTO;
+		if(es.length>1) {
+			//proc=es[1];
+		}
+		if(es.length>2)
+			type=ChannelUtil.getFormat(es[1]);
+		if(ChannelUtil.empty(name))
+			name="Unknown";
+		return (new ChannelMediaStream(ch,name,uri,thumb,proc,type,asx,(ChannelScraper)null)); 	
+	}*/
 	
 }

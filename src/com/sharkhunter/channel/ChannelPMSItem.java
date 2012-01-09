@@ -47,4 +47,8 @@ public class ChannelPMSItem extends VirtualFolder implements ChannelFilter{
 	public String getThumb() {
 		return (thumbnailIcon);
 	}
+	
+	public boolean lastThumb() {
+		return (ci.getProp("last_thumb")!=null);
+	}
 }

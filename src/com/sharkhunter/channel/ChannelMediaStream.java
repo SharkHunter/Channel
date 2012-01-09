@@ -217,9 +217,11 @@ public class ChannelMediaStream extends DLNAResource {
     
     //public InputStream getInputStream(long low, long high, double timeseek, RendererConfiguration mediarenderer) throws IOException {
     public InputStream getInputStream(Range range, RendererConfiguration mediarenderer) throws IOException {
+    	PMS.debug("cms getinp/2 scrape "+scraper+" url "+realUrl);
     	if(parent instanceof ChannelPMSSaveFolder)
     		if(((ChannelPMSSaveFolder)parent).preventAutoPlay())
     			return null;
+    	Channels.debug("cms getinp/0 scrape "+scraper+" url "+realUrl);
     	scrape();
     	long now=System.currentTimeMillis();
     	if(scrapeTime==0)
@@ -343,7 +345,6 @@ public class ChannelMediaStream extends DLNAResource {
     	else {
     		u= realUrl;
     	}
-    	Channels.debug("getsysname "+u+" fool "+fool);
 		if(format==Format.AUDIO)
 			return u.substring(u.lastIndexOf("/")+1);
 		if(u.startsWith("http")&&fool)
@@ -429,5 +430,37 @@ public class ChannelMediaStream extends DLNAResource {
 				continue;
 			}
 		}
+	}
+	
+	////////////////////////////////////////
+	// Playlist
+	////////////////////////////////////////
+	
+	public String playlistName() {
+		if(scraper!=null)
+			return scraper.backtrackedName(this);
+		else
+			return ChannelUtil.backTrack(this, 0);
+	}
+	
+	public String playlistURI() {
+		if(scraper==null)
+			ChannelUtil.parseASX(url, ASX);
+		if(ChannelUtil.empty(processor))
+			return scraper.scrape(ch,url,processor,format,this,noSubs,imdb);
+		return url;
+	}
+	
+	public String playlistExtra() {
+		String res=ch.getName();
+		if(scraper==null)
+			return res;
+		if(ChannelUtil.empty(processor))
+			return res;
+		return res+","+processor+","+ChannelUtil.format2str(format);
+	}
+	
+	public String playlistThumb() {
+		return thumb;
 	}
 }

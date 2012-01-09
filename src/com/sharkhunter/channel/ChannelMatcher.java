@@ -9,13 +9,16 @@ public class ChannelMatcher implements ChannelProps{
 	 private ChannelProps properties;
 	 private Matcher matcher;
 	 
+	 private static final String lcbr="###lcbr###";
+	 private static final String rcbr="###rcbr###";
+	 
 	 ChannelMatcher(String reg,
 			 		String order,
 			 		ChannelProps prop) {
 		 if(ChannelUtil.empty(order)) //  no order configured, use default
 			 order="url,name,thumb";
 		 if(reg!=null)
-			 this.regexp=Pattern.compile(reg,Pattern.MULTILINE);//|Pattern.DOTALL);
+			 this.regexp=Pattern.compile(fixReg(reg),Pattern.MULTILINE);//|Pattern.DOTALL);
 		 this.order=order.split(",");
 		 this.properties=prop;
 	  }
@@ -26,7 +29,12 @@ public class ChannelMatcher implements ChannelProps{
 
 	 public void setMatcher(String reg) {
 		 if(reg!=null&&reg.length()!=0)
-			 regexp=Pattern.compile(reg,Pattern.MULTILINE);
+			 regexp=Pattern.compile(fixReg(reg),Pattern.MULTILINE);
+	 }
+	 
+	 private String fixReg(String str) {
+		 return str.replaceAll(lcbr, "{")
+		 			.replaceAll(rcbr, "}");
 	 }
 	      
 	 public void setOrder(String o) {
@@ -135,6 +143,13 @@ public class ChannelMatcher implements ChannelProps{
 	 public void orderString(StringBuilder sb) {
 		 sb.append("order=");
 		 ChannelUtil.list2file(sb, order);
+	 }
+	 
+	 public String regString() {
+		 if(regexp==null)
+			 return null;
+		 return getRegexp().toString().replaceAll("{",lcbr)
+		 		.replaceAll("}", rcbr);
 	 }
 
 	@Override

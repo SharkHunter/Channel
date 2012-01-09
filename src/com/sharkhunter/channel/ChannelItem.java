@@ -168,7 +168,7 @@ public class ChannelItem implements ChannelProps{
 		}
 		if(matcher!=null) {
 			sb.append("matcher=");
-			sb.append(matcher.getRegexp().toString());
+			sb.append(matcher.regString());
 			sb.append("\n");
 			matcher.orderString(sb);
 			sb.append("\n");
@@ -185,5 +185,9 @@ public class ChannelItem implements ChannelProps{
 		}
 		sb.append("\n}\n");
 		return sb.toString();
+	}
+	
+	public String getProp(String p) {
+		return ChannelUtil.getPropertyValue(prop, p);
 	}
 }

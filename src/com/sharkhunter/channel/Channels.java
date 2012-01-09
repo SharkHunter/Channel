@@ -28,7 +28,7 @@ import no.geosoft.cc.io.FileMonitor;
 public class Channels extends VirtualFolder implements FileListener {
 
 	// Version string
-	public static final String VERSION="1.51";
+	public static final String VERSION="1.53";
 	
 	// Constants for RTMP string constructions
 	public static final int RTMP_MAGIC_TOKEN=1;
@@ -174,7 +174,7 @@ public class Channels extends VirtualFolder implements FileListener {
     	return inst.dbg.logFile();
     }
     
-    private Channel find(String name) {
+	private Channel find(String name) {
     	for(DLNAResource f:children) {
     		if((f instanceof Channel)&&(f.getDisplayName().trim().equals(name.trim())))
     				return (Channel) f;
@@ -183,6 +183,8 @@ public class Channels extends VirtualFolder implements FileListener {
     }
     
     public static Channel findChannel(String name) {
+    	if(inst==null)
+    		new CH_plugin();
     	return inst.find(name);
     }
     
@@ -556,7 +558,7 @@ public class Channels extends VirtualFolder implements FileListener {
 	
 	public static String fileName(String name,boolean cache) {
 		name=name.trim();
-		String ext=ChannelUtil.extension(name);
+		String ext=ChannelUtil.extension(name);			
 		String fName=name;
 		if(inst.appendTS) { 
 			// if we got an extension we move it to the end of the filename

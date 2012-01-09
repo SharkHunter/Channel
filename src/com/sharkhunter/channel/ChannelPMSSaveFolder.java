@@ -58,9 +58,9 @@ public class ChannelPMSSaveFolder extends VirtualFolder {
 	public void discoverChildren() {
 		final ChannelPMSSaveFolder me=this;
 		final ChannelOffHour oh=Channels.getOffHour();
+		final String rName=name;
 		if(oh!=null) {
 			final boolean add=!oh.scheduled(url);
-			final String rName=name;
 			addChild(new VirtualVideoAction((add?"ADD to ":"DELETE from ")+
 											"offhour download", true) { //$NON-NLS-1$
 				public boolean enable() {
@@ -70,12 +70,12 @@ public class ChannelPMSSaveFolder extends VirtualFolder {
 					if(scraper!=null)
 						rUrl=scraper.scrape(ch, url, proc, f, this,false,null);
 					oh.update(rUrl, rName, add);
+					me.childDone();
 					return add;
 				}
 			});
 		}
 		if(ChannelNaviXUpdate.active()) {
-			final String rName=name;
 			addChild(new VirtualVideoAction("Upload to NaviX",true) { //$NON-NLS-1$
 				public boolean enable() {
 					try {
@@ -84,6 +84,7 @@ public class ChannelPMSSaveFolder extends VirtualFolder {
 						ChannelNaviXUpdate.updateMedia(rName, url, proc, f,thumb,imdb);
 					} catch (Exception e) {
 					}
+					me.childDone();
 					return true;
 				}
 			});
@@ -116,6 +117,24 @@ public class ChannelPMSSaveFolder extends VirtualFolder {
 			cms.setFallbackFormat(videoFormat);
 			addChild(cms);
 		}
+		addChild(new VirtualVideoAction("Download",true) {
+			public boolean enable() {
+				try {
+					if(me.preventAutoPlay())
+						return false;
+					String rUrl=url;
+					if(scraper!=null)
+						rUrl=scraper.scrape(ch, url, proc, f, this,false,null);
+					if(ChannelUtil.empty(rUrl))
+						return false;
+					Thread t=ChannelUtil.backgroundDownload(rName, rUrl, false);
+					t.start();
+				} catch (Exception e) {
+				}
+				me.childDone();
+				return true;
+			}
+		});
 	}
 	
 	public InputStream getThumbnailInputStream() {

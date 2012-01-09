@@ -33,7 +33,7 @@ public class SearchFolder extends VirtualFolder {
 	}
 	
 	public void discoverChildren(String str) {
-		PMS.debug("disc/1 "+str);
+		Channels.debug("search "+str);
 		if(str==null)
 			discoverChildren();
 		else
@@ -58,6 +58,8 @@ public class SearchFolder extends VirtualFolder {
 	}
 	
 	public void refreshChildren(String str) {
+		if(str==null)
+			return;
 		getChildren().clear();
 		discoverChildren(str);
 	}

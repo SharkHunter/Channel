@@ -9,6 +9,7 @@ import org.apache.commons.lang.StringEscapeUtils;
 
 import net.pms.PMS;
 import net.pms.dlna.DLNAResource;
+import net.pms.dlna.virtual.VirtualVideoAction;
 import net.pms.formats.Format;
 
 public class ChannelMedia implements ChannelProps,ChannelScraper {
@@ -174,7 +175,7 @@ public class ChannelMedia implements ChannelProps,ChannelScraper {
 		add(res,nName,url,thumb,autoASX,imdb,f,ChannelMedia.SAVE_OPT_NONE);
 	}
 	
-	public void add(DLNAResource res,String nName,String url,String thumb,
+	public void add(final DLNAResource res,String nName,String url,String thumb,
 			boolean autoASX,String imdb,int f,int sOpt) {
 		if(!ChannelUtil.empty(thumbURL)) {
 			if(ChannelUtil.getProperty(prop, "use_conf_thumb"))
@@ -209,7 +210,7 @@ public class ChannelMedia implements ChannelProps,ChannelScraper {
 			asx=ChannelUtil.ASXTYPE_AUTO;
 		if(type==ChannelMedia.TYPE_ASX)
 			asx=ChannelUtil.ASXTYPE_FORCE;
-		int resF=(format==-1?(f==-1?parent.getFormat():f):format);
+		final int resF=(format==-1?(f==-1?parent.getFormat():f):format);
 		if(Channels.save()&&sOpt==ChannelMedia.SAVE_OPT_NONE)  { // Add save version
 			ChannelPMSSaveFolder sf=new ChannelPMSSaveFolder(parent,nName,url,thumb,script,asx,
 					                resF,this);
@@ -259,11 +260,7 @@ public class ChannelMedia implements ChannelProps,ChannelScraper {
 					continue;
 				if(!subs.langSupported())
 					continue;
-				String realName=ChannelUtil.backTrack(start,ChannelUtil.getNameIndex(prop),
-						ChannelUtil.getPropertyValue(prop, "name_separator"));
-				// Maybe we should mangle the name?
-				String nameMangle=ChannelUtil.getPropertyValue(prop, "name_mangle");
-				realName=ChannelUtil.mangle(nameMangle, realName);
+				String realName=backtrackedName(start);
 				parent.debug("backtracked name "+realName);
 				HashMap<String,String> subName;
 				int subScript=0;
@@ -353,7 +350,7 @@ public class ChannelMedia implements ChannelProps,ChannelScraper {
 		}
 		if(matcher!=null) {
 			sb.append("matcher=");
-			sb.append(matcher.getRegexp().toString());
+			sb.append(matcher.regString());
 			sb.append("\n");
 			matcher.orderString(sb);
 			sb.append("\n");
@@ -391,6 +388,15 @@ public class ChannelMedia implements ChannelProps,ChannelScraper {
 		catch (Exception e) {
 			return 0;
 		}
+	}
+	
+	public String backtrackedName(DLNAResource start) {
+		String realName=ChannelUtil.backTrack(start,ChannelUtil.getNameIndex(prop),
+				ChannelUtil.getPropertyValue(prop, "name_separator"));
+		// Maybe we should mangle the name?
+		String nameMangle=ChannelUtil.getPropertyValue(prop, "name_mangle");
+		realName=ChannelUtil.mangle(nameMangle, realName);
+		return realName;
 	}
 	
 }

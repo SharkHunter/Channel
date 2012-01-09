@@ -61,6 +61,7 @@ public class ChannelOffHour {
 		    	Channels.debug("run offhour fetch");
 		    	inst.startedAt=System.currentTimeMillis();
 		    	inst.startFetch();
+		    	inst.monitorThread();
 		    	Channels.debug("resched");
 		    	inst.schedule(false);
 		    	Channels.debug("reschedule done");
@@ -141,24 +142,30 @@ public class ChannelOffHour {
 		TimerTask task = new TimerTask() {
 			public void run() {
 				long now=System.currentTimeMillis();
-				for(int i=0;i<threads.size();i++) {
-					Thread t1=threads.get(i);
+				// time to quit, leave all threads running
+				// until they're done
+				if(now>stop) 
+					return;			
+				ArrayList<Thread> tmp=new ArrayList<Thread>(threads);
+				for(int i=0;i<tmp.size();i++) {
+					Thread t1=tmp.get(i);
 					if(t1.isAlive()) // thread is alive let it be
 						continue;
 					// thread is dead, maybe start a new one
-					Channels.debug("thread died");
 					threads.remove(t1);
-					if(now>stop) // time to quit
-						continue;
+					Channels.debug("thread died");
 					if(urls2fetch.size()==0) { // no urls left
-						continue;
+						return;
 					}
-					
 					String[] s=getKeyVal();
 					Channels.debug("launch new fetch "+s[0]+" "+s[1]);
 					inst.startThread(s[0], s[1]);
+				}
+				if(threads.size()>0) {
+					// reschedule
 					inst.monitorThread();
 				}
+
 		    }
 		};
 		GregorianCalendar gc=new GregorianCalendar();
