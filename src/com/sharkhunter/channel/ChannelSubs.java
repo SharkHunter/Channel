@@ -19,6 +19,9 @@ import java.util.regex.Pattern;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
 
+import de.innosystec.unrar.Archive;
+import de.innosystec.unrar.rarfile.FileHeader;
+
 import net.pms.PMS;
 import net.pms.dlna.DLNAResource;
 import net.pms.formats.Format;
@@ -84,6 +87,59 @@ public class ChannelSubs implements ChannelProps {
 				lang=keyval[1].trim().split(",");
 			}
 		}
+	}
+	
+	private String rarFile(File f) {
+		boolean concat=ChannelUtil.getProperty(prop, "rar_concat");
+		boolean keep=ChannelUtil.getProperty(prop, "rar_keep");
+		boolean rename=!ChannelUtil.getProperty(prop, "rar_norename");
+		boolean first=true;
+		int id=1;
+		Archive rarFile = null;
+		String firstName=null;
+		try {
+			rarFile = new Archive(f);
+			FileHeader fh =rarFile.nextFileHeader();
+			while(fh!=null) {
+				if(!fh.getFileNameString().contains(".srt"))
+					continue;
+				String fName=dPath+File.separator+fh.getFileNameString();
+				FileOutputStream fos=null;
+				if(rename) {
+					String i=first?"":"_"+String.valueOf(id++);
+					
+				}
+				if(concat) {
+					if(first) {
+						fName=(f.getAbsolutePath()+".srt").replace(".rar", "");
+						fos = new FileOutputStream(fName);		
+					}
+				}
+				else {
+					fos = new FileOutputStream(fName);
+				}
+				if(first) {
+					first=false;
+					firstName=fName;
+				}
+				rarFile.extractFile(fh,fos);
+				fos.flush();
+				fos.close();
+				fh =rarFile.nextFileHeader();
+			}
+			if(!keep)
+				f.delete();
+		} catch (Exception e) {
+			Channels.debug("rar file extract error "+e);
+		} finally {
+			try {
+				rarFile.close();
+			} catch (IOException e) {
+			}
+		}
+		if(ChannelUtil.empty(firstName))
+			return null;
+		return cacheFile(new File(firstName));
 	}
 	
 	private String zipFile(File f) {
@@ -177,7 +233,7 @@ public class ChannelSubs implements ChannelProps {
 		lang=ChannelISO.iso(lang, iso);
 		String stash=ChannelUtil.getPropertyValue(prop, "lang_stash");
 		if(!ChannelUtil.empty(stash))
-			lang=Channels.getStashData(stash, lang	, lang);
+			lang=Channels.getStashData(stash, lang, lang);
 		mediaName=mediaName.trim();
 		String path=dPath.getAbsolutePath()+File.separator+mediaName;
 		path=ChannelUtil.append(path, "_", map.get("season"));
@@ -192,13 +248,18 @@ public class ChannelSubs implements ChannelProps {
 		if(ChannelUtil.empty(subUrl))
 			return null;
 		boolean zip=ChannelUtil.getProperty(prop, "zip_force")||subUrl.contains("zip");
+		boolean rar=ChannelUtil.getProperty(prop, "rar_force")||subUrl.contains("rar");
 		subUrl=subUrl.replace("&amp;", "&");
 		if(zip)
 			f=new File(path+".zip");
+		if(rar)
+			f=new File(path+".rar");
 		if(!ChannelUtil.downloadBin(subUrl, f))
 			return null;
 		if(zip)  // zip file
 			return zipFile(f);
+		if(rar)
+			return rarFile(f);
 		return cacheFile(f);
 	}
 	
@@ -234,7 +295,7 @@ public class ChannelSubs implements ChannelProps {
 			if(!ChannelUtil.empty(script)) { // we got a script, we'll use it 
 				ArrayList<String> s=Channels.getScript(script);
 				if(s!=null) {
-					HashMap<String,String> res=ChannelNaviXProc.lite(page, s);
+					HashMap<String,String> res=ChannelNaviXProc.lite(page, s,map);
 					return res.get("url");
 				}
 			}

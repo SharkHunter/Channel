@@ -40,7 +40,7 @@ public class ChannelATZ extends VirtualFolder {
 		if(ChannelUtil.empty(otherStr))
 			otherStr="#";
 		if(folder.getType()==ChannelFolder.TYPE_ATZ)
-			addChild(new ChannelPMSFolder(folder,"#",url,otherStr,folder.getThumb()));
+			addChild(new ChannelPMSFolder(folder,"#",otherStr,url,folder.getThumb()));
 		else if(folder.getType()==ChannelFolder.TYPE_ATZ_LINK) {
 			addChild(new ChannelPMSFolder(folder,"#",null,"/"+otherStr,folder.getThumb()));
 		}

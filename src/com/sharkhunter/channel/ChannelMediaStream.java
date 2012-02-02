@@ -14,6 +14,7 @@ import java.net.URLConnection;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.Date;
 
 import net.pms.PMS;
 import net.pms.configuration.FormatConfiguration;
@@ -52,6 +53,7 @@ public class ChannelMediaStream extends DLNAResource {
 	private boolean fool;
 	private String videoFormat;
 	private long scrapeTime;
+	private long delay;
 	
 	public ChannelMediaStream(Channel ch,String name,String nextUrl,
 			  String thumb,String proc,int type,int asx,
@@ -89,6 +91,7 @@ public class ChannelMediaStream extends DLNAResource {
 		fool=Channels.cfg().netDiscStyle();
 		videoFormat=null;
 		scrapeTime=0;
+		delay=scraper.delay();
 	}
 	
 	public void noSubs() {
@@ -163,16 +166,23 @@ public class ChannelMediaStream extends DLNAResource {
         	player=pl;
     }
     
-    private void scrape() {
-    	Channels.debug("scrape "+name+" nosubs "+noSubs);
-    	fool=Channels.cfg().netDiscStyle();
-    	//if(!scraped) {
+    public void scrape() {
+    	if(!scraped) {
     		if(scraper!=null)
     			realUrl=scraper.scrape(ch,url,processor,format,this,noSubs,imdb);
     		else
     			realUrl=ChannelUtil.parseASX(url, ASX);
-    	/*}
-    	scraped=true;*/
+    		scrapeTime=System.currentTimeMillis();
+    	}
+    	scraped=true;
+    }
+    
+    private void scrape_i() {
+    	Channels.debug("scrape "+name+" nosubs "+noSubs);
+    	fool=Channels.cfg().netDiscStyle();
+    	if(scraped)
+    		return;
+    	scrape();
     	if(ChannelUtil.empty(realUrl))
     		return ;
     	Channels.debug("real "+realUrl+" nd "+fool+" noSubs "+noSubs);
@@ -201,11 +211,8 @@ public class ChannelMediaStream extends DLNAResource {
     	if(parent instanceof ChannelPMSSaveFolder)
     		if(((ChannelPMSSaveFolder)parent).preventAutoPlay())
     			return null;
-    	scrape();
-    	long now=System.currentTimeMillis();
-    	if(scrapeTime==0)
-    		scrapeTime=now;
-    	if((scraper!=null&&((scraper.delay()+scrapeTime)>now)))
+    	scrape_i();
+    	if(delayed())
     		return null;
     	InputStream is=super.getInputStream(low,high,timeseek,mediarenderer);
     	if((saveName!=null)||Channels.cache()) {
@@ -222,11 +229,8 @@ public class ChannelMediaStream extends DLNAResource {
     		if(((ChannelPMSSaveFolder)parent).preventAutoPlay())
     			return null;
     	Channels.debug("cms getinp/0 scrape "+scraper+" url "+realUrl);
-    	scrape();
-    	long now=System.currentTimeMillis();
-    	if(scrapeTime==0)
-    		scrapeTime=now;
-    	if((scraper!=null&&((scraper.delay()+scrapeTime)>now)))
+    	scrape_i();
+    	if(delayed())
     		return null;
     	InputStream is=super.getInputStream(range,mediarenderer);
     	if((saveName!=null)||Channels.cache()) {
@@ -315,7 +319,12 @@ public class ChannelMediaStream extends DLNAResource {
     }
 
     public String getName() {
-    	return name;
+    	long d=(scrapeTime+delay)-System.currentTimeMillis();
+		if(d<=0&&scrapeTime!=0)
+			return name;
+		this.setDiscovered(false);
+	//	Date day=new Date(d);
+		return "Delay "+(delay==-1?"dynamic":d/1000)+" "+name;
     }
 
     public boolean isFolder() {
@@ -430,6 +439,21 @@ public class ChannelMediaStream extends DLNAResource {
 				continue;
 			}
 		}
+	}
+	
+	private long getDynDelay() {
+		try {
+			return Long.parseLong(Channels.getStashData("default", "sleep","0"));
+		} catch (Exception e) {
+			return 0;
+		}
+	}
+	
+	private boolean delayed() {
+		if(delay==-1) { // dynamic
+			delay=1000*getDynDelay();
+		}
+		return ((scrapeTime+delay)>System.currentTimeMillis());
 	}
 	
 	////////////////////////////////////////

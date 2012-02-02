@@ -89,6 +89,24 @@ public class ChannelPMSSaveFolder extends VirtualFolder {
 				}
 			});
 		}
+		addChild(new VirtualVideoAction("Download",true) {
+			public boolean enable() {
+				try {
+					if(me.preventAutoPlay())
+						return false;
+					String rUrl=url;
+					if(scraper!=null)
+						rUrl=scraper.scrape(ch, url, proc, f, this,false,null);
+					if(ChannelUtil.empty(rUrl))
+						return false;
+					Thread t=ChannelUtil.backgroundDownload(rName, rUrl, false);
+					t.start();
+				} catch (Exception e) {
+				}
+				me.childDone();
+				return true;
+			}
+		});
 		ChannelMediaStream cms=new ChannelMediaStream(ch,"SAVE&PLAY",url,thumb,proc,f,asx,scraper,name,name);
 		cms.setImdb(imdb);
 		cms.setRender(this.defaultRenderer);
@@ -117,25 +135,8 @@ public class ChannelPMSSaveFolder extends VirtualFolder {
 			cms.setFallbackFormat(videoFormat);
 			addChild(cms);
 		}
-		addChild(new VirtualVideoAction("Download",true) {
-			public boolean enable() {
-				try {
-					if(me.preventAutoPlay())
-						return false;
-					String rUrl=url;
-					if(scraper!=null)
-						rUrl=scraper.scrape(ch, url, proc, f, this,false,null);
-					if(ChannelUtil.empty(rUrl))
-						return false;
-					Thread t=ChannelUtil.backgroundDownload(rName, rUrl, false);
-					t.start();
-				} catch (Exception e) {
-				}
-				me.childDone();
-				return true;
-			}
-		});
 	}
+
 	
 	public InputStream getThumbnailInputStream() {
 		try {

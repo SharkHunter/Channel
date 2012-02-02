@@ -141,6 +141,8 @@ public class ChannelMatcher implements ChannelProps{
 	 }
 	 
 	 public void orderString(StringBuilder sb) {
+		 if(order==null)
+			 return;
 		 sb.append("order=");
 		 ChannelUtil.list2file(sb, order);
 	 }
@@ -148,7 +150,7 @@ public class ChannelMatcher implements ChannelProps{
 	 public String regString() {
 		 if(regexp==null)
 			 return null;
-		 return getRegexp().toString().replaceAll("{",lcbr)
+		 return getRegexp().toString().replaceAll("\\{",lcbr)
 		 		.replaceAll("}", rcbr);
 	 }
 

@@ -55,7 +55,7 @@ scriptdef wsScript {
 	  url=v1
 	  play
 	endif
-	regex='(viedoweed)
+	regex='(videoweed)
 	match url
 	if v1
 	  call 'http://justme4u2c.zymichost.com/VideoWeed.es.php

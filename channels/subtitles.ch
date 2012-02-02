@@ -1,4 +1,4 @@
-version=0.50
+version=0.52
 
 ###########################
 ## s4u
@@ -55,20 +55,28 @@ subdef s4u {
 ###################################
 
 scriptdef allSubsName {   
-   rurl=s_url
-   escape rurl
-   concat rurl '+
-   concat rurl lang
-   concat rurl '/1
-   url = rurl
+   url=s_url
+   escape url
+   if season
+	concat url '+
+	concat url season
+   elsif year
+    concat url '+
+	concat url year
+   endif
+   concat url '&language=
+   concat url lang
+   concat url '&limit=100
    play
 }
 
 subdef allSubs {
-   url=http://www.allsubs.org//search-subtitle/
+   #http://api.allsubs.org/index.php?search=heroes+season+4&language=en&limit=3
+   url=http://api.allsubs.org/index.php?search=
    matcher=download"><a\shref="([^\"]+)"
    best_match=1
    name_script=allSubsName
+#   script=allSubsMatcher
    lang=all
    prop=zip_force,iso2
 
@@ -82,8 +90,8 @@ scriptdef podnapisinameMov {
    #lang ='28
    podurl='http://www.podnapisi.net
    rurl = s_url
-   res = 'http://www.podnapisi.net/en/ppodnapisi/search?
-   concat res 'tbsl=2&asdp=0&sK=
+   escape rurl
+   res = 'http://www.podnapisi.net/en/ppodnapisi/search?tbsl=2&asdp=0&sK=
    concat res rurl
    concat res '&sM=&sJ=
    concat res lang
@@ -125,23 +133,30 @@ scriptdef podnapisinameTV {
    #lang ='28
    podurl='http://www.podnapisi.net
    rurl = s_url
-   regex='0?(\d+)
-   match season
-   season = v1
-   regex='0?(\d+)
-   match episode
-   episode = v1
+   escape rurl
+   #regex='0?(\d+)
+   #match season
+   #season = v1
+   #regex='0?(\d+)
+   #match episode
+   #episode = v1
    res = 'http://www.podnapisi.net/en/ppodnapisi/search?
    concat res 'tbsl=3&asdp=0&sK=
    concat res rurl
    concat res '&sM=&sJ=
    concat res lang
-   concat res '&sY=
-   concat res year
-   concat res '&sTS=
-   concat res season
-   concat res '&sTE=
-   concat res episode
+   if year
+	concat res '&sY=
+	concat res year
+   endif
+   if season
+	concat res '&sTS=
+	concat res season
+   endif
+   if episode
+	concat res '&sTE=
+	concat res episode
+   endif
    concat res '&sS=downloads&sO=desc
    s_url = res
    regex ='<tbody>[^\*]+?<a\shref="([^\"]+)"
@@ -237,8 +252,7 @@ stash podnapisis {
 #####################################################
 
 scriptdef subscene_matcher {
-	#regex='a class=\"a1\" href=\"([^\"]+)\" [^>]+>\s*<[^>]+>\s*([^<]+)<
-	regex='<span id="r([^\"]+)"
+	regex='<span [^\>]+>/s*English/s*</span>/s*<span id="r([^\"]+)"
 	match s_url
 	id=v1
 	#<small>Download problems?<a href='/downloadissue.aspx?subtitleId=525340&contentType=zip'>Click here</a>
@@ -259,16 +273,63 @@ scriptdef subsceneName {
 	else
 		url='filmsearch.aspx?q=
 	endif
+	escape s_url
+	concat url s_url
 	play
 }
 
 subdef subscene {
-   # http://s4u.se/?film=Airplane!
-   #Http://api.s4u.se/ Version / ApiKey / xml | json | serialize / movie | serie | all / imdb | tmdb | tvdb | title | rls | fname / SearchString / 
    url=http://subscene.com/
    # <a class="a1" href="/english/Tinker-Tailor-Solider-Spy/subtitle-525340.aspx" title="Subtitle - Tinker Tailor Solider Spy - English"><span class="r0" >English</span>   
    name_script=subsceneName
    script=subscene_matcher
    lang=eng
    prop=zip_force
+}
+
+##################################
+## SweSub
+##################################
+
+scriptdef swesubName {
+	if imdb
+	  url='/title/
+	  concat url imdb
+	else
+		rurl='http://swesub.nu/?s=
+		escape s_url
+		concat rurl s_url
+		if year
+		  yurl='+(
+		  concat yurl year
+		  concat yurl ')
+		  concatl s_url yurl
+		endif
+		s_url=rurl
+		#a href="/title/tt1478338/"
+		regex='a href="(/title[^\"]+)"
+		scrape
+		url=v1
+	endif
+	play
+}
+
+scriptdef swesubMatch {
+	#<a href="/download/26483/" rel="nofollow">Boardwalk.Empire.S01E01.720p.HDTV.x264-IMMERSE (1 cd)</a>
+	regex='a href="([^\"]+)" [^>]+>
+	concat regex full_url
+	match s_url
+	s_url='http://swesub.nu/
+	concat s_url v1
+	s_action='geturl
+	scrape
+	url=v1
+	play
+}
+
+subdef swesub {
+	url=http://swesub.nu/
+	name_script=swesubName
+	lang=swe
+	script=swesubMatch
 }

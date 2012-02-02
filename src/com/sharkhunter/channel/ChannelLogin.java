@@ -235,7 +235,6 @@ public class ChannelLogin {
 				return a1;
 			}
 		}
-		Channels.debug("okidoki");
 		ChannelProxy proxy=a.proxy;
 		if(proxy==null)
 			proxy=ChannelProxy.NULL_PROXY;
@@ -246,6 +245,7 @@ public class ChannelLogin {
 				  "&"+pwd+"="+URLEncoder.encode(pass,"UTF-8");
 			method="POST";
 		}
+		//Channels.debug("okidoki "+query);
 		URL u=new URL(url);
 		Proxy p=proxy.getProxy();
 		//URLConnection connection;
@@ -263,7 +263,7 @@ public class ChannelLogin {
 		else {
 			HttpURLConnection connection = (HttpURLConnection) u.openConnection();
 			HttpURLConnection.setFollowRedirects(true);   
-			connection.setInstanceFollowRedirects(false);   
+			connection.setInstanceFollowRedirects(true);   
 			connection.setRequestMethod(method);
 			String page=ChannelUtil.postPage(connection, query);
 			if(ChannelUtil.empty(page))

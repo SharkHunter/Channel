@@ -382,6 +382,8 @@ public class ChannelMedia implements ChannelProps,ChannelScraper {
 		String x=ChannelUtil.getPropertyValue(prop, "delay");
 		if(ChannelUtil.empty(x))
 			return 0;
+		if(x.equals("dynamic"))
+			return -1;
 		try {
 			return 1000*Long.parseLong(x);
 		}

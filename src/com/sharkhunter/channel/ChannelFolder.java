@@ -853,7 +853,7 @@ public class ChannelFolder implements ChannelProps, SearchObj{
 				if(p.charAt(j)==c)
 					return true;
 		}
-		return ((c >= 'A' && c <= 'Z')||(c >= 'a' && c <= 'z'));
+		return !((c >= 'A' && c <= 'Z')||(c >= 'a' && c <= 'z'));
 	}
 	
 	public void addMovieInfo(DLNAResource res,String imdb,String thumb) {

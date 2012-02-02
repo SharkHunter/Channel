@@ -1,10 +1,12 @@
 package com.sharkhunter.channel;
 import java.io.File;
+import java.util.ArrayList;
 import java.util.List;
 
 import javax.swing.JComponent;
 
 import net.pms.PMS;
+import net.pms.configuration.RendererConfiguration;
 import net.pms.dlna.DLNAMediaInfo;
 import net.pms.dlna.DLNAResource;
 import net.pms.encoders.Player;
@@ -119,8 +121,12 @@ public class CH_plugin implements AdditionalFolderAtRoot, StartStopListener
 	private void removeArg(List<String> list,String arg,boolean boolOp) {
 		int pos;
 		if((pos=list.indexOf(arg))!=-1) {
-			list.set(pos,"-vcodec");
-			list.set(pos+1, "libx264");
+			/*list.set(pos,"-vcodec");
+			list.set(pos+1, "copy");
+			list.add(pos+2,"-acodec");
+			list.add(pos+3,"copy");*/
+			list.set(pos, "-f");
+			list.set(pos+1,"copy");
 		}
 	}
 	
@@ -134,17 +140,41 @@ public class CH_plugin implements AdditionalFolderAtRoot, StartStopListener
 	public List<String> finalizeTranscoderArgs(Player player, String name,
 			DLNAResource res, DLNAMediaInfo media, OutputParams params,
 			List<String> cmdList) {
-		/*Channels.debug("finalize args:");
+	/*	Channels.debug("finalize args:");
 		Channels.debug("name "+name+" params "+params.toString());
 		Channels.debug("player "+player.name());
 		dbgArg(cmdList);*/
 		if((!(res instanceof ChannelMediaStream)))
-			return cmdList;	
-	/*	if(res.getSystemName().startsWith("rtmp")&&player.name().equals("PMSEncoder")) {
+			return cmdList;		
+		/*if(res.getSystemName().startsWith("rtmp")&&player.name().equals("PMSEncoder")) {
 			RendererConfiguration r=params.mediaRenderer;
 			//if(r.isPS3()||r.isXBOX())
-			if(!r.isBRAVIA())
-				removeArg(cmdList,"-target");
+			if(!r.isBRAVIA()) {
+				boolean pipeSeen=false;
+				String pipeName=null;
+				ArrayList<String> out=new ArrayList<String>();
+				for(int i=0;i<cmdList.size();i++) {
+					String arg=cmdList.get(i);
+					if(arg.equals("|")) {
+						pipeSeen=true;
+						continue;
+					}
+					if(arg.startsWith("\\\\.\\pipe\\")) {
+						pipeName=arg;
+						continue;
+					}
+					if(arg.equals("-o")||arg.equals("-"))
+						continue;
+					if(!pipeSeen)
+						out.add(arg);
+				}
+				if(ChannelUtil.empty(pipeName))
+					return cmdList;
+				out.add("-o");
+				out.add(pipeName);
+				dbgArg(out);
+				return out;
+			}
 			dbgArg(cmdList);
 			return cmdList;
 		}*/

@@ -1,4 +1,4 @@
-version=0.39
+version=0.46
 ## NOTE!!
 ## 
 ## We match out both the megavideo play link and megaupload link
@@ -49,7 +49,7 @@ scriptdef iceGo {
 	scrape
 	url=v1
 	unescape url
-	concat url '&login=1
+#	concat url '&login=1
 	print url
 	play
 }
@@ -60,6 +60,7 @@ scriptdef iceGo {
 ##############################
 
 scriptdef iceSubs {
+	full_url=s_url
 	url=s_url
 	regex='\((\d+)\) 
 	match s_url
@@ -90,43 +91,58 @@ scriptdef imdbThumb {
 	play
 }
 
+#################################
+## Rapidshare script
+#################################
+
+scriptdef rsScript {
+    print s_url
+	regex='\/files\/([^\/]+)\/(.*)
+	match s_url
+	s_url='https://api.rapidshare.com/cgi-bin/rsapi.cgi?sub=download&try=1&fileid=
+	id=v1
+	name=v2
+	concat s_url v1
+	concat s_url '&filename=
+	concat s_url v2
+	regex='DL:([^,]+),([^,]+),([^,]+)
+	scrape 
+	if v2 == '0
+		url='https://
+	else
+		url='http://
+	endif
+	concat url v1
+	concat url '/cgi-bin/rsapi.cgi?sub=download&fileid=
+	concat url id
+	concat url '&filename=
+	concat url name
+	concat url '&dlauth=
+	concat url v2
+	pms_stash.sleep=v3
+	play
+}
+
 #############################
 ## The actual scrpaer
 #############################
 
+macrodef iceTvmacro {
+    media {
+		# Rapidshare
+		#https://rapidshare.com/files/2029276453/The.Big.Bang.Theory.S05E14.HDTV.XviD-LOL.avi"
+		script=rsScript
+		prop=name_index=3+2,delay=dynamic
+		subtitle=s4u
+	}
+}
+
 macrodef mediaMacro {
 	media {
-		# MegaVideo Link
-		#<a href="http://www.megavideo.com/?d=XVH4UK2J" class="download_view_but" target="_blank"
-		#matcher=<a href=\"([^\"]+)\"\s+class=\"down_links_mv\"
-		matcher=<a href=\"([^\"]+)\"\s+class=\"download_view_but\"
-		order=url
-		name=MegaVideo
-		#escript=get_flash_videos.bat
-		prop=concat_name=rear,name_separator=###0,name_index=3+2,script.no_format
-		subtitle=s4u,allSubs,podnapisiTV
-		#nscript=http://navix.turner3d.net/proc/megavideo
+		script=rsScript
+		prop=name_index=2,delay=dynamic
+		subtitle=s4u,allSubs,podnapisiMovie
 	}
-	media {
-		# Cheap style link
-		#<a href="http://www1361.megaupload.com/files/7365f5a2ec3916f3572eb16df83531a7/The.Big.Bang.Theory.S05E11.HDTV.XviD-ASAP.avi" class="download_regular_usual"  style="display:none;" id="dlbutton"></a>
-		matcher=<a href=\"([^\"]+)\" class=\"download_regular_usual\"
-		name=MegaUpload
-		order=url
-		subtitle=s4u,allSubs,podnapisiTV
-		prop=concat_name=rear,name_separator=###0,name_index=3+2
-	}	
-	media {
-		# Premium link
-		# <a href="http://www68.megaupload.com/files/f27f675c5fd22f12f08a4e03fc2d4522/Game.of.Thrones.S01E01.HDTV.XviD-FEVER.avi" class="down_ad_butt1"></a> 
-		#matcher=<a href="([^\"]+)" class="down_ad_butt1">
-		#<a href="?c=premium" class="download_premium_but"></a>
-		matcher=<a href="([^\"]+)" class=\"download_premium_but"
-		name=MegaUpload Premium
-		order=url
-		subtitle=s4u,allSubs,podnapisiTV
-		prop=concat_name=rear,name_separator=###0,name_index=3+2
-	}	 
 }
 
 macrodef tvMacro {
@@ -155,9 +171,10 @@ macrodef tvMacro {
 				post_script=iceGo
 				folder {
 					# onclick='go(247108)'>Source #1|PART 1
-					matcher='go\(([0-9]+)\)'>((Source #[0-9]+|PART [0-9]+))
-					order=url,name
-					macro=mediaMacro
+					matcher='go\(([0-9]+)\)'>(Source #[0-9]+|PART [0-9]+)[^<]+<span title='[^R]+(RapidShare)
+					order=url,name,name
+					prop=name_separator=###0
+					macro=iceTvmacro
 				}
 			}
 		}
@@ -182,8 +199,9 @@ macrodef movieMacro {
 			post_script=iceGo
 			folder {
 					# onclick='go(247108)'>Source #1|PART 1
-					matcher='go\(([0-9]+)\)'>((Source #[0-9]+|PART [0-9]+))
-					order=url,name
+					matcher='go\(([0-9]+)\)'>(Source #[0-9]+|PART [0-9]+)[^<]+<span title='.* (RapidShare)
+					order=url,name,name
+					prop=name_separator=###0
 					macro=mediaMacro
 				}
 		}
@@ -193,16 +211,7 @@ macrodef movieMacro {
 channel IceFilms {
 	img=http://img.icefilms.info/logo.png
 	subscript=iceSubs
-	hdr=Referer=http://www.megaupload.com/?c=login
-  login {
-		# Login data
-		url=http://www.megaupload.com/?c=
-		user=username
-		passwd=password
-		params=login=1&redir=1
-		type=cookie
-		associate=meagvideo.com,megaporn.com,megalive.com
-	}
+#	hdr=Referer=http://www.megaupload.com/?c=login
 	folder {
 	  name=TV Shows
 	  folder {

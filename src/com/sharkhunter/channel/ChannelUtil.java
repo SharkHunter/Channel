@@ -132,7 +132,7 @@ public class ChannelUtil {
 					cookie=append(cookie,"; ",c1);
 				}
 			}
-			Channels.debug("fpage2 cookie "+cookie);
+			Channels.debug("fpage2 cookie "+cookie+" "+url);
 			if(!empty(cookie))
 				connection.setRequestProperty("Cookie",cookie);
 			if(hdr!=null&&hdr.size()!=0) {
@@ -142,7 +142,6 @@ public class ChannelUtil {
 		//	connection.setRequestProperty("Content-Length", "0"); 
 			connection.setDoInput(true);
 			connection.setDoOutput(true);
-			
 		    BufferedReader in = new BufferedReader(new InputStreamReader(connection.getInputStream()));
 		    StringBuilder page=new StringBuilder();
 		    String str;
@@ -551,6 +550,8 @@ public class ChannelUtil {
 	public static String backTrack(DLNAResource start,int stop) {
 		if(start==null)
 			return null;
+		if(start.getParent() instanceof ChannelDelay)
+			start=start.getParent(); // compensate for delay folder
 		if(Channels.save()) // compensate for save
 			start=start.getParent();
 		if(stop==0)

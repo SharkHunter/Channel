@@ -93,7 +93,7 @@ public class ChannelNaviXProc {
 	private static String getVar(String key) {
 		if(key.startsWith("pms_stash.")) {
 			// special PMS stash
-			String[] kSplit=key.split(".",3);
+			String[] kSplit=key.split("\\.",3);
 			if(kSplit.length>1) {
 				String stash="default";
 				String sKey=kSplit[1];
@@ -110,7 +110,7 @@ public class ChannelNaviXProc {
 	private static void putVar(String key,String val) {
 		if(key.startsWith("pms_stash.")) {
 			// special PMS stash
-			String[] kSplit=key.split(".",3);
+			String[] kSplit=key.split("\\.",3);
 			if(kSplit.length>1) {
 				String stash="default";
 				String sKey=kSplit[1];
@@ -412,7 +412,7 @@ public class ChannelNaviXProc {
 					}
 					else if(key.startsWith("pms_stash.")) {
 						// special PMS stash
-						String[] kSplit=key.split(".",3);
+						String[] kSplit=key.split("\\.",3);
 						if(kSplit.length>1) {
 							String stash="default";
 							String sKey=kSplit[1];

@@ -52,6 +52,7 @@ public class SearchFolder extends VirtualFolder {
     public boolean isRefreshNeeded() {
 		return true;
 	}
+    
 	
     public void refreshChildren() {
 		refreshChildren(null);
