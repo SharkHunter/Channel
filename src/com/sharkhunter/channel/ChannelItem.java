@@ -68,12 +68,14 @@ public class ChannelItem implements ChannelProps{
 					matcher=new ChannelMatcher(keyval[1],null,this);
 				else
 					matcher.setMatcher(keyval[1]);
+				matcher.setChannel(parent);
 			}
 			if(keyval[0].equalsIgnoreCase("order")) {
 				if(matcher==null)
 					matcher=new ChannelMatcher(null,keyval[1],this);
 				else
 					matcher.setOrder(keyval[1]);
+				matcher.setChannel(parent);
 			}
 		}
 	}

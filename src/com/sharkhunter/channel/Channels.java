@@ -28,7 +28,7 @@ import no.geosoft.cc.io.FileMonitor;
 public class Channels extends VirtualFolder implements FileListener {
 
 	// Version string
-	public static final String VERSION="1.54a";
+	public static final String VERSION="1.55";
 	
 	// Constants for RTMP string constructions
 	public static final int RTMP_MAGIC_TOKEN=1;
@@ -231,11 +231,13 @@ public class Channels extends VirtualFolder implements FileListener {
     			Channel old=find(chName);
     			if(old!=null) {
     				old.parse(chData,macros);
+    				initVar(chName,old);
     			}
     			else {
     				Channel ch=new Channel(chName);
     				if(ch.Ok) {
     					ch.parse(chData,macros);
+    					initVar(chName,ch);
     					addChild(ch);
     				}	
     				else {
@@ -985,4 +987,17 @@ public class Channels extends VirtualFolder implements FileListener {
 	public static boolean noPlay() {
 		return cfg().noPlay();
 	}
+	
+	//////////////////////////////////////////////////////////////
+	// ChannelVars handling
+	//////////////////////////////////////////////////////////////
+	
+	public void initVar(String channel,Channel ch) {
+		cfg().chVars(channel,ch);
+	}
+	
+	public static void setChVar(String ch,String var,String val) {
+		cfg().putChVars(ch,var,val);
+	}
+	
 }

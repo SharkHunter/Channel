@@ -5,9 +5,11 @@ import java.util.regex.Pattern;
 
 public class ChannelMatcher implements ChannelProps{
 	 private Pattern regexp;
+	 private String regStr;
 	 private String order[];
 	 private ChannelProps properties;
 	 private Matcher matcher;
+	 private Channel parent;
 	 
 	 private static final String lcbr="###lcbr###";
 	 private static final String rcbr="###rcbr###";
@@ -18,33 +20,43 @@ public class ChannelMatcher implements ChannelProps{
 		 if(ChannelUtil.empty(order)) //  no order configured, use default
 			 order="url,name,thumb";
 		 if(reg!=null)
-			 this.regexp=Pattern.compile(fixReg(reg),Pattern.MULTILINE);//|Pattern.DOTALL);
+			 regStr=reg;//this.regexp=Pattern.compile(fixReg(reg),Pattern.MULTILINE);//|Pattern.DOTALL);
 		 this.order=order.split(",");
 		 this.properties=prop;
+		 regexp=null;
+		 parent=null;
 	  }
+	 
+	 public void setChannel(Channel ch) {
+		 parent=ch;
+	 }
 
 	 public Pattern getRegexp() {
-		 return this.regexp;
+		 //return this.regexp;
+		 return Pattern.compile(fixReg(regStr),Pattern.MULTILINE);
 	 }
 
 	 public void setMatcher(String reg) {
-		 if(reg!=null&&reg.length()!=0)
-			 regexp=Pattern.compile(fixReg(reg),Pattern.MULTILINE);
+		 if(!ChannelUtil.empty(reg))
+			 regStr=reg;//regexp=Pattern.compile(fixReg(reg),Pattern.MULTILINE);
 	 }
 	 
 	 private String fixReg(String str) {
+		 if(parent!=null)
+			 str=parent.resolveVars(str);
 		 return str.replaceAll(lcbr, "{")
 		 			.replaceAll(rcbr, "}");
 	 }
 	      
 	 public void setOrder(String o) {
-		 if(o!=null&&o.length()!=0)
+		 if(!ChannelUtil.empty(o))
 			 order=o.trim().split(",");
 	 }
 	      
 	 public void startMatch(String str) {
-		 if(this.regexp==null)
+		 if(ChannelUtil.empty(regStr))
 			 return;
+		 regexp=Pattern.compile(fixReg(regStr),Pattern.MULTILINE);
 		 this.matcher=this.regexp.matcher(str);
 	 }
 
@@ -148,8 +160,6 @@ public class ChannelMatcher implements ChannelProps{
 	 }
 	 
 	 public String regString() {
-		 if(regexp==null)
-			 return null;
 		 return getRegexp().toString().replaceAll("\\{",lcbr)
 		 		.replaceAll("}", rcbr);
 	 }

@@ -18,6 +18,8 @@ import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
 import java.util.zip.ZipOutputStream;
 
+import org.apache.commons.configuration.ConfigurationException;
+
 import net.pms.PMS;
 
 public class ChannelCfg {
@@ -465,6 +467,49 @@ public class ChannelCfg {
 		}
 		catch (Exception e) {
 			Channels.debug("error fetching externals "+e);
+		}
+	}
+	
+	///////////////////////////////////////////////////
+	// Channel Var functions
+	///////////////////////////////////////////////////
+	
+	public void putChVars(String ch,String var,String val) {
+		String putData=ch+"."+var+"."+val;
+		String vars=(String)PMS.getConfiguration().getCustomProperty("channels.ch_vars");
+		if(!ChannelUtil.empty(vars)) {
+			String[] varData=vars.split(",");
+			String vData=ch+"."+var;
+			String pData="";
+			for(int i=0;i<varData.length;i++) {
+				if(varData[i].startsWith(vData)) {
+					pData=pData+putData+",";
+				}
+				else
+					pData=pData+varData[i]+",";
+			}
+			putData=pData;
+			
+		}
+		try {
+			PMS.getConfiguration().setCustomProperty("channels.ch_vars", putData);
+			PMS.getConfiguration().save();
+		} catch (ConfigurationException e) {
+		}
+	}
+	
+	public void chVars(String chName,Channel ch) {
+		String vars=(String)PMS.getConfiguration().getCustomProperty("channels.ch_vars");
+		if(ChannelUtil.empty(vars)) // no vars
+			return;
+		String[] varData=vars.split(",");
+		for(int i=0;i<varData.length;i++) {
+			String[] var=varData[i].split("\\.");
+			if(var.length<3)
+				continue;
+			if(!var[0].equals(chName))
+				continue;
+			ch.setVar(var[1],var[2]);
 		}
 	}
 }

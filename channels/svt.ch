@@ -1,6 +1,18 @@
-version=0.26
+version=0.30
 channel SVTPlay {
 	img=http://svtplay.se/img/brand/svt-play.png
+	var {
+		disp_name=Bitrate 1
+		var_name=br1
+		values=2400,1400,850,320
+		suffix=Kbps
+	}
+	var {
+		disp_name=Bitrate 2
+		var_name=br2
+		values=850,1400,320
+		suffix=Kbps
+	}
 	folder {
 		name=A-Z
 		type=ATZ
@@ -16,7 +28,7 @@ channel SVTPlay {
 				order=url,thumb,name
 		  		prop=auto_media
 				media {
-					matcher=url:(rtmp[^,]+),bitrate:(2400|850)
+					matcher=url:(rtmp[^,]+),bitrate:(@#br1@#|@#br2@#)
 					order=url
 					prop=only_first,
 				}
@@ -28,7 +40,7 @@ channel SVTPlay {
 				order=url,thumb,name
 		  		prop=auto_media
 				media {
-					matcher=url:(rtmp[^,]+),bitrate:(2400|850)
+					matcher=url:(rtmp[^,]+),bitrate:(@#br1@#|@#br2@#)
 					order=url
 					prop=only_first,
 				}

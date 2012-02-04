@@ -146,10 +146,10 @@ public class CH_plugin implements AdditionalFolderAtRoot, StartStopListener
 		dbgArg(cmdList);*/
 		if((!(res instanceof ChannelMediaStream)))
 			return cmdList;		
-		/*if(res.getSystemName().startsWith("rtmp")&&player.name().equals("PMSEncoder")) {
-			RendererConfiguration r=params.mediaRenderer;
+/*		if(res.getSystemName().startsWith("rtmp")&&player.name().equals("PMSEncoder")) {
+			RendererConfiguration r=params.mediaRenderer;				
 			//if(r.isPS3()||r.isXBOX())
-			if(!r.isBRAVIA()) {
+		/*	if(!r.isBRAVIA()) {
 				boolean pipeSeen=false;
 				String pipeName=null;
 				ArrayList<String> out=new ArrayList<String>();

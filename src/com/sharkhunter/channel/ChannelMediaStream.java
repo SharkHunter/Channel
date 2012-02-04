@@ -319,11 +319,12 @@ public class ChannelMediaStream extends DLNAResource {
     }
 
     public String getName() {
+    	if(delay==0)
+    		return name;
     	long d=(scrapeTime+delay)-System.currentTimeMillis();
 		if(d<=0&&scrapeTime!=0)
 			return name;
 		this.setDiscovered(false);
-	//	Date day=new Date(d);
 		return "Delay "+(delay==-1?"dynamic":d/1000)+" "+name;
     }
 

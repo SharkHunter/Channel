@@ -550,8 +550,6 @@ public class ChannelUtil {
 	public static String backTrack(DLNAResource start,int stop) {
 		if(start==null)
 			return null;
-		if(start.getParent() instanceof ChannelDelay)
-			start=start.getParent(); // compensate for delay folder
 		if(Channels.save()) // compensate for save
 			start=start.getParent();
 		if(stop==0)

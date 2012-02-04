@@ -42,6 +42,8 @@ public class Channel extends VirtualFolder {
 	private ChannelFolder favorite;
 	private String videoFormat;
 	
+	private HashMap<String,ChannelVar> vars;
+	
 	public Channel(String name) {
 		super(name,null);
 		Ok=false;
@@ -55,11 +57,13 @@ public class Channel extends VirtualFolder {
 		searchFolders=new HashMap<String,SearchObj>();
 		actions=new ArrayList<ChannelFolder>();
 		videoFormat=".flv";
+		vars=new HashMap<String,ChannelVar>();
 		Ok=true;
 	}
 	
 	public void parse(ArrayList<String> data,ArrayList<ChannelMacro> macros) {
 		folders.clear();
+		vars.clear();
 		getChildren().clear();
 		debug("parse channel "+name+" data "+data.toString());
 		this.macros=macros;
@@ -77,6 +81,12 @@ public class Channel extends VirtualFolder {
 				ChannelFolder f=new ChannelFolder(folder,this);
 				if(f.Ok)
 					folders.add(f);
+			}
+			if(line.contains("var {")) {
+				ArrayList<String> var=ChannelUtil.gatherBlock(data,i+1);
+				i+=var.size();
+				ChannelVar v=new ChannelVar(var,this);
+				vars.put(v.displayName(), v);
 			}
 			String[] keyval=line.split("\\s*=\\s*",2);
 			if(keyval.length<2)
@@ -192,6 +202,10 @@ public class Channel extends VirtualFolder {
 	}
 	
 	public void discoverChildren(DLNAResource res) {
+		for(String var: vars.keySet()) {
+			ChannelVar v=vars.get(var);
+			addChild(new ChannelPMSVar(var,v));
+		}
 		if(favorite!=null)
 			try {
 				favorite.match(this);
@@ -383,5 +397,18 @@ public class Channel extends VirtualFolder {
 	
 	public String fallBackVideoFormat() {
 		return videoFormat;
+	}
+	
+	public void setVar(String var,String val) {
+		ChannelVar v=vars.get(var);
+		if(v!=null)
+			v.setValue(val);
+	}
+	
+	public String resolveVars(String str) {
+		for(String key : vars.keySet()) {
+			str=vars.get(key).resolve(str);
+		}
+		return str;
 	}
 }
