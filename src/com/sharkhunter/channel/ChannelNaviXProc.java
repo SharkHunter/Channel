@@ -558,6 +558,14 @@ public class ChannelNaviXProc {
 		return false;
 	}
 	
+	private static void addSpecials(Channel ch) {
+		if(ch!=null) {
+			vars.put("user", ch.user());
+			vars.put("pwd", ch.pwd());
+			
+		}
+	}
+	
 	public static String parse(String url,String pUrl,int format) {
 		return parse(url,pUrl,format,null,null,null,null);
 	}
@@ -577,6 +585,7 @@ public class ChannelNaviXProc {
 		vars.put("subtitle",subFile);
 		vars.put("url", url);
 		vars.put("__type__", "navix");
+		addSpecials(ch);
 		if(ch!=null) {
 			ChannelAuth auth=ch.prepareCom();
 			if((auth!=null)&&(auth.method==ChannelLogin.COOKIE))
@@ -730,6 +739,7 @@ public class ChannelNaviXProc {
 			                  HashMap<String,String> initStash,Channel ch) {
 		try {
 			vars.clear();
+			addSpecials(ch);
 			if(initStash!=null)
 				vars.putAll(initStash);
 			ChannelAuth a=null;

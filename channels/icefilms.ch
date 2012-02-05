@@ -1,4 +1,4 @@
-version=0.46
+version=0.48
 ## NOTE!!
 ## 
 ## We match out both the megavideo play link and megaupload link
@@ -105,6 +105,14 @@ scriptdef rsScript {
 	concat s_url v1
 	concat s_url '&filename=
 	concat s_url v2
+	if user
+		escape user
+		concat s_url '&login=
+		concat s_url user
+		escape pwd
+		concat s_url '&password=
+		concat s_url pwd
+	endif
 	regex='DL:([^,]+),([^,]+),([^,]+)
 	scrape 
 	if v2 == '0
@@ -119,6 +127,12 @@ scriptdef rsScript {
 	concat url name
 	concat url '&dlauth=
 	concat url v2
+	if user
+		concat url '&login=
+		concat url user
+		concat url '&password=
+		concat url pwd
+	endif
 	pms_stash.sleep=v3
 	play
 }
@@ -174,6 +188,7 @@ macrodef tvMacro {
 					matcher='go\(([0-9]+)\)'>(Source #[0-9]+|PART [0-9]+)[^<]+<span title='[^R]+(RapidShare)
 					order=url,name,name
 					prop=name_separator=###0
+					type=empty
 					macro=iceTvmacro
 				}
 			}

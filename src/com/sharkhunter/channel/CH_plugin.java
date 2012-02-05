@@ -97,7 +97,6 @@ public class CH_plugin implements AdditionalFolderAtRoot, StartStopListener
 
     //@Override
 	public JComponent config() {
-		//JFrame frame=new JFrame("Configure Channels");
 		cfg.init();
 		return gui.draw();
 	}
