@@ -495,7 +495,7 @@ public class ChannelFolder implements ChannelProps, SearchObj{
 		if(url!=null)
 			dummy=url.equals("dummy_url");
 		if(!post)
-			realUrl=ChannelUtil.concatURL(url,urlEnd);
+			realUrl=ChannelUtil.concatURL(url,StringEscapeUtils.unescapeHtml(urlEnd));
 		if(dummy)
 			realUrl=urlEnd;
 		//realUrl=ChannelNaviXProc.simple(realUrl, pre_script);

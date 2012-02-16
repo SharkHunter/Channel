@@ -411,4 +411,8 @@ public class Channel extends VirtualFolder {
 		}
 		return str;
 	}
+	
+	public HashMap<String,ChannelVar> vars() {
+		return vars;
+	}
 }

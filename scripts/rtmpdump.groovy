@@ -30,6 +30,7 @@ init {
                     case 'url': // deprecated
                     case '-r':
                     case '--rtmp':
+					case 'rtmp':
                         if (value) {
                             $URI = value//quoteURI(value)
                             seenURL = true
@@ -45,6 +46,7 @@ init {
 						args+=' app='+value
 						break
 					case '-W':
+					case 'swfVfy':
 					    swfUrl=' swfUrl='+value
 					case '--swfVfy':
 						args+=' swfVfy=1'
@@ -56,7 +58,8 @@ init {
                        // ffmpegArgs << name
                         // not all values are URIs, but quoteURI() is harmless on Windows and a no-op on other platforms
                         if (value)
-                            rtmpdumpArgs << quoteURI(value)
+                            //rtmpdumpArgs << quoteURI(value)
+						args+=' '+name+"="+value
                 }
             }
 

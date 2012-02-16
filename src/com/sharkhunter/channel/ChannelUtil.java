@@ -499,19 +499,17 @@ public class ChannelUtil {
 		
 		if(!empty(type)&&type.equals("RTMPDUMP")) {
 			Channels.debug("rmtpdump spec "+rUrl);
-			String[] args=rUrl.split(" ");
+			String[] args=rUrl.split("!!!");
 			String res="";
 			for(int i=0;i<args.length;i++) {
-				if(args[i].equals("--flv")) { // special, should be removed
-					i++;
+				if(empty(args[i]))
 					continue;
-				}
-				if(args[i].equals("--swfUrl"))
-					res=append(res,"&","--swfVfy");
-				else if(args[i].startsWith("--"))
-					res=append(res,"&",args[i]);
-				else
-					res=append(res,"=",escape(args[i]));
+				String[] kv=args[i].split("=",2);
+				if(kv.length<2)
+					continue;
+				if(kv[0].equals("flv"))
+					continue;
+				res=append(res,"&",kv[0]+"="+escape(kv[1]));
 			}
 			rUrl="rtmpdump://channel?"+res;
 			Channels.debug("return media url rtmpdump spec "+rUrl);

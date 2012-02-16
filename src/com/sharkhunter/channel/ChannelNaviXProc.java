@@ -562,7 +562,11 @@ public class ChannelNaviXProc {
 		if(ch!=null) {
 			vars.put("user", ch.user());
 			vars.put("pwd", ch.pwd());
-			
+			HashMap <String,ChannelVar> chVar=ch.vars();
+			for(String key : chVar.keySet()) {
+				ChannelVar v=chVar.get(key);
+				vars.put(v.varName(), v.value());
+			}
 		}
 	}
 	

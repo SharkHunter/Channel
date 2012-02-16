@@ -28,7 +28,7 @@ import no.geosoft.cc.io.FileMonitor;
 public class Channels extends VirtualFolder implements FileListener {
 
 	// Version string
-	public static final String VERSION="1.56";
+	public static final String VERSION="1.57";
 	
 	// Constants for RTMP string constructions
 	public static final int RTMP_MAGIC_TOKEN=1;
@@ -569,8 +569,8 @@ public class Channels extends VirtualFolder implements FileListener {
 			fName=ChannelUtil.append(fName,null, ext);
 		}
 		// remove some odd chars
-		fName=fName.replaceAll(" ", "_").replaceAll("<", "")
-		.replaceAll(">", "").replaceAll("[", "").replaceAll("]", "");
+		debug("fname "+fName);
+		fName=fName.replaceAll(" ", "_").replaceAll("<", "").replaceAll(">", "");
 		if(!cache&&save())
 			return cfg().getSavePath()+File.separator+fName;
 		else

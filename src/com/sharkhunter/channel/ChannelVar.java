@@ -46,7 +46,7 @@ public class ChannelVar {
 	}
 	
 	public String varName() {
-		return var_name;
+		return VAR_DELIM+var_name+VAR_DELIM;
 	}
 
 	public String value() {
@@ -64,7 +64,7 @@ public class ChannelVar {
 	}
 	
 	public String resolve(String str) {
-		return str.replaceAll(VAR_DELIM+var_name+VAR_DELIM, currVal);
+		return str.replaceAll(varName(), currVal);
 	}
 	
 	public String niceValue(String val) {
