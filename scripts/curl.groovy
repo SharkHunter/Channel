@@ -12,8 +12,8 @@ script {
 			$URI = tmp
 			
 			//$URI = quoteURI($URI)
-			//$DOWNLOADER = "$CURL -s -S -b ${cookie} --location-trusted --output $DOWNLOADER_OUT ${$URI}"
-		   set '-cookies-file' : quoteURI(cookie)
+			$DOWNLOADER = "$CURL -s -S -b ${cookie} --location-trusted --output $DOWNLOADER_OUT ${$URI}"
+		   //set '-cookies-file' : quoteURI(cookie)
 		}
 	}
 }

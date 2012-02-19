@@ -722,7 +722,8 @@ public class ChannelFolder implements ChannelProps, SearchObj{
 	    		String imdbId=m.getMatch("imdb",false);
 	    		if(ChannelUtil.empty(imdbId)) {
 	    			imdbId=imdb;
-	    			thumb=pThumb; // we know that will use this thumb so save a scrape here
+	    			if(ChannelUtil.empty(thumb))
+	    				thumb=pThumb; // we know that will use this thumb so save a scrape here
 	    		}
 	    		if(ChannelUtil.empty(thumb)&&
 	    		   !ChannelUtil.empty(imdbId)) {
@@ -730,7 +731,10 @@ public class ChannelFolder implements ChannelProps, SearchObj{
 	    			cf.thumb_script="imdbThumb";
 	    		}
 	    		else {
+	    			Channels.debug("thumb1 "+thumb);
 	    			thumb=ChannelUtil.getThumb(thumb, pThumb, parent);
+	    			Channels.debug("thumb2 "+thumb);
+	    			
 	    		}
 	    		parent.debug("matching "+someName+" url "+fUrl+" thumb "+thumb+" group "+group+" imdb "+imdbId);
 	    		if(ChannelUtil.empty(someName))

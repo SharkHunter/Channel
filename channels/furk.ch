@@ -1,10 +1,10 @@
-version=0.31
+version=0.32
 
 scriptdef furkSubs {
 	release='1
 	stripExt s_url
 	full_url=s_url
-	regex='\.\[.*?\]
+	regex='\.*\[.*?\]
 	replace s_url '
 	url=s_url
 	play
@@ -14,13 +14,15 @@ scriptdef furkSubs1 {
 	fname='1
 	stripExt s_url
 	full_url=s_url
-	regex='\.\[.*?\]
+	regex='\.*\[.*?\]
 	replace s_url '
 	url=s_url
 	play
 }
 
 scriptdef furkSubs2 {
+	regex='\.*\[.*?\]
+	replace s_url '
 	regex='(.*?)[Ss](\d+)[Ee](\d+) 
 	full_url=s_url
 	stripExt full_url
@@ -49,7 +51,7 @@ macrodef furkMacro {
 			order=name,url
 			subtitle=swesub,s4u
 			#,subscene
-			prop=name_index=0
+			prop=name_index=1
 		}
 	}
 }
