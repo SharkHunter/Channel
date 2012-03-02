@@ -1,4 +1,4 @@
-version=0.30
+version=0.35
 channel SVTPlay {
 	img=http://svtplay.se/img/brand/svt-play.png
 	var {
@@ -28,8 +28,8 @@ channel SVTPlay {
 				order=url,thumb,name
 		  		prop=auto_media
 				media {
-					matcher=url:(rtmp[^,]+),bitrate:(@#br1@#|@#br2@#)
-					order=url
+					matcher=url:(rtmp[^,]+),bitrate:[@#br1@#|@#br2@#][^&]+&[^&]+&[^;]+;subtitle=([^&]*)&
+					order=url,subs
 					prop=only_first,
 				}
 			}
@@ -40,8 +40,8 @@ channel SVTPlay {
 				order=url,thumb,name
 		  		prop=auto_media
 				media {
-					matcher=url:(rtmp[^,]+),bitrate:(@#br1@#|@#br2@#)
-					order=url
+					matcher=url:(rtmp[^,]+),bitrate:(@#br1@#|@#br2@#)[^&]+&[^&]+&[^;]+;subtitle=([^&]*)&
+					order=url,subs
 					prop=only_first,
 				}
 			}
