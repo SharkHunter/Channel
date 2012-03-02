@@ -278,6 +278,7 @@ public class Channel extends VirtualFolder {
 	}
 	
 	public ChannelAuth prepareCom() {
+		Channels.setProxyDNS(ChannelUtil.getProperty(prop, "proxy_dns"));
 		if(proxies==null) // no proxy, just regular login
 			return getAuth(ChannelProxy.NULL_PROXY);
 		Channels.debug("activeProxy "+activeProxy);

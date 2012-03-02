@@ -28,7 +28,7 @@ import no.geosoft.cc.io.FileMonitor;
 public class Channels extends VirtualFolder implements FileListener {
 
 	// Version string
-	public static final String VERSION="1.58";
+	public static final String VERSION="1.59";
 	
 	// Constants for RTMP string constructions
 	public static final int RTMP_MAGIC_TOKEN=1;
@@ -998,6 +998,39 @@ public class Channels extends VirtualFolder implements FileListener {
 	
 	public static void setChVar(String ch,String var,String val) {
 		cfg().putChVars(ch,var,val);
+	}
+	
+	////////////////////////////////////////////////////////////////
+	// ProxyDNS
+	////////////////////////////////////////////////////////////////
+	
+	private static boolean useProxyDNS(boolean channel) {
+		int mode=cfg().proxyDNSMode();
+		return (mode==ChannelCfg.PROXY_DNS_CHANNEL)&&channel;
+	}
+	
+	public static void setProxyDNS(boolean channel) {
+		if(!useProxyDNS(channel))
+			return;
+		String p=cfg().proxyDNS();
+		if(ChannelUtil.empty(p)) // no proxyDNS
+			return;
+		setProxyDNS(p);
+	}
+	
+	public static void setProxyDNS(String server) {
+		debug("set DNS server to "+server);
+		System.setProperty("sun.net.spi.nameservice.nameservers", server);
+		System.setProperty("sun.net.spi.nameservice.provider.1", "dns,dnsjava");
+	}
+	
+	public static void restoreProxyDNS() {
+		// trick here, if mode!=channel this is always false and we dont swap
+		// the DNS back and forth
+		if(!useProxyDNS(true)) 
+			return;
+		System.clearProperty("sun.net.spi.nameservice.nameservers");
+		System.clearProperty("sun.net.spi.nameservice.provider.1");
 	}
 	
 }

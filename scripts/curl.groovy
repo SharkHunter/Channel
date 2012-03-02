@@ -1,7 +1,7 @@
 script {
 	profile ('CURL') {
 		pattern {
-		domains([  'gcdn.biz','megaupload.com', 'movshare.net', 'stream2k.com', 'bitload.com', 'novamov.com', 'divxstage.eu', 'divxstage.net' ])          
+		domains([ 'sockshare.com', 'pulocker.com','gcdn.biz','megaupload.com', 'movshare.net', 'stream2k.com', 'bitload.com', 'novamov.com', 'divxstage.eu', 'divxstage.net' ])          
 			
 		}
 		action {

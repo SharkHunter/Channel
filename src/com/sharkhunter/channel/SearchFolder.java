@@ -58,11 +58,12 @@ public class SearchFolder extends VirtualFolder {
     	return true;
     }
 	
-	public void refreshChildren(String str) {
+	public boolean refreshChildren(String str) {
 		if(str==null)
-			return;
+			return false;
 		getChildren().clear();
 		discoverChildren(str);
+		return true;
 	}
 }
 

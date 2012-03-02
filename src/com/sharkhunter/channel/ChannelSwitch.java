@@ -96,4 +96,16 @@ public class ChannelSwitch implements ChannelProps {
 	public String prepend(String base) {
 		return ChannelUtil.getPropertyValue(prop,"prepend_"+base);
 	}
+	
+	@Override
+	public boolean escape(String base) {
+		return ChannelUtil.getProperty(prop, base+"_escape");
+
+	}
+
+	@Override
+	public boolean unescape(String base) {
+		return ChannelUtil.getProperty(prop, base+"_unescape");
+
+	}
 }

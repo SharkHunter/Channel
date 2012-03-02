@@ -38,6 +38,11 @@ public class ChannelSubs implements ChannelProps {
 	private String script;
 	private String[] nameScript;
 	private String[] lang;
+	
+	public ChannelSubs() {
+		prop=null;
+		dPath=new File(Channels.dataPath());
+	}
 
 	public ChannelSubs(String name,ArrayList<String> data,File dPath) {
 		best=1;
@@ -247,14 +252,37 @@ public class ChannelSubs implements ChannelProps {
 		Channels.debug("subUrl "+subUrl);
 		if(ChannelUtil.empty(subUrl))
 			return null;
-		boolean zip=ChannelUtil.getProperty(prop, "zip_force")||subUrl.contains("zip");
-		boolean rar=ChannelUtil.getProperty(prop, "rar_force")||subUrl.contains("rar");
+		boolean zip=ChannelUtil.getProperty(prop, "zip_force");
+		boolean rar=ChannelUtil.getProperty(prop, "rar_force");
+		return downloadSubs(subUrl,path,zip,rar);
+	}
+	
+	public static String downloadSubs(String subUrl) {
+		int pos=subUrl.lastIndexOf('/');
+		String name="sub_"+System.currentTimeMillis();
+		if(pos!=-1)
+			name=subUrl.substring(pos+1);
+		return downloadSubs(subUrl,name);
+	}
+	
+	public static String downloadSubs(String subUrl,String name) {
+		String path=Channels.dataPath()+File.separator+name+".srt";
+		ChannelSubs nullSub=new ChannelSubs();
+		return nullSub.downloadSubs(subUrl,path,false,false);
+	}
+	
+	private String downloadSubs(String subUrl,String path, boolean zip,boolean rar) {
+		File f=new File(path);
+		if(f.exists())
+			return cacheFile(f);
+		zip=zip||subUrl.contains("zip");
+		rar=rar||subUrl.contains("rar");
 		subUrl=subUrl.replace("&amp;", "&");
 		if(zip)
 			f=new File(path+".zip");
 		if(rar)
 			f=new File(path+".rar");
-		if(!ChannelUtil.downloadBin(subUrl, f))
+		if(!ChannelUtil.downloadBin(subUrl, f,!(zip||rar)))
 			return null;
 		if(zip)  // zip file
 			return zipFile(f);
@@ -353,5 +381,17 @@ public class ChannelSubs implements ChannelProps {
 	@Override
 	public String prepend(String base) {
 		return null;
+	}
+	
+	@Override
+	public boolean escape(String base) {
+		return false;
+
+	}
+
+	@Override
+	public boolean unescape(String base) {
+		return false;
+
 	}
 }

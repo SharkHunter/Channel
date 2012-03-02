@@ -1,4 +1,4 @@
-version=0.21
+version=0.22
 
 scriptdef wsTrix {
 	tmp='http://www.watchseries.eu/open_link.php?vari=
@@ -26,63 +26,6 @@ scriptdef wsSubs {
 	season=v2
 	episode=v3
 	serie='1
-	play
-}
-
-scriptdef wsScript {
-	s_action='geturl
-	scrape
-	url=v1
-	#url=s_url
-	regex='(movshare)
-	match url
-	if v1 
-		call 'http://navix.turner3d.net/proc/movshare
-		url=v1
-		play
-	endif
-	regex='(divxstage)
-	match url
-	if v1
-		call 'http://justme4u2c.zymichost.com/DivxStage.php
-		url=v1
-		play
-	endif
-	regex='(novamov)
-	match url
-	if v1
-	  call 'http://boseman22.dyndns-server.com/static/novamov
-	  url=v1
-	  play
-	endif
-	regex='(videoweed)
-	match url
-	if v1
-	  call 'http://justme4u2c.zymichost.com/VideoWeed.es.php
-	  url=v1
-	  play
-	endif
-	regex='(vixden)
-	match url
-	if v1
-	  call 'http://navix.turner3d.net/proc/vidxden
-	  url=v1
-	  play
-	endif
-	regex='(megavideo)
-	match url
-	if v1
-	  call 'http://navix.turner3d.net/proc/megavideo
-	  url=v1
-	  play
-	endif
-	regex='(videobb)
-	match url
-	if v1
-	  call 'http://navix.turner3d.net/proc/videobb
-	  url=v1
-	  play
-	endif
 	play
 }
 
@@ -118,7 +61,7 @@ macrodef wsMacro {
 						order=url
 						type=empty							
 						media {
-							script=wsScript
+							script=lockerScript
 							subtitle=s4u,allSubs,podnapisiTV
 							prop=name_index=4+3+2,name_separator=!!!
 						}
@@ -133,22 +76,6 @@ macrodef wsMacro {
 channel WatchSeries.eu {
 	img=http://watchseries.eu/images/logo-hover.png
 	subscript=wsSubs
-#	hdr=Referer=http:/www.icefilms.info/index
-#  login {
-		# Login data
-		#url=http://www.megaupload.com/?c=
-		#user=username
-		#passwd=password
-		#params=login=1&redir=1
-		#type=cookie
-		#associate=meagvideo.com,megaporn.com,megalive.com
-	#}
-	 # folder {
-		#Popular
-#		name=Popular
-#		url=http://watchseries.eu/new
-#		macro=wsMacro
-#	  }
 	  folder {
 		name=A-Z
 		type=atzlink

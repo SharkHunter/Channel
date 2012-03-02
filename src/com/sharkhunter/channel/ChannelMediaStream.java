@@ -54,6 +54,7 @@ public class ChannelMediaStream extends DLNAResource {
 	private String videoFormat;
 	private long scrapeTime;
 	private long delay;
+	private String embedSub;
 	
 	public ChannelMediaStream(Channel ch,String name,String nextUrl,
 			  String thumb,String proc,int type,int asx,
@@ -92,6 +93,7 @@ public class ChannelMediaStream extends DLNAResource {
 		videoFormat=null;
 		scrapeTime=0;
 		delay=scraper.delay();
+		embedSub=null;
 	}
 	
 	public void noSubs() {
@@ -108,6 +110,10 @@ public class ChannelMediaStream extends DLNAResource {
 	
 	public void setFallbackFormat(String s) {
 		videoFormat=s;
+	}
+	
+	public void setEmbedSub(String str) {
+		embedSub=str;
 	}
 	
 	
@@ -169,7 +175,7 @@ public class ChannelMediaStream extends DLNAResource {
     public void scrape() {
     	if(!scraped) {
     		if(scraper!=null)
-    			realUrl=scraper.scrape(ch,url,processor,format,this,noSubs,imdb);
+    			realUrl=scraper.scrape(ch,url,processor,format,this,noSubs,imdb,embedSub);
     		else
     			realUrl=ChannelUtil.parseASX(url, ASX);
     		scrapeTime=System.currentTimeMillis();
@@ -274,7 +280,7 @@ public class ChannelMediaStream extends DLNAResource {
     	Channels.debug("cms getinp/0 scrape "+scraper+" url "+realUrl);
     	if(!scraped) {
     		if(scraper!=null)
-    			realUrl=scraper.scrape(ch,url,processor,format,this,noSubs,imdb);
+    			realUrl=scraper.scrape(ch,url,processor,format,this,noSubs,imdb,embedSub);
     		else
     			realUrl=ChannelUtil.parseASX(url, ASX);
     	}
@@ -384,6 +390,18 @@ public class ChannelMediaStream extends DLNAResource {
     	return str+(videoFormat);
     }
     
+    public String realFormat() {
+    	String u;
+    	if(ChannelUtil.empty(realUrl))
+    		u=url;
+    	else {
+    		u= realUrl;
+    	}
+    	if(!u.startsWith("http"))
+    		return null;
+    	return ensureExt(u);
+    }
+    
     public String fullUrl() {
     	if(ChannelUtil.empty(realUrl))
     		return url;
@@ -472,7 +490,7 @@ public class ChannelMediaStream extends DLNAResource {
 		if(scraper==null)
 			ChannelUtil.parseASX(url, ASX);
 		if(ChannelUtil.empty(processor))
-			return scraper.scrape(ch,url,processor,format,this,noSubs,imdb);
+			return scraper.scrape(ch,url,processor,format,this,noSubs,imdb,embedSub);
 		return url;
 	}
 	

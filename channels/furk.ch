@@ -1,4 +1,4 @@
-version=0.32
+version=0.33
 
 scriptdef furkSubs {
 	release='1
@@ -33,9 +33,14 @@ scriptdef furkSubs2 {
 	play
 }
 
-scriptdef furkUpload {
+scriptdef furkUploadHash {
+	url='info_hash=
+	concat url s_url
+	play
+}
+
+scriptdef furkUploadUrl {
 	url='url=
-	#escape s_url
 	concat url s_url
 	play
 }

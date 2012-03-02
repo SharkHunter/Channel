@@ -1,4 +1,4 @@
-version=0.48
+version=0.49
 ## NOTE!!
 ## 
 ## We match out both the megavideo play link and megaupload link
@@ -74,20 +74,6 @@ scriptdef iceSubs {
 	episode=v2
 	regex='(\d+x\d+) .*
 	replace url '
-	play
-}
-
-#############################
-## Thumbnail scrape
-## script using IMDB
-#############################
-
-scriptdef imdbThumb {
-#<link rel='image_src' href='http://ia.media-imdb.com/images/M/MV5BNTUwODQyNjM0NF5BMl5BanBnXkFtZTcwNDMwMTU1Mw@@._V1._SX94_SY140_.jpg'
-	regex='image_src' href='([^']+)'
-	prepend s_url 'http://www.imdb.com/title/tt
-	scrape
-	url=v1
 	play
 }
 

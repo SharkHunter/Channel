@@ -594,6 +594,7 @@ public class ChannelFolder implements ChannelProps, SearchObj{
 	    		String mUrl=m.getMatch("url",true);
 	    		String thumb=m.getMatch("thumb",false);
 	    		String imdbId=m.getMatch("imdb",false);
+	    		String subs=m.getMatch("subs", false);
 	    		String playpath=m.getMatch("playpath",false);
 	    		String swfplayer=m.getMatch("swfVfy",false);
 	    		thumb=ChannelUtil.getThumb(thumb, pThumb, parent);
@@ -606,16 +607,16 @@ public class ChannelFolder implements ChannelProps, SearchObj{
 	    		m1.setFallBackFormat(videoFormat);
     			boolean asx=ChannelUtil.getProperty(prop, "auto_asx");
 	    		m1.add(res, someName, mUrl, thumb,
-	    				asx,imdbId,format);
+	    				asx,imdbId,format,subs);
 	    		m1.stash("playpath",playpath);
 	    		m1.stash("swfVfy",swfplayer);
 	    		medCnt++;
 	    		if(allPlay!=null) {
 	    			m1.add(allPlay, someName, mUrl, thumb,
-		    				asx,imdbId,format,ChannelMedia.SAVE_OPT_PLAY);
+		    				asx,imdbId,format,ChannelMedia.SAVE_OPT_PLAY,subs);
 	    			if(Channels.save())
 	    				m1.add(allSave, someName, mUrl, thumb,
-	    	    				asx,imdbId,format,ChannelMedia.SAVE_OPT_SAVE);
+	    	    				asx,imdbId,format,ChannelMedia.SAVE_OPT_SAVE,subs);
 	    		}
 	    		if(m1.onlyFirst())
 	    			break;
@@ -1031,5 +1032,17 @@ public class ChannelFolder implements ChannelProps, SearchObj{
 	
 	public String fallBackVideoFormat() {
 		return videoFormat;
+	}
+	
+	@Override
+	public boolean escape(String base) {
+		return ChannelUtil.getProperty(prop, base+"_escape");
+
+	}
+
+	@Override
+	public boolean unescape(String base) {
+		return ChannelUtil.getProperty(prop, base+"_unescape");
+
 	}
 }

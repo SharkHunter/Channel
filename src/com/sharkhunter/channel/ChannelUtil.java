@@ -1,15 +1,18 @@
 package com.sharkhunter.channel;
 
 import java.io.BufferedInputStream;
+import java.io.BufferedOutputStream;
 import java.io.BufferedReader;
 import java.io.DataOutputStream;
 import java.io.File;
 import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.io.OutputStreamWriter;
 import java.io.UnsupportedEncodingException;
 import java.net.HttpURLConnection;
 import java.net.Proxy;
@@ -92,10 +95,12 @@ public class ChannelUtil {
 				page.append("\n");
 			}
 			in.close();
+			Channels.restoreProxyDNS();
 			return page.toString();
 		}
 		catch (Exception e) {
 			Channels.debug("post error "+e);
+			Channels.restoreProxyDNS();
 			return "";
 		}
 	}
@@ -151,10 +156,12 @@ public class ChannelUtil {
 		    	page.append("\n");
 		    }
 		    in.close();
+			Channels.restoreProxyDNS();
 		    return page.toString();
 		}
 		catch (Exception e) {
 			Channels.debug("fetch exception "+e.toString());
+			Channels.restoreProxyDNS();
 		    return "";
 		}
 	}
@@ -175,9 +182,27 @@ public class ChannelUtil {
 		return false;
 	}
 	
-	
+	public static boolean downloadText(InputStream in,File f) throws Exception {
+		PmsConfiguration configuration=PMS.getConfiguration();
+		//String subtitleQuality = config.getMencoderVobsubSubtitleQuality();
+		String subcp=configuration.getMencoderSubCp();
+		OutputStreamWriter out=new OutputStreamWriter(new FileOutputStream(f),subcp);
+		InputStreamReader inn=new InputStreamReader(in);
+		char[] buf=new char[4096];
+		int len;
+		while((len=inn.read(buf))!=-1)
+			out.write(buf, 0, len);
+		out.flush();
+		out.close();
+		in.close();
+		return true;
+	}
 	
 	public static boolean downloadBin(String url,File f) {
+		return downloadBin(url,f,false);
+	}
+	
+	public static boolean downloadBin(String url,File f,boolean text) {
 		try {
 			URL u=new URL(url);
 			URLConnection connection=u.openConnection();
@@ -188,6 +213,8 @@ public class ChannelUtil {
 			connection.setDoInput(true);
 			connection.setDoOutput(true);
 			InputStream in=connection.getInputStream();
+			if(text)
+				return downloadText(in,f);
 			FileOutputStream out=new FileOutputStream(f);
 			byte[] buf = new byte[4096];
 			int len;
@@ -441,6 +468,26 @@ public class ChannelUtil {
 		}
 	}
 	
+	private static String addSubs(String rUrl,String sub) {
+		rUrl=append(rUrl,"&subs=",escape(sub));
+		//-spuaa 3 -subcp ISO-8859-10 -subfont C:\Windows\Fonts\Arial.ttf -subfont-text-scale 2 -subfont-outline 1 -subfont-blur 1 -subpos 90 -quiet -quiet -sid 100 -fps 25 -ofps 25 -sub C:\downloads\Kings Speech.srt -lavdopts fast -mc 0 -noskip -af lavcresample=48000 -srate 48000 -o \\.\pipe\mencoder1299956406082
+		PmsConfiguration configuration=PMS.getConfiguration();
+		//String subtitleQuality = config.getMencoderVobsubSubtitleQuality();
+		String subcp=configuration.getMencoderSubCp();
+		rUrl=append(rUrl,"&subcp=",escape(subcp));
+		rUrl=append(rUrl,"&subtext=",escape(configuration.getMencoderNoAssScale()));
+		rUrl=append(rUrl,"&subout=",escape(configuration.getMencoderNoAssOutline()));
+		rUrl=append(rUrl,"&subblur=",escape(configuration.getMencoderNoAssBlur()));
+		int subpos = 1;
+        try {
+        	subpos = Integer.parseInt(configuration.getMencoderNoAssSubPos());
+        } catch (NumberFormatException n) {
+        }
+        rUrl=append(rUrl,"&subpos=",String.valueOf(100 - subpos));
+      //  rUrl=append(rUrl,"&subdelay=","20000");
+        return rUrl;
+	}
+	
 	public static String createMediaUrl(String url,int format,Channel ch) {
 		//Channels.debug("create media url entry(str only) "+url);
 		HashMap<String,String> map=new HashMap<String,String>();
@@ -471,22 +518,7 @@ public class ChannelUtil {
 			if(!empty(sub)) { // we got subtitles
 				rUrl="subs://"+rUrl;
 				// lot of things to append here
-				rUrl=append(rUrl,"&subs=",escape(sub));
-				//-spuaa 3 -subcp ISO-8859-10 -subfont C:\Windows\Fonts\Arial.ttf -subfont-text-scale 2 -subfont-outline 1 -subfont-blur 1 -subpos 90 -quiet -quiet -sid 100 -fps 25 -ofps 25 -sub C:\downloads\Kings Speech.srt -lavdopts fast -mc 0 -noskip -af lavcresample=48000 -srate 48000 -o \\.\pipe\mencoder1299956406082
-				PmsConfiguration configuration=PMS.getConfiguration();
-				//String subtitleQuality = config.getMencoderVobsubSubtitleQuality();
-				String subcp=configuration.getMencoderSubCp();
-				rUrl=append(rUrl,"&subcp=",escape(subcp));
-				rUrl=append(rUrl,"&subtext=",escape(configuration.getMencoderNoAssScale()));
-				rUrl=append(rUrl,"&subout=",escape(configuration.getMencoderNoAssOutline()));
-				rUrl=append(rUrl,"&subblur=",escape(configuration.getMencoderNoAssBlur()));
-				int subpos = 1;
-                try {
-                        subpos = Integer.parseInt(configuration.getMencoderNoAssSubPos());
-                } catch (NumberFormatException n) {
-                }
-                rUrl=append(rUrl,"&subpos=",String.valueOf(100 - subpos));
-              //  rUrl=append(rUrl,"&subdelay=","20000");
+				rUrl=addSubs(rUrl,sub);
 			}
 			else
 				if(!empty(type)&&type.equals("navix"))
@@ -512,6 +544,11 @@ public class ChannelUtil {
 				res=append(res,"&",kv[0]+"="+escape(kv[1]));
 			}
 			rUrl="rtmpdump://channel?"+res;
+			String sub=vars.get("subtitle");
+			if(!empty(sub)) { // we got subtitles
+				// lot of things to append here
+				rUrl=addSubs(rUrl,sub);
+			}
 			Channels.debug("return media url rtmpdump spec "+rUrl);
 			return rUrl;
 		}
@@ -535,6 +572,11 @@ public class ChannelUtil {
 				rUrl=ChannelUtil.append(rUrl, "&-s=", escape(vars.get("swfplayer")));
 				rUrl=ChannelUtil.append(rUrl, "&-a=", escape(vars.get("app")));
 				rUrl=ChannelUtil.append(rUrl, "&-p=", escape(vars.get("pageurl")));
+				String sub=vars.get("subtitle");
+				if(!empty(sub)) { // we got subtitles
+					// lot of things to append here
+					rUrl=addSubs(rUrl,sub);
+				}
 				break;
 				
 			default:

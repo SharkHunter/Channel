@@ -125,12 +125,14 @@ public class ChannelItem implements ChannelProps{
 	    		String thumb=m.getMatch("thumb", false);
 	    		String playpath=m.getMatch("playpath",false);
 	    		String swfplayer=m.getMatch("swfVfy",false);
+	    		String subs=m.getMatch("subs", false);
 	    		if(thumb==null||thumb.length()==0)
 	    			if(pThumb!=null&&pThumb.length()!=0)
 	    				thumb=pThumb;
 	    			else
 	    				thumb=parent.getThumb();
-	    		m1.add(res, newName, mURL, thumb,ChannelUtil.getProperty(prop, "auto_asx"));
+	    		m1.add(res, newName, mURL, thumb,
+	    				ChannelUtil.getProperty(prop, "auto_asx"),null,-1,subs);
 	    		m1.stash("playpath",playpath);
 	    		m1.stash("swfVfy",swfplayer);
 	    		if(m1.onlyFirst())
@@ -191,5 +193,17 @@ public class ChannelItem implements ChannelProps{
 	
 	public String getProp(String p) {
 		return ChannelUtil.getPropertyValue(prop, p);
+	}
+	
+	@Override
+	public boolean escape(String base) {
+		return ChannelUtil.getProperty(prop, base+"_escape");
+
+	}
+
+	@Override
+	public boolean unescape(String base) {
+		return ChannelUtil.getProperty(prop, base+"_unescape");
+
 	}
 }

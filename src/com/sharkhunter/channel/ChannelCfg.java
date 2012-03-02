@@ -24,6 +24,10 @@ import net.pms.PMS;
 
 public class ChannelCfg {
 	
+	public static final int PROXY_DNS_NONE=0;
+	public static final int PROXY_DNS_ALL=1;
+	public static final int PROXY_DNS_CHANNEL=2;
+	
 	private String chPath;
 	private String saPath;
 	private String rtmpPath;
@@ -45,6 +49,8 @@ public class ChannelCfg {
 	private boolean netDisc;
 	private boolean rawSave;
 	private boolean allPlay;
+	private String proxyDNS;
+	private int proxyDNSMode;
 	
 	public ChannelCfg(Channels top) {
 		chPath=null;
@@ -63,6 +69,8 @@ public class ChannelCfg {
 		//netDisc=true;
 		rawSave=false;
 		allPlay=true;
+		proxyDNS=null;
+		proxyDNSMode=PROXY_DNS_NONE;
 	}
 	
 	///////////////////////////////////
@@ -209,6 +217,14 @@ public class ChannelCfg {
 		return allPlay;
 	}
 	
+	public int proxyDNSMode() {
+		return proxyDNSMode;
+	}
+	
+	public String proxyDNS() {
+		return proxyDNS;
+	}
+	
 	////////////////////////////////////////
 	// Misc. methods
 	////////////////////////////////////////
@@ -249,6 +265,7 @@ public class ChannelCfg {
 		String rs=(String)PMS.getConfiguration().getCustomProperty("channels.raw_save");
 		navixUploadList=(String)PMS.getConfiguration().getCustomProperty("channels.navix_upload");
 		String ap=(String)PMS.getConfiguration().getCustomProperty("channels.all_play");
+		String pdns=(String)PMS.getConfiguration().getCustomProperty("channels.proxy_dns");
 		if(rtmpMode!=null) {
 			if(rtmpMode.trim().equalsIgnoreCase("1"))
 				Channels.rtmpMethod(Channels.RTMP_MAGIC_TOKEN);
@@ -302,6 +319,24 @@ public class ChannelCfg {
 			rawSave=true;
 		if(!ChannelUtil.empty(ap)&&ap.equalsIgnoreCase("false"))
 			allPlay=false;
+		if(!ChannelUtil.empty(pdns)) {
+			if(pdns.equalsIgnoreCase("none")) {
+				proxyDNS=null;
+				proxyDNSMode=ChannelCfg.PROXY_DNS_NONE;
+			}
+			else {
+				String[] tmp=pdns.split(",");
+				if(tmp.length>1) {
+					if(tmp[0].equalsIgnoreCase("all")) {
+						proxyDNSMode=ChannelCfg.PROXY_DNS_ALL;
+						Channels.setProxyDNS(tmp[1]);
+					}
+					if(tmp[0].equalsIgnoreCase("channel"))
+						proxyDNSMode=ChannelCfg.PROXY_DNS_CHANNEL;
+					proxyDNS=tmp[1];
+				}
+			}
+		}
 	}
 
 	private void configPath(String key,String val) {

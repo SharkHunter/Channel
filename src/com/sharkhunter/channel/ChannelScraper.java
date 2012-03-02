@@ -4,7 +4,7 @@ import net.pms.dlna.DLNAResource;
 
 public interface ChannelScraper {	
 	public String scrape(Channel ch,String url,String processorUrl,int format,DLNAResource start, 
-			             boolean noSub,String imdb);
+			             boolean noSub,String imdb,String embedSubs);
 	public long delay();
 	public String backtrackedName(DLNAResource start);
 }

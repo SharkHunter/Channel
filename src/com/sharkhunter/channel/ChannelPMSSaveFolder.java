@@ -21,6 +21,7 @@ public class ChannelPMSSaveFolder extends VirtualFolder {
 	private boolean subs;
 	private boolean rawSave;
 	private String videoFormat;
+	private String embedSub;
 	
 	private static final long AUTO_PLAY_FACTOR=(1000*15);
 	
@@ -41,6 +42,7 @@ public class ChannelPMSSaveFolder extends VirtualFolder {
 		subs=true;
 		rawSave=false;
 		videoFormat=null;
+		embedSub=null;
 	}
 	
 	public void setImdb(String i) {
@@ -55,10 +57,16 @@ public class ChannelPMSSaveFolder extends VirtualFolder {
 		rawSave=raw;
 	}
 	
+	public void setEmbedSub(String str) {
+		embedSub=str;
+	}
+	
 	public void discoverChildren() {
 		final ChannelPMSSaveFolder me=this;
 		final ChannelOffHour oh=Channels.getOffHour();
 		final String rName=name;
+		boolean save=Channels.save();
+		ChannelMediaStream cms;
 		if(oh!=null) {
 			final boolean add=!oh.scheduled(url);
 			addChild(new VirtualVideoAction((add?"ADD to ":"DELETE from ")+
@@ -68,7 +76,7 @@ public class ChannelPMSSaveFolder extends VirtualFolder {
 						return false;
 					String rUrl=url;
 					if(scraper!=null)
-						rUrl=scraper.scrape(ch, url, proc, f, this,false,null);
+						rUrl=scraper.scrape(ch, url, proc, f, this,false,null,embedSub);
 					oh.update(rUrl, rName, add);
 					me.childDone();
 					return add;
@@ -89,44 +97,50 @@ public class ChannelPMSSaveFolder extends VirtualFolder {
 				}
 			});
 		}
-		addChild(new VirtualVideoAction("Download",true) {
-			public boolean enable() {
-				try {
-					if(me.preventAutoPlay())
-						return false;
-					String rUrl=url;
-					if(scraper!=null)
-						rUrl=scraper.scrape(ch, url, proc, f, this,false,null);
-					if(ChannelUtil.empty(rUrl))
-						return false;
-					Thread t=ChannelUtil.backgroundDownload(rName, rUrl, false);
-					t.start();
-				} catch (Exception e) {
+		if(save) {
+			addChild(new VirtualVideoAction("Download",true) {
+				public boolean enable() {
+					try {
+						if(me.preventAutoPlay())
+							return false;
+						String rUrl=url;
+						if(scraper!=null)
+							rUrl=scraper.scrape(ch, url, proc, f, this,false,null,embedSub);
+						if(ChannelUtil.empty(rUrl))
+							return false;
+						Thread t=ChannelUtil.backgroundDownload(rName, rUrl, false);
+						t.start();
+					} catch (Exception e) {
+					}
+					me.childDone();
+					return true;
 				}
-				me.childDone();
-				return true;
-			}
-		});
-		ChannelMediaStream cms=new ChannelMediaStream(ch,"SAVE&PLAY",url,thumb,proc,f,asx,scraper,name,name);
-		cms.setImdb(imdb);
-		cms.setRender(this.defaultRenderer);
-		cms.setSaveMode(rawSave);
-		cms.setFallbackFormat(videoFormat);
-		addChild(cms);
+			});
+			cms=new ChannelMediaStream(ch,"SAVE&PLAY",url,thumb,proc,f,asx,scraper,name,name);
+			cms.setImdb(imdb);
+			cms.setRender(this.defaultRenderer);
+			cms.setSaveMode(rawSave);
+			cms.setEmbedSub(embedSub);
+			cms.setFallbackFormat(videoFormat);
+			addChild(cms);
+		}
 		cms=new ChannelMediaStream(ch,"PLAY",url,thumb,proc,f,asx,scraper,name,null);
 		cms.setImdb(imdb);
 		cms.setRender(this.defaultRenderer);
 		cms.setSaveMode(rawSave);
+		cms.setEmbedSub(embedSub);
 		cms.setFallbackFormat(videoFormat);
 		addChild(cms);
 		if(Channels.doSubs()&&subs&&(f==Format.VIDEO)) {
-			cms=new ChannelMediaStream(ch,"SAVE&PLAY - No Subs",url,thumb,proc,f,asx,scraper,name,name);
-			cms.noSubs();
-			cms.setImdb(imdb);
-			cms.setRender(this.defaultRenderer);
-			cms.setSaveMode(rawSave);
-			cms.setFallbackFormat(videoFormat);
-			addChild(cms);
+			if(save) {
+				cms=new ChannelMediaStream(ch,"SAVE&PLAY - No Subs",url,thumb,proc,f,asx,scraper,name,name);
+				cms.noSubs();
+				cms.setImdb(imdb);
+				cms.setRender(this.defaultRenderer);
+				cms.setSaveMode(rawSave);
+				cms.setFallbackFormat(videoFormat);
+				addChild(cms);
+			}
 			cms=new ChannelMediaStream(ch,"PLAY - No Subs",url,thumb,proc,f,asx,scraper,name,null);
 			cms.noSubs();
 			cms.setImdb(imdb);

@@ -139,12 +139,45 @@ public class CH_plugin implements AdditionalFolderAtRoot, StartStopListener
 	public List<String> finalizeTranscoderArgs(Player player, String name,
 			DLNAResource res, DLNAMediaInfo media, OutputParams params,
 			List<String> cmdList) {
-	/*	Channels.debug("finalize args:");
+		Channels.debug("finalize args:");
 		Channels.debug("name "+name+" params "+params.toString());
 		Channels.debug("player "+player.name());
-		dbgArg(cmdList);*/
+		dbgArg(cmdList);
 		if((!(res instanceof ChannelMediaStream)))
 			return cmdList;		
+		ChannelMediaStream cms=(ChannelMediaStream)res;
+		String f=cms.realFormat();
+		/*if(ChannelUtil.empty(f))
+			return cmdList;*/
+		
+		boolean pipeSeen=false;
+		String pipeName=null;
+		ArrayList<String> out=new ArrayList<String>();
+		for(int i=0;i<cmdList.size();i++) {
+			String arg=cmdList.get(i);
+			if(arg.equals("|")) {
+				pipeSeen=true;
+				continue;
+			}
+			if(arg.startsWith("\\\\.\\pipe\\")) {
+				pipeName=arg;
+				continue;
+			}
+		}
+		String curlPath=(String)PMS.getConfiguration().getCustomProperty("curl.path");
+		String cookiePath=Channels.cfg().getCookiePath();
+		out.add(curlPath);
+		out.add("-s");
+		out.add("-S");
+		out.add("-b");
+		out.add(cookiePath);
+		out.add("--location-trusted");
+		out.add("--output");
+		out.add(pipeName);
+		Channels.debug("full "+cms.fullUrl());
+		out.add(cms.fullUrl());
+		return out;
+		
 /*		if(res.getSystemName().startsWith("rtmp")&&player.name().equals("PMSEncoder")) {
 			RendererConfiguration r=params.mediaRenderer;				
 			//if(r.isPS3()||r.isXBOX())
@@ -177,16 +210,6 @@ public class CH_plugin implements AdditionalFolderAtRoot, StartStopListener
 			dbgArg(cmdList);
 			return cmdList;
 		}*/
-		if(!cfg.netDiscStyle()) // bail early
-			return cmdList;
-		if(player.name().equals("MEncoder")) {
-			cmdList.add("-cookies-file");
-			cmdList.add(cfg.getCookiePath());			
-		}
-		if(!player.name().equals("PMSEncoder"))
-			return cmdList;
-		
-		return cmdList;
 	}
 	
 	/*public DLNAResource fromPlaylist(String name,String uri,String thumb,

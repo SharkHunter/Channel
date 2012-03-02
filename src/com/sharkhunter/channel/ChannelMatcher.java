@@ -119,8 +119,21 @@ public class ChannelMatcher implements ChannelProps{
 	 }
 	 
 	 private String pend(String str,String field) {
+		 str=esc(unesc(str,field),field);
 		 String r1=ChannelUtil.append(str, null, properties.append(field));
 		 return ChannelUtil.append(properties.prepend(field), null, r1);
+	 }
+	 
+	 private String esc(String str,String field) {
+		 if(properties.escape(field))
+			 return ChannelUtil.escape(str);
+		 return str;
+	 }
+	 
+	 private String unesc(String str,String field) {
+		 if(properties.unescape(field))
+			 return ChannelUtil.unescape(str);
+		 return str;
 	 }
 	 
 	 private String fixSep(String s) {
@@ -172,6 +185,16 @@ public class ChannelMatcher implements ChannelProps{
 	@Override
 	public String prepend(String base) {
 		return null;
+	}
+
+	@Override
+	public boolean escape(String base) {
+		return false;
+	}
+
+	@Override
+	public boolean unescape(String base) {
+		return false;
 	}
 	 
 }

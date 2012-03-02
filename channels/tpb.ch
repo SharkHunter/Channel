@@ -1,13 +1,14 @@
-version=0.2
+version=0.3
 
 macrodef tpbSwitch {
 	switch {
-		#<a href="http://torrents.thepiratebay.org/6614245/Fast_and_Furious_5_Fast_Five_(2011)_DVDRip_XviD-MAX.6614245.TPB.torrent" title="Download this torrent"><img src="http://static.thepiratebay.org/img/dl.gif" class="dl" alt="Download" /></a><a href="magnet:?xt=urn:btih:ce1fc50bffb09962be8f3c49478cbeb65e2afe0f&dn=Fast+and+Furious+5+Fast+Five+%282011%29+DVDRip+XviD-MAX&tr=udp%3A%2F%2Ftracker.openbittorrent.com%3A80&tr=udp%3A%2F%2Ftracker.publicbt.com%3A80&tr=udp%3A%2F%2Ftracker.ccc.de%3A80"
-			matcher=a href=\"[^\"]+\" [^>]+>([^<]+)</a></div>\s*<[^>]+>\s*<[^>]+></a>\s*<a href=\"([^\"]+)\"
-			order=name,url
+		#<a href="magnet:?xt=urn:btih:7be37ac7f65dc78bf8b115629e60220c637fe0d1&dn=
+			matcher=<a href=\"magnet:[^=]+=urn:btih:([^&]+)&dn=([^&]+)&tr
+			order=url,name
 			name=Furk
 			action=upload
-			script=furkUpload
+			script=furkUploadHash
+			prop=name_unescape
 	}	
 }
 

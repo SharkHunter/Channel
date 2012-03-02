@@ -12,64 +12,73 @@ init {
     profile ('rtmpdump://') {
         pattern {
             protocol 'rtmpdump'
-         //   match { RTMPDUMP }
+            match { RTMPDUMP }
         }
 
         action {
-            def ffmpegArgs = []
+            def rtmpdumpArgs = []
             def pairs = $HTTP.getNameValuePairs($URI) // uses URLDecoder.decode to decode the name and value
             def seenURL = false
-			def args = ''
-			def swfUrl=''
+			def mencoderArgs =[]
+			def seenSub = false
+
+			mencoderArgs << '-mc' << '0.1'
+			mencoderArgs << '-channels' << '6'
 
             for (pair in pairs) {
                 def name = pair.name
                 def value = pair.value
-				
+
                 switch (name) {
                     case 'url': // deprecated
                     case '-r':
                     case '--rtmp':
-					case 'rtmp':
                         if (value) {
-                            $URI = value//quoteURI(value)
+                            $URI = quoteURI(value)
                             seenURL = true
                         }
                         break
-					case '-y':
-						args+=' playpath='+value
+					case 'subs':
+						if(value) {
+							mencoderArgs << '-sub' << quoteURI(value)
+							seenSub = true
+						}
 						break
-					case '-s':
-						 swfUrl=' swfUrl='+value
+					case 'subcp':
+						if(value)
+							mencoderArgs << '-subcp' << quoteURI(value)
 						break
-					case '-a':
-						args+=' app='+value
+					case 'subtext':
+						if(value)
+							mencoderArgs << '-subfont-text-scale' << quoteURI(value)
 						break
-					case '-W':
-					case 'swfVfy':
-					    swfUrl=' swfUrl='+value
-					case '--swfVfy':
-						args+=' swfVfy=1'
+					case 'subtext':
+						if(value)
+							mencoderArgs << '-subfont-outline' << quoteURI(value)
 						break
-					case '-v':
-						args+=' live=1'
+					case 'subblur':
+						if(value)
+							mencoderArgs << '-subfont-blur' << quoteURI(value)
+						break
+					case 'subpos':
+						if(value)
+							mencoderArgs << '-subpos' << quoteURI(value)
 						break
                     default:
-                       // ffmpegArgs << name
+                        rtmpdumpArgs << name
                         // not all values are URIs, but quoteURI() is harmless on Windows and a no-op on other platforms
                         if (value)
-                            //rtmpdumpArgs << quoteURI(value)
-						args+=' '+name+"="+value
+                            rtmpdumpArgs << quoteURI(value)
                 }
             }
 
             if (seenURL) {
                 // rtmpdump doesn't log to stdout, so no need to use -q on Windows
-				$PARAMS.waitbeforestart = 2000L
-				$URI+=args+swfUrl
-               $TRANSCODER = $FFMPEG + ffmpegArgs
-			   /*$DOWNLOADER = "$RTMPDUMP -o $DOWNLOADER_OUT -r ${$URI}"
-                $DOWNLOADER += rtmpdumpArgs*/
+                $DOWNLOADER = "$RTMPDUMP -o $DOWNLOADER_OUT -r ${$URI}"
+                $DOWNLOADER += rtmpdumpArgs
+				if(seenSub) {
+					$TRANSCODER = $MENCODER + mencoderArgs
+				}
             } else {
                 log.error("invalid rtmpdump:// URI: no -r or --rtmp parameter supplied: ${$URI}")
             }

@@ -5,4 +5,6 @@ public interface ChannelProps {
 	public boolean onlyFirst();
 	public String append(String base);
 	public String prepend(String base);
+	public boolean unescape(String base);
+	public boolean escape(String base);
 }

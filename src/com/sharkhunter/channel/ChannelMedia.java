@@ -161,24 +161,24 @@ public class ChannelMedia implements ChannelProps,ChannelScraper {
 		params.put(key, val);
 	}
 	public void add(DLNAResource res,String nName,String url,String thumb,boolean autoASX) {
-		add(res,nName,url,thumb,autoASX,null,-1,ChannelMedia.SAVE_OPT_NONE);
+		add(res,nName,url,thumb,autoASX,null,-1,ChannelMedia.SAVE_OPT_NONE,null);
 	}
 
 	public void add(DLNAResource res,String nName,String url,String thumb,boolean autoASX,int sOpt) {
-		add(res,nName,url,thumb,autoASX,null,-1,sOpt);
+		add(res,nName,url,thumb,autoASX,null,-1,sOpt,null);
 	}
 	
 	public void add(DLNAResource res,String nName,String url,String thumb,boolean autoASX,String imdb) {
-		add(res,nName,url,thumb,autoASX,imdb,-1,ChannelMedia.SAVE_OPT_NONE);
+		add(res,nName,url,thumb,autoASX,imdb,-1,ChannelMedia.SAVE_OPT_NONE,null);
 	}
 	
 	public void add(DLNAResource res,String nName,String url,String thumb,
-			boolean autoASX,String imdb,int f) {
-		add(res,nName,url,thumb,autoASX,imdb,f,ChannelMedia.SAVE_OPT_NONE);
+			boolean autoASX,String imdb,int f,String subs) {
+		add(res,nName,url,thumb,autoASX,imdb,f,ChannelMedia.SAVE_OPT_NONE,subs);
 	}
 	
 	public void add(final DLNAResource res,String nName,String url,String thumb,
-			boolean autoASX,String imdb,int f,int sOpt) {
+			boolean autoASX,String imdb,int f,int sOpt,String subs) {
 		if(!ChannelUtil.empty(thumbURL)) {
 			if(ChannelUtil.getProperty(prop, "use_conf_thumb"))
 				thumb=thumbURL;
@@ -205,7 +205,7 @@ public class ChannelMedia implements ChannelProps,ChannelScraper {
 			nName="Unknown";
 		nName=StringEscapeUtils.unescapeHtml(nName);
 		parent.debug("found media "+nName+" thumb "+thumb+" url "+url+" format "+format+
-				" script "+script);
+				" script "+script+" embedsubs "+subs);
 		// asx is weird and one would expect mencoder to support it no
 		int asx=ChannelUtil.ASXTYPE_NONE;
 		if(ChannelUtil.getProperty(prop, "auto_asx"))
@@ -213,11 +213,13 @@ public class ChannelMedia implements ChannelProps,ChannelScraper {
 		if(type==ChannelMedia.TYPE_ASX)
 			asx=ChannelUtil.ASXTYPE_FORCE;
 		final int resF=(format==-1?(f==-1?parent.getFormat():f):format);
-		if(Channels.save()&&sOpt==ChannelMedia.SAVE_OPT_NONE)  { // Add save version
+		if((Channels.save()&&sOpt==ChannelMedia.SAVE_OPT_NONE)||
+			(subtitle!=null||!ChannelUtil.empty(subs))) { // Add save version
 			ChannelPMSSaveFolder sf=new ChannelPMSSaveFolder(parent,nName,url,thumb,script,asx,
 					                resF,this);
 			sf.setImdb(imdb);
-			sf.setDoSubs(subtitle!=null);
+			sf.setDoSubs(subtitle!=null||!ChannelUtil.empty(subs));
+			sf.setEmbedSub(subs);
 			sf.setSaveMode(ChannelUtil.getProperty(prop, "raw_save"));
 			sf.setFallbackFormat(videoFormat);
 			res.addChild(sf);
@@ -233,6 +235,7 @@ public class ChannelMedia implements ChannelProps,ChannelScraper {
 			cms.setImdb(imdb);
 			cms.setSaveMode(ChannelUtil.getProperty(prop, "raw_save"));
 			cms.setFallbackFormat(videoFormat);
+			cms.setEmbedSub(subs);
 			res.addChild(cms);
 		}
 	}
@@ -243,7 +246,7 @@ public class ChannelMedia implements ChannelProps,ChannelScraper {
 	
 	@Override
 	public String scrape(Channel ch, String url, String scriptName,int format,DLNAResource start
-			             ,boolean noSub,String imdb) {
+			             ,boolean noSub,String imdb,String embedSubs) {
 		ch.debug("scrape sub "+subtitle+" format "+format);
 		String subFile="";
 		boolean live=ChannelUtil.getProperty(prop, "live");
@@ -255,29 +258,39 @@ public class ChannelMedia implements ChannelProps,ChannelScraper {
 			asx=ChannelUtil.ASXTYPE_AUTO;
 		if(type==ChannelMedia.TYPE_ASX)
 			asx=ChannelUtil.ASXTYPE_FORCE;
-		if(subtitle!=null&&Channels.doSubs()&&!noSub) {
-			for(int i=0;i<subtitle.length;i++) {
-				ChannelSubs subs=Channels.getSubs(subtitle[i]);
-				if(subs==null)
-					continue;
-				if(!subs.langSupported())
-					continue;
-				String realName=backtrackedName(start);
-				parent.debug("backtracked name "+realName);
-				HashMap<String,String> subName;
-				int subScript=0;
-				while((subName=parent.getSubMap(realName,subScript))!=null) {
-					if(!ChannelUtil.empty(imdb))
-						subName.put("imdb", imdb);
-					subFile=subs.getSubs(subName);
-					parent.debug("subs "+subFile);
-					vars.put("subtitle",subFile);
+		if((subtitle!=null||!ChannelUtil.empty(embedSubs))&&Channels.doSubs()&&!noSub) {
+			if(!ChannelUtil.empty(embedSubs)) {
+				// We got some embeded subs. Try and fetch it
+				// we use the embed subs for name as well
+				subFile=ChannelSubs.downloadSubs(embedSubs);
+				vars.put("subtitle", subFile);
+			}
+			if(subtitle!=null) {
+				for(int i=0;i<subtitle.length;i++) {
+					// This is moved here to make use
+					// of embeded subs
 					if(!ChannelUtil.empty(subFile))
 						break;
-					subScript++;
+					ChannelSubs subs=Channels.getSubs(subtitle[i]);
+					if(subs==null)
+						continue;
+					if(!subs.langSupported())
+						continue;
+					String realName=backtrackedName(start);
+					parent.debug("backtracked name "+realName);
+					HashMap<String,String> subName;
+					int subScript=0;
+					while((subName=parent.getSubMap(realName,subScript))!=null) {
+						if(!ChannelUtil.empty(imdb))
+							subName.put("imdb", imdb);
+						subFile=subs.getSubs(subName);
+						parent.debug("subs "+subFile);
+						vars.put("subtitle",subFile);
+						if(!ChannelUtil.empty(subFile))
+							break;
+						subScript++;
+					}
 				}
-				if(!ChannelUtil.empty(subFile))
-					break;
 			}
 		}	
 		Channels.debug("scrape script name "+scriptName);
@@ -322,6 +335,7 @@ public class ChannelMedia implements ChannelProps,ChannelScraper {
 		res.put("subtitle", subFile);
 		if(live)
 			res.put("live", "true");
+		res.put("__type__", "normal");
 		return ChannelUtil.createMediaUrl(res,format,ch);
 	}
 	
@@ -401,6 +415,18 @@ public class ChannelMedia implements ChannelProps,ChannelScraper {
 		String nameMangle=ChannelUtil.getPropertyValue(prop, "name_mangle");
 		realName=ChannelUtil.mangle(nameMangle, realName);
 		return realName;
+	}
+
+	@Override
+	public boolean escape(String base) {
+		return ChannelUtil.getProperty(prop, base+"_escape");
+
+	}
+
+	@Override
+	public boolean unescape(String base) {
+		return ChannelUtil.getProperty(prop, base+"_unescape");
+
 	}
 	
 }
