@@ -1,10 +1,4 @@
-version=0.49
-## NOTE!!
-## 
-## We match out both the megavideo play link and megaupload link
-## here. Both are streamable, but the megaupload is of course subject to
-## limits etc. Try for yourself which is best.
-## 
+version=0.50
 
 ###############################
 ## IceFilms new method of
@@ -49,7 +43,6 @@ scriptdef iceGo {
 	scrape
 	url=v1
 	unescape url
-#	concat url '&login=1
 	print url
 	play
 }
@@ -124,10 +117,33 @@ scriptdef rsScript {
 }
 
 #############################
+## 180Upload script
+#############################
+
+scriptdef 180Script {
+	regex='180upload.com/(.*)
+	match s_url
+	id=v1
+	regex='name="rand" value="([^"]+)"
+	scrape
+	rand=v1
+	s_postdata='op=download2&id=
+	concat s_postdata id
+	concat s_postdata '&rand=
+	concat s_postdata rand
+	s_method='post
+	#<a href="http://173.193.242.242/files/2/x3xa8wxs4nf1du/Altair_The_Walking_Dead.S02E12.HDTV.XviD-FQM.avi">
+	regex='<a href="[^"]+">(http[^<]+)</a>
+	scrape
+	url=v1
+	play
+}
+
+#############################
 ## The actual scrpaer
 #############################
 
-macrodef iceTvmacro {
+macrodef rsTvmacro {
     media {
 		# Rapidshare
 		#https://rapidshare.com/files/2029276453/The.Big.Bang.Theory.S05E14.HDTV.XviD-LOL.avi"
@@ -137,9 +153,26 @@ macrodef iceTvmacro {
 	}
 }
 
-macrodef mediaMacro {
+macrodef 180Tvmacro {
+	media {
+		# 180 upload
+		script=180Script
+		prop=name_index=3+2
+		subtitle=s4u
+	}
+}
+
+macrodef rsmediaMacro {
 	media {
 		script=rsScript
+		prop=name_index=2,delay=dynamic
+		subtitle=s4u,allSubs,podnapisiMovie
+	}
+}
+
+macrodef 180mediaMacro {
+	media {
+		script=180Script
 		prop=name_index=2,delay=dynamic
 		subtitle=s4u,allSubs,podnapisiMovie
 	}
@@ -175,7 +208,14 @@ macrodef tvMacro {
 					order=url,name,name
 					prop=name_separator=###0
 					type=empty
-					macro=iceTvmacro
+					macro=rsTvmacro
+				}
+				folder {
+					matcher=go\(([0-9]+)\)'>(Source #[0-9]+|PART [0-9]+)[^<]+<span title='[^1]+(180upload)
+					order=url,name,name
+					prop=name_separator=###0
+					type=empty
+					macro=180Tvmacro
 				}
 			}
 		}
@@ -200,10 +240,17 @@ macrodef movieMacro {
 			post_script=iceGo
 			folder {
 					# onclick='go(247108)'>Source #1|PART 1
-					matcher='go\(([0-9]+)\)'>(Source #[0-9]+|PART [0-9]+)[^<]+<span title='.* (RapidShare)
+					matcher='go\(([0-9]+)\)'>(Source #[0-9]+|PART [0-9]+)[^<]+<span title='[^R]+(RapidShare)
 					order=url,name,name
 					prop=name_separator=###0
-					macro=mediaMacro
+					macro=rsmediaMacro
+				}
+			folder {
+					# onclick='go(247108)'>Source #1|PART 1
+					matcher=matcher=go\(([0-9]+)\)'>(Source #[0-9]+|PART [0-9]+)[^<]+<span title='[^1]+(180upload)
+					order=url,name,name
+					prop=name_separator=###0
+					macro=180mediaMacro
 				}
 		}
 	}

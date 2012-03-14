@@ -947,6 +947,14 @@ public class ChannelUtil {
 		return str;
 	} 
 	
+	public static void sleep(String time) {
+		try {
+			sleep(Long.parseLong(time));
+		}
+		catch (Exception e) { 
+		}
+	}
+	
 	public static void sleep(long time) {
 		try {
 			Thread.sleep(time);

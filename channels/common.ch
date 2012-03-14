@@ -38,9 +38,7 @@ scriptdef imdbThumb {
 #################################################
 
 scriptdef lockerScript {
-	s_action='geturl
-	scrape
-	url=v1
+	url=s_url
 	regex='(movshare)
 	match url
 	if v1 
@@ -93,7 +91,7 @@ scriptdef lockerScript {
 	regex='(putlocker)
 	match url
 	if v1
-		call 'http://navix.turner3d.net/sproc/putlocker
+		call 'putlocker
 		url=v1
 		play
 	endif
@@ -105,4 +103,91 @@ scriptdef lockerScript {
 		play
 	endif
 	play
+}
+
+scriptdef lockerScriptScrape {
+	s_action='geturl
+	scrape
+	url=v1
+	call 'lockerScript
+	url=v1
+	play
+}
+
+################################
+## Putlocker script copied
+## form navix but it needed
+## to be updated with the 
+## 5 sec sleep there
+#################################
+
+scriptdef putlocker {
+url_ori=s_url
+
+# Retrieve video id, hash, and PHPSESSID values
+regex='([^#/]+)#?$
+match s_url
+vidid=v1
+regex='value="([^"]+)" name="hash"
+scrape
+hash=v1
+
+regex='(/\?404)$
+match geturl
+if v1
+	# report removed file
+	s_url='http://navix.turner3d.net/cgi-bin/proc_check/putlocker_report.cgi?url=
+	escape url_ori
+	concat s_url url_ori
+	scrape
+	error 'This file does not exist on the server
+endif
+
+#Check for a hash
+if hash='
+	error 'Missing Hash for File Access, Most Likely Link Does Not Exist
+	v1='
+else
+
+#Cookie Setup
+cookieval='usender=
+concat cookieval cookies.usender
+concat cookieval '; ad_cookie1=1; PHPSESSID=
+concat cookieval cookies.PHPSESSID
+
+# Sleep some seconds
+sleep '5000
+
+# "Click" the "Continue as Free User" button
+s_cookie=cookieval
+s_referer=url_ori
+s_method='post
+s_postdata='confirm=Continue%20as%20Free%20User&hash=
+concat s_postdata hash
+scrape
+
+# Get the Stream ID
+s_cookie=cookieval
+s_referer=url_ori
+s_url=url_ori
+s_method='get
+regex='get_file\.php\?stream=([^']+)
+scrape
+streamid=v1
+
+# Pull final media URL from XML
+s_method='get
+s_cookie=cookieval
+s_referer=url_ori
+s_url='http://www.putlocker.com/get_file.php?stream=
+concat s_url streamid
+regex='url="([^"]+)
+scrape
+endif
+if v1
+	url=v1
+	play
+endif
+
+error 'Could not retrieve source
 }

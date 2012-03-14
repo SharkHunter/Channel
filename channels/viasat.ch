@@ -1,5 +1,5 @@
-version=0.21
-macrodef ses_epi {
+version=0.23
+macrodef via_ses_epi {
 	matcher=<siteMapNode title=\"(.*)\" id=\"(.*)\" children=\"true\".*>
 	order=name,url
 	folder {
@@ -14,16 +14,9 @@ macrodef ses_epi {
 			order=url,name
 			#prop=auto_media
 			type=empty
-			item {
-				matcher=<Url>(http.*)</Url>
-				order=url
-				prop=auto_media
-				media {
-					matcher=<Url>(rtmp.*)</Url>
-				}
-			}
 			media {
 				matcher=<Url>(rtmp.*)</Url>
+				put=swfVfy=http://flvplayer-viastream-viasat-tv.origin.vss.viasat.tv/play/swf/player110420.swf 
 			}
 		}
 	}
@@ -38,7 +31,7 @@ channel TV3 {
 		folder {
 			# Programs
 			url=http://viastream.viasat.tv/siteMapData/se/2se/
-			macro=ses_epi
+			macro=via_ses_epi
 		}
 	}
 }
@@ -53,7 +46,7 @@ channel TV6 {
 		folder {
 			# Programs
 			url=http://viastream.viasat.tv/siteMapData/se/3se/
-			macro=ses_epi
+			macro=via_ses_epi
 		}
 	}
 }
@@ -67,7 +60,7 @@ channel TV8 {
 		folder {
 			# Programs
 			url=http://viastream.viasat.tv/siteMapData/se/4se/
-			macro=ses_epi
+			macro=via_ses_epi
 		}
 	}
 }

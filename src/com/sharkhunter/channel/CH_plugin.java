@@ -17,8 +17,7 @@ import net.pms.external.StartStopListener;
 import net.pms.io.OutputParams;
 
 public class CH_plugin implements AdditionalFolderAtRoot, StartStopListener
-						, FinalizeTranscoderArgsListener/*,
-						ExternalPlaylist*/ {
+						, FinalizeTranscoderArgsListener {
 
 	private static final long DEFAULT_POLL_INTERVAL=20000;
 	private Channels chRoot;
@@ -143,10 +142,12 @@ public class CH_plugin implements AdditionalFolderAtRoot, StartStopListener
 		Channels.debug("name "+name+" params "+params.toString());
 		Channels.debug("player "+player.name());
 		dbgArg(cmdList);
-		if((!(res instanceof ChannelMediaStream)))
-			return cmdList;		
+		//if((!(res instanceof ChannelMediaStream)))
+		if(true)
+			return cmdList;
+		
 		ChannelMediaStream cms=(ChannelMediaStream)res;
-		String f=cms.realFormat();
+		//String f=cms.realFormat();
 		/*if(ChannelUtil.empty(f))
 			return cmdList;*/
 		
@@ -163,19 +164,28 @@ public class CH_plugin implements AdditionalFolderAtRoot, StartStopListener
 				pipeName=arg;
 				continue;
 			}
+			if(arg.startsWith("-target")) { // skip this + next
+				i++;
+				continue;
+			}
+			// rest of the args are added
+			out.add(arg);
 		}
-		String curlPath=(String)PMS.getConfiguration().getCustomProperty("curl.path");
-		String cookiePath=Channels.cfg().getCookiePath();
-		out.add(curlPath);
-		out.add("-s");
-		out.add("-S");
-		out.add("-b");
-		out.add(cookiePath);
-		out.add("--location-trusted");
-		out.add("--output");
+		// now add the special args
+		out.add("-vcodec");
+		out.add("mpeg2video");
+		out.add("-acodec");
+		out.add("ac3");
+		out.add("-f");
+		out.add("dvd");
+		out.add("-maxrate");
+		out.add("2000k");
+		out.add("-minrate");
+		out.add("1000k");
+		out.add("-bufsize");
+		out.add("4000k");
+		// finally add the pipe
 		out.add(pipeName);
-		Channels.debug("full "+cms.fullUrl());
-		out.add(cms.fullUrl());
 		return out;
 		
 /*		if(res.getSystemName().startsWith("rtmp")&&player.name().equals("PMSEncoder")) {

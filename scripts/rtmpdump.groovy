@@ -16,14 +16,17 @@ init {
         }
 
         action {
-            def rtmpdumpArgs = []
             def pairs = $HTTP.getNameValuePairs($URI) // uses URLDecoder.decode to decode the name and value
-            def seenURL = false
+			def rtmpdumpArgs = []
 			def mencoderArgs =[]
+			def ffmpegArgs = []
+			def seenURL = false
 			def seenSub = false
+			def args = ''
+			def swfUrl=''
 
-			mencoderArgs << '-mc' << '0.1'
-			mencoderArgs << '-channels' << '6'
+			//mencoderArgs << '-mc' << '0.1'
+			//mencoderArgs << '-channels' << '6'
 
             for (pair in pairs) {
                 def name = pair.name
@@ -33,11 +36,39 @@ init {
                     case 'url': // deprecated
                     case '-r':
                     case '--rtmp':
+					case 'rtmp':
                         if (value) {
-                            $URI = quoteURI(value)
+                            $URI = value//quoteURI(value)
                             seenURL = true
                         }
                         break
+					case '-y':
+						args+=' playpath='+value
+						rtmpdumpArgs << name
+						rtmpdumpArgs << quoteURI(value)
+						break
+					case '-s':
+						swfUrl=' swfUrl='+value
+						rtmpdumpArgs << name
+						rtmpdumpArgs << quoteURI(value)
+						break
+					case '-a':
+						args+=' app='+value
+						rtmpdumpArgs << name
+						rtmpdumpArgs << quoteURI(value)
+						break
+					case '-W':
+					case 'swfVfy':
+					case '--swfVfy':
+					    swfUrl=' swfUrl='+value
+						args+=' swfVfy=1'
+						rtmpdumpArgs << name
+						rtmpdumpArgs << quoteURI(value)
+						break
+					case '-v':
+						args+=' live=1'
+						rtmpdumpArgs << name
+						break
 					case 'subs':
 						if(value) {
 							mencoderArgs << '-sub' << quoteURI(value)
@@ -64,19 +95,28 @@ init {
 						if(value)
 							mencoderArgs << '-subpos' << quoteURI(value)
 						break
+					case 'subout':
+						break
                     default:
-                        rtmpdumpArgs << name
+                        if (value)
+							args+=' '+name+"="+value
+						rtmpdumpArgs << name
                         // not all values are URIs, but quoteURI() is harmless on Windows and a no-op on other platforms
                         if (value)
                             rtmpdumpArgs << quoteURI(value)
                 }
             }
-
             if (seenURL) {
                 // rtmpdump doesn't log to stdout, so no need to use -q on Windows
-                $DOWNLOADER = "$RTMPDUMP -o $DOWNLOADER_OUT -r ${$URI}"
-                $DOWNLOADER += rtmpdumpArgs
-				if(seenSub) {
+				$PARAMS.waitbeforestart = 6000L
+				if(!seenSub) {
+					$URI+=args+swfUrl
+					$TRANSCODER = $FFMPEG + ffmpegArgs
+				}
+				else {
+					$URI=quoteURI($URI)
+					$DOWNLOADER = "$RTMPDUMP -o $DOWNLOADER_OUT -r ${$URI}"
+					$DOWNLOADER += rtmpdumpArgs
 					$TRANSCODER = $MENCODER + mencoderArgs
 				}
             } else {

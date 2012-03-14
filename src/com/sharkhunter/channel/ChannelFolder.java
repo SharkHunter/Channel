@@ -31,6 +31,7 @@ public class ChannelFolder implements ChannelProps, SearchObj{
 	public static final int TYPE_SEARCH=7;
 	public static final int TYPE_NAVIX_SEARCH=8;
 	public static final int TYPE_ACTION=9;	
+	public static final int TYPE_REMATCH=10;
 	
 	public boolean Ok;
 	
@@ -347,6 +348,8 @@ public class ChannelFolder implements ChannelProps, SearchObj{
 			return ChannelFolder.TYPE_NAVIX_SEARCH;
 		if(t.compareToIgnoreCase("action")==0)
 			return ChannelFolder.TYPE_ACTION;
+		if(t.compareToIgnoreCase("rematch")==0)
+			return ChannelFolder.TYPE_REMATCH;
 		return ChannelFolder.TYPE_NORMAL;
 	}
 	
@@ -498,6 +501,7 @@ public class ChannelFolder implements ChannelProps, SearchObj{
 			realUrl=ChannelUtil.concatURL(url,StringEscapeUtils.unescapeHtml(urlEnd));
 		if(dummy)
 			realUrl=urlEnd;
+		
 		//realUrl=ChannelNaviXProc.simple(realUrl, pre_script);
 		realUrl=ChannelScriptMgr.runScript(pre_script, realUrl, parent);
 		if(!ChannelUtil.empty(realUrl)&&!dummy) {
@@ -589,8 +593,8 @@ public class ChannelFolder implements ChannelProps, SearchObj{
 	    			}
 	    		}
 	    		String someName=m.getMatch("name",false);
-	    		//if(filter!=null&&!filter.filter(someName))
-	    			//continue;
+	    		if(filter!=null&&!filter.filter(someName))
+	    			continue;
 	    		String mUrl=m.getMatch("url",true);
 	    		String thumb=m.getMatch("thumb",false);
 	    		String imdbId=m.getMatch("imdb",false);
@@ -732,15 +736,15 @@ public class ChannelFolder implements ChannelProps, SearchObj{
 	    			cf.thumb_script="imdbThumb";
 	    		}
 	    		else {
-	    			Channels.debug("thumb1 "+thumb);
+	    			//Channels.debug("thumb1 "+thumb);
 	    			thumb=ChannelUtil.getThumb(thumb, pThumb, parent);
-	    			Channels.debug("thumb2 "+thumb);
+	    			//Channels.debug("thumb2 "+thumb);
 	    			
 	    		}
 	    		parent.debug("matching "+someName+" url "+fUrl+" thumb "+thumb+" group "+group+" imdb "+imdbId);
 	    		if(ChannelUtil.empty(someName))
 	    				someName=nName;
-	    		parent.debug("cf.name "+cf.name+" ignore "+ignoreMatch);
+	    		//parent.debug("cf.name "+cf.name+" ignore "+ignoreMatch);
 	    		if(ignoreMatch)
 	    				someName=cf.name;
 	    		if(ChannelUtil.getProperty(cf.prop, "prepend_parenturl"))

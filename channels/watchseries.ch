@@ -1,4 +1,4 @@
-version=0.22
+version=0.23
 
 scriptdef wsTrix {
 	tmp='http://www.watchseries.eu/open_link.php?vari=
@@ -61,7 +61,7 @@ macrodef wsMacro {
 						order=url
 						type=empty							
 						media {
-							script=lockerScript
+							script=lockerScriptScrape
 							subtitle=s4u,allSubs,podnapisiTV
 							prop=name_index=4+3+2,name_separator=!!!
 						}

@@ -1,4 +1,4 @@
-version=0.1
+version=0.11
 
 scriptdef ch1Subs {
 	url=s_url
@@ -39,9 +39,9 @@ macrodef tvMacro {
 					matcher=href=\"([^\"]+)\"[^>]+>(Version[^<]+)<
 					order=url,name
 					url=http://www.1channel.ch
-					type=empty
+					#type=empty
 					media {
-						script=lockerScript
+						script=lockerScriptScrape
 						subtitle=swesub,s4u,allSubs,podnapisiTV
 						prop=name_index=3+2+1,name_separator=!!!
 					}
@@ -62,9 +62,9 @@ macrodef movieMacro {
 			matcher=href=\"([^\"]+)\"[^>]+>(Version[^<]+)<
 			order=url,name
 			url=http://www.1channel.ch
-			type=empty
+			#type=empty
 			media {
-				script=lockerScript
+				script=lockerScriptScrape
 				subtitle=swesub,s4u,allSubs,podnapisiTV
 				prop=name_index=1
 			}

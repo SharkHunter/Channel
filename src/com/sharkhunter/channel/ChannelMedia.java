@@ -390,6 +390,13 @@ public class ChannelMedia implements ChannelProps,ChannelScraper {
 			sb.append(script);
 			sb.append("\n");
 		}
+		for(String key: params.keySet()) {
+			sb.append("put=");
+			sb.append(key);
+			sb.append("=");
+			sb.append(params.get(key));
+			sb.append("\n");
+		}
 		sb.append("\n}\n");
 		return sb.toString();
 	}

@@ -1,4 +1,4 @@
-version=0.3
+version=0.31
 macrodef sopMacro {
 	media {
 		# Sopcast media
@@ -6,7 +6,7 @@ macrodef sopMacro {
 		img=http://www.sopcast.com/images/sopcast-log.gif
 		order=url,name+
 		prop=name_separator= ,prepend_name,use_conf_thumb
-		matcher=href=\"(sop:[^\"]+)\" [^>]+>[^<]+</a>\s*</td>\s*<td>([^<]+)<
+		matcher=href=\"(sop:[^\"]+)\" [^>]+>[^<]+</a>\s*<a[^>]+>[^<]+</a>\s*</td>\s*<td>([^<]+)<
 	}
 }
 

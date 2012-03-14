@@ -488,6 +488,13 @@ public class ChannelNaviXProc {
 				continue;
 			}
 			
+			if(line.startsWith("sleep ")) {
+				String time=line.substring(6).trim();
+				time=fixVar(time,getVar(time));
+				ChannelUtil.sleep(time);
+				continue;
+			}
+			
 			//////////////////////
 			// Exit form here
 			//////////////////////
