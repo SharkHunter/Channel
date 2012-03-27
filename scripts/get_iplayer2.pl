@@ -3,6 +3,7 @@ use File::Basename;
  
 my $pid=$ARGV[1];
 my $dir=dirname($ARGV[0]);
+pid =~ s/\.[^.]+$//;
 my $mode = "flashhigh1,flashstd1,flashvhigh1";
 my $data=`extras\\perl\\bin\\perl $dir\\get_iplayer.pl --pid ${pid} --mode=${mode} --streaminfo`;
 

@@ -24,6 +24,7 @@ init {
 			def seenSub = false
 			def args = ''
 			def swfUrl=''
+			def force=pmsConf['rtmdump.force']
 
 			//mencoderArgs << '-mc' << '0.1'
 			//mencoderArgs << '-channels' << '6'
@@ -109,7 +110,7 @@ init {
             if (seenURL) {
                 // rtmpdump doesn't log to stdout, so no need to use -q on Windows
 				$PARAMS.waitbeforestart = 6000L
-				if(!seenSub) {
+				if(!seenSub&&!force) {
 					$URI+=args+swfUrl
 					$TRANSCODER = $FFMPEG + ffmpegArgs
 				}
@@ -117,7 +118,9 @@ init {
 					$URI=quoteURI($URI)
 					$DOWNLOADER = "$RTMPDUMP -o $DOWNLOADER_OUT -r ${$URI}"
 					$DOWNLOADER += rtmpdumpArgs
-					$TRANSCODER = $MENCODER + mencoderArgs
+					if(seenSub) {
+						$TRANSCODER = $MENCODER + mencoderArgs
+					}						
 				}
             } else {
                 log.error("invalid rtmpdump:// URI: no -r or --rtmp parameter supplied: ${$URI}")

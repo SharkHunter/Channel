@@ -1,4 +1,4 @@
-version=0.11
+version=0.12
 
 scriptdef ch1Subs {
 	url=s_url
@@ -36,8 +36,9 @@ macrodef tvMacro {
 				url=http://www.1channel.ch
 				folder {
 					#<a href="/external.php?title=The+Walking+Dead&url=aHR0cDovL3d3dy5wdXRsb2NrZXIuY29tL2ZpbGUvMEY2RUY0NUIyRkE2MjI2MQ==&domain=cHV0bG9ja2VyLmNvbQ==&loggedin=0" onClick="return  addHit('1889616332', '1')" rel="nofollow" title="Watch Version 1 of The Walking Dead" target="_blank">Version 1</a>
-					matcher=href=\"([^\"]+)\"[^>]+>(Version[^<]+)<
-					order=url,name
+					 matcher=href=\"([^\"]+)\"[^>]+>(Version[^<]+)</a>[\s]+.*[\s]+.*"><.*=[^/]+/[^/|']+[/|']([^.]+)
+					order=url,name,name
+					prop = name_separator= - ,
 					url=http://www.1channel.ch
 					#type=empty
 					media {
@@ -49,27 +50,42 @@ macrodef tvMacro {
 			}
 		}
 	}
+	folder {
+      matcher=<a href="(/index[^"]+)">([^<]+)</a>
+      order=url,name
+      url=http://www.1channel.ch
+      prop=prepend_name=Goto -
+      type=recurse
+   }
 }
 
 macrodef movieMacro {
-	folder {
-		#<div class="index_item index_item_ie"><a href="/watch-2280191-Hangover-2" title="Watch Hangover 2 (2011)"><img src="http://images.1channel.ch/thumbs/2280191_Hangover_2_2011.jpg"
-		matcher=<div class=\"index_item index_item_ie\"><a href=\"([^\"]+)\" title=\"Watch ([^\"]+)\"[^>]*><img src=\"([^\"]+)\"
-		order=url,name,thumb
-		url=http://www.1channel.ch
-		folder {
-			#<a href="/external.php?title=The+Walking+Dead&url=aHR0cDovL3d3dy5wdXRsb2NrZXIuY29tL2ZpbGUvMEY2RUY0NUIyRkE2MjI2MQ==&domain=cHV0bG9ja2VyLmNvbQ==&loggedin=0" onClick="return  addHit('1889616332', '1')" rel="nofollow" title="Watch Version 1 of The Walking Dead" target="_blank">Version 1</a>
-			matcher=href=\"([^\"]+)\"[^>]+>(Version[^<]+)<
-			order=url,name
-			url=http://www.1channel.ch
-			#type=empty
-			media {
-				script=lockerScriptScrape
-				subtitle=swesub,s4u,allSubs,podnapisiTV
-				prop=name_index=1
-			}
-		}
-	}
+   folder {
+      #<div class="index_item index_item_ie"><a href="/watch-2280191-Hangover-2" title="Watch Hangover 2 (2011)"><img src="http://images.1channel.ch/thumbs/2280191_Hangover_2_2011.jpg"
+      matcher=<div class=\"index_item index_item_ie\"><a href=\"([^\"]+)\" title=\"Watch ([^\"]+)\"[^>]*><img src=\"([^\"]+)\"
+      order=url,name,thumb
+      url=http://www.1channel.ch
+      folder {
+         #<a href="/external.php?title=The+Walking+Dead&url=aHR0cDovL3d3dy5wdXRsb2NrZXIuY29tL2ZpbGUvMEY2RUY0NUIyRkE2MjI2MQ==&domain=cHV0bG9ja2VyLmNvbQ==&loggedin=0" onClick="return  addHit('1889616332', '1')" rel="nofollow" title="Watch Version 1 of The Walking Dead" target="_blank">Version 1</a>
+         matcher=href=\"([^\"]+)\"[^>]+>(Version[^<]+)</a>[\s]+.*[\s]+.*"><.*=[^/]+/[^/|']+[/|']([^.]+)
+         order=url,name,name
+         prop = name_separator= - ,
+         url=http://www.1channel.ch
+         type=empty
+         media {
+            script=lockerScript
+            subtitle=swesub,s4u,allSubs,podnapisiTV
+            prop=name_index=1
+         }
+      }
+   }
+   folder {
+      matcher=<a href="(/index[^"]+)">([^<]+)</a>
+      order=url,name
+      url=http://www.1channel.ch
+      prop=prepend_name=Goto -
+      type=recurse
+   }
 }
 
 channel 1Channel {
