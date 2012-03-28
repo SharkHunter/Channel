@@ -121,7 +121,17 @@ public class ChannelMatcher implements ChannelProps{
 	 private String pend(String str,String field) {
 		 str=esc(unesc(str,field),field);
 		 String r1=ChannelUtil.append(str, null, properties.append(field));
-		 return ChannelUtil.append(properties.prepend(field), null, r1);
+		 return doMangle(ChannelUtil.append(properties.prepend(field), null, r1),field);
+	 }
+	 
+	 private String doMangle(String str,String field) {
+		 String script=properties.mangle(field);
+		 if(ChannelUtil.empty(script)) // no script return what we got
+			 return str;
+		 String res=ChannelScriptMgr.runScript(script, str, parent);
+		 if(ChannelUtil.empty(res)) // no funny result from mangle script, leave it
+			 return str;
+		 return res;
 	 }
 	 
 	 private String esc(String str,String field) {
@@ -197,4 +207,7 @@ public class ChannelMatcher implements ChannelProps{
 		return false;
 	}
 	 
+	public String mangle(String base) {
+		return null;
+	}
 }

@@ -102,4 +102,9 @@ public class ChannelSimple implements ChannelProps {
 		return ChannelUtil.getProperty(prop, base+"_unescape");
 
 	}
+
+	@Override
+	public String mangle(String base) {
+		return ChannelUtil.getPropertyValue(prop, base+"_mangle");
+	}
 }

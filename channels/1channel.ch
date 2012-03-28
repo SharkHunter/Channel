@@ -1,4 +1,4 @@
-version=0.12
+version=0.14
 
 scriptdef ch1Subs {
 	url=s_url
@@ -16,6 +16,17 @@ scriptdef ch1Subs {
 	match url
 	url=v1
 	year=v2
+	play
+}
+
+scriptdef ch1Name {
+	url=s_url
+	regex='host_48
+	replace url 'putlocker
+	regex='host_45
+	replace url 'sockshare
+	regex='td>\s*(<.*>\s*)*.*
+	replace url '
 	play
 }
 
@@ -38,7 +49,7 @@ macrodef tvMacro {
 					#<a href="/external.php?title=The+Walking+Dead&url=aHR0cDovL3d3dy5wdXRsb2NrZXIuY29tL2ZpbGUvMEY2RUY0NUIyRkE2MjI2MQ==&domain=cHV0bG9ja2VyLmNvbQ==&loggedin=0" onClick="return  addHit('1889616332', '1')" rel="nofollow" title="Watch Version 1 of The Walking Dead" target="_blank">Version 1</a>
 					 matcher=href=\"([^\"]+)\"[^>]+>(Version[^<]+)</a>[\s]+.*[\s]+.*"><.*=[^/]+/[^/|']+[/|']([^.]+)
 					order=url,name,name
-					prop = name_separator= - ,
+					prop = name_separator= - ,name_mangle=ch1Name
 					url=http://www.1channel.ch
 					#type=empty
 					media {
@@ -69,7 +80,7 @@ macrodef movieMacro {
          #<a href="/external.php?title=The+Walking+Dead&url=aHR0cDovL3d3dy5wdXRsb2NrZXIuY29tL2ZpbGUvMEY2RUY0NUIyRkE2MjI2MQ==&domain=cHV0bG9ja2VyLmNvbQ==&loggedin=0" onClick="return  addHit('1889616332', '1')" rel="nofollow" title="Watch Version 1 of The Walking Dead" target="_blank">Version 1</a>
          matcher=href=\"([^\"]+)\"[^>]+>(Version[^<]+)</a>[\s]+.*[\s]+.*"><.*=[^/]+/[^/|']+[/|']([^.]+)
          order=url,name,name
-         prop = name_separator= - ,
+         prop = name_separator= - ,name_mangle=ch1Name
          url=http://www.1channel.ch
          type=empty
          media {

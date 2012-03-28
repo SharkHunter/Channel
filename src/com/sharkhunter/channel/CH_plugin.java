@@ -138,10 +138,10 @@ public class CH_plugin implements AdditionalFolderAtRoot, StartStopListener
 	public List<String> finalizeTranscoderArgs(Player player, String name,
 			DLNAResource res, DLNAMediaInfo media, OutputParams params,
 			List<String> cmdList) {
-		Channels.debug("finalize args:");
+	/*	Channels.debug("finalize args:");
 		Channels.debug("name "+name+" params "+params.toString());
 		Channels.debug("player "+player.name());
-		dbgArg(cmdList);
+		dbgArg(cmdList);*/
 		//if((!(res instanceof ChannelMediaStream)))
 		if(true)
 			return cmdList;
@@ -173,17 +173,11 @@ public class CH_plugin implements AdditionalFolderAtRoot, StartStopListener
 		}
 		// now add the special args
 		out.add("-vcodec");
-		out.add("mpeg2video");
+		out.add("copy");
 		out.add("-acodec");
-		out.add("ac3");
+		out.add("copy");
 		out.add("-f");
 		out.add("dvd");
-		out.add("-maxrate");
-		out.add("2000k");
-		out.add("-minrate");
-		out.add("1000k");
-		out.add("-bufsize");
-		out.add("4000k");
 		// finally add the pipe
 		out.add(pipeName);
 		return out;

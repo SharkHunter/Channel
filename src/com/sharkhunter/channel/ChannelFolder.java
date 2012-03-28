@@ -1047,6 +1047,9 @@ public class ChannelFolder implements ChannelProps, SearchObj{
 	@Override
 	public boolean unescape(String base) {
 		return ChannelUtil.getProperty(prop, base+"_unescape");
-
+	}
+	
+	public String mangle(String base) {
+		return ChannelUtil.getPropertyValue(prop, base+"_mangle");
 	}
 }

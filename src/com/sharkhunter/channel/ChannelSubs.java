@@ -392,6 +392,9 @@ public class ChannelSubs implements ChannelProps {
 	@Override
 	public boolean unescape(String base) {
 		return false;
-
+	}
+	
+	public String mangle(String base) {
+		return ChannelUtil.getPropertyValue(prop, base+"_mangle");
 	}
 }

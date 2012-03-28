@@ -7,4 +7,5 @@ public interface ChannelProps {
 	public String prepend(String base);
 	public boolean unescape(String base);
 	public boolean escape(String base);
+	public String mangle(String base);
 }
