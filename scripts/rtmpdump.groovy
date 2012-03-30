@@ -70,6 +70,12 @@ init {
 						args+=' live=1'
 						rtmpdumpArgs << name
 						break
+					case '-p':
+						args+=' pageurl='+value
+						rtmpdumpArgs << name
+						rtmpdumpArgs << quoteURI(value)
+						break
+						
 					case 'subs':
 						if(value) {
 							mencoderArgs << '-sub' << quoteURI(value)

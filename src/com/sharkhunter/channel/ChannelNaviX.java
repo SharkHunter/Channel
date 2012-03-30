@@ -127,7 +127,7 @@ public class ChannelNaviX extends VirtualFolder implements ChannelScraper {
 	public void readPlx(String str,DLNAResource res) {
 		// The URL found in the cf points to a NaviX playlist
 		// (or similar) fetch and parse
-		Pattern re=Pattern.compile("imdb=([^!]+)!");
+		Pattern re=Pattern.compile("imdb\\s*=\\s*(t{0,2}\\d+)");
 		URL urlobj=null;
 		try {
 			urlobj = new URL(str);
@@ -176,7 +176,7 @@ public class ChannelNaviX extends VirtualFolder implements ChannelScraper {
 			else if(line.startsWith("playpath="))
 				playpath=line.substring(9);
 			else if(line.startsWith("description=")) {
-				int pos=line.indexOf("/description",12 );
+				int pos=line.indexOf("/description",12);
 				if(pos==-1)
 					continue;
 				String descr=line.substring(12,pos);

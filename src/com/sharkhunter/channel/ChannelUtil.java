@@ -553,6 +553,19 @@ public class ChannelUtil {
 			return rUrl;
 		}
 		
+		String[] s=rUrl.split(" ");
+		if(s.length>1) {
+			// This is likely rtmp from navix
+			rUrl=s[0]; // first one is the url
+			for(int i=1;i<s.length;i++) {
+				String[] ss=s[i].split("=",2);
+				if(ss.length<2)
+					vars.put(ss[0].toLowerCase(), "");
+				else
+					vars.put(ss[0].toLowerCase(), ss[1]);
+			}
+		}
+		
 		if(!rtmpStream(rUrl)) // type is sopcast etc.
 			return rUrl;
 		
@@ -569,9 +582,11 @@ public class ChannelUtil {
 					rUrl=append(rUrl,"","&-v");
 				rUrl=ChannelUtil.append(rUrl, "&-y=", escape(vars.get("playpath")));
 				rUrl=ChannelUtil.append(rUrl, "&--swfVfy=", escape(vars.get("swfVfy")));
+				rUrl=ChannelUtil.append(rUrl, "&--swfVfy=", escape(vars.get("swfvfy")));
 				rUrl=ChannelUtil.append(rUrl, "&-s=", escape(vars.get("swfplayer")));
 				rUrl=ChannelUtil.append(rUrl, "&-a=", escape(vars.get("app")));
 				rUrl=ChannelUtil.append(rUrl, "&-p=", escape(vars.get("pageurl")));
+				rUrl=ChannelUtil.append(rUrl, "&-s=", escape(vars.get("swfurl")));
 				String sub=vars.get("subtitle");
 				if(!empty(sub)) { // we got subtitles
 					// lot of things to append here
