@@ -1,6 +1,12 @@
-version=0.20
+version=0.22
 channel TV4 {
 	img=http://cdn01.tv4.se/polopoly_fs/2.740!logoImage/807786835.png
+	var {
+		disp_name=Bitrate
+		var_name=br
+		values=15,25,8,3
+		suffix=00 Kbps
+	}
 	folder {
 		type=ATZ
 		name=A-Z
@@ -31,10 +37,10 @@ channel TV4 {
 					media {
 						#matcher=<meta base=\"(rtmp[^\"]+)\" /></head><body><switch><video src=\"(mp4:[^\?]+)\?
 						#matcher=<meta base=\"(rtmp[^\"]+)\" />[^\"]+\"(mp4.*MP415[^\?]+)\?
-						matcher=<meta base=\"(rtmp[^\"]+)\" />[^\"]+\"mp4:(.*MP415[^\?]+)\?
-						order=url,url
-						#order=url,playpath
-						put=swfVfy=http://cdn01.tv4.se/polopoly_fs/1.1615597.1280745068!approot/tv4video.swf
+						matcher=<meta base=\"(rtmp[^\"]+)\" />[^\"]+\"(mp4:.*MP4@#br@#[^\?]+)\?
+						#order=url,url
+						order=url,playpath
+						put=swfVfy=http://www.tv4play.se/flash/tv4playflashlets.swf
 					}
 				}
 			}

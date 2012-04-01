@@ -1,4 +1,4 @@
-version=0.1
+version=0.2
 
 #############################################################
 ## This file contains some useful scripts used
@@ -42,7 +42,7 @@ scriptdef lockerScript {
 	regex='(movshare)
 	match url
 	if v1 
-		call 'http://navix.turner3d.net/proc/movshare
+		call 'http://www.navixtreme.com/movshare
 		url=v1
 		play
 	endif
@@ -70,21 +70,21 @@ scriptdef lockerScript {
 	regex='(vixden)
 	match url
 	if v1
-	  call 'http://navix.turner3d.net/proc/vidxden
+	  call 'http://www.navixtreme.com/vidxden
 	  url=v1
 	  play
 	endif
 	regex='(megavideo)
 	match url
 	if v1
-	  call 'http://navix.turner3d.net/proc/megavideo
+	  call 'http://www.navixtreme.com/proc/megavideo
 	  url=v1
 	  play
 	endif
 	regex='(videobb)
 	match url
 	if v1
-	  call 'http://navix.turner3d.net/proc/videobb
+	  call 'http://www.navixtreme.com/proc/videobb
 	  url=v1
 	  play
 	endif
@@ -98,7 +98,7 @@ scriptdef lockerScript {
 	regex='(sockshare)
 	match url
 	if v1
-		call 'http://navix.turner3d.net/sproc/sockshare
+		call 'http://www.navixtreme.com/sproc/sockshare
 		url=v1
 		play
 	endif
@@ -136,7 +136,7 @@ regex='(/\?404)$
 match geturl
 if v1
 	# report removed file
-	s_url='http://navix.turner3d.net/cgi-bin/proc_check/putlocker_report.cgi?url=
+	s_url='http://www.navixtreme.comn/proc_check/putlocker_report.cgi?url=
 	escape url_ori
 	concat s_url url_ori
 	scrape
@@ -156,7 +156,7 @@ concat cookieval '; ad_cookie1=1; PHPSESSID=
 concat cookieval cookies.PHPSESSID
 
 # Sleep some seconds
-sleep '5000
+sleep '7000
 
 # "Click" the "Continue as Free User" button
 s_cookie=cookieval

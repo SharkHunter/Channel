@@ -1,8 +1,7 @@
 script {
 	profile ('CURL') {
 		pattern {
-		domains([ 'sockshare.com', 'pulocker.com','gcdn.biz','megaupload.com', 'movshare.net', 'stream2k.com', 'bitload.com', 'novamov.com', 'divxstage.eu', 'divxstage.net' ])          
-			
+			domains([ 'gcdn.biz', 'putlocker.com', 'sockshare.com','movshare.net', 'stream2k.com', 'bitload.com', 'novamov.com', 'divxstage.eu', 'divxstage.net' ])
 		}
 		action {
 			def CURL = pmsConf['curl.path']
