@@ -28,7 +28,7 @@ import no.geosoft.cc.io.FileMonitor;
 public class Channels extends VirtualFolder implements FileListener {
 
 	// Version string
-	public static final String VERSION="1.64";
+	public static final String VERSION="1.70";
 	
 	// Constants for RTMP string constructions
 	public static final int RTMP_MAGIC_TOKEN=1;
@@ -64,6 +64,7 @@ public class Channels extends VirtualFolder implements FileListener {
     private boolean groupFolder;
     private ChannelMovieInfo movieInfo;
     private ArrayList<ArrayList<String>> favorite;
+    private ChannelStreamVars defStreamVar;
     
     public Channels(String path,String name,String img) {
     	super(name,img);
@@ -87,6 +88,7 @@ public class Channels extends VirtualFolder implements FileListener {
     	proxies=new HashMap<String,ChannelProxy>();
     	stash=new HashMap<String,HashMap<String,String>>();
     	cache=new ChannelCache(path);
+    	defStreamVar=new ChannelStreamVars();
     	searchDb=new ChannelSearch(new File(dataPath()+File.separator+"search.txt"));
     	//rtmp=Channels.RTMP_MAGIC_TOKEN;
     	rtmp=Channels.RTMP_DUMP;
@@ -472,7 +474,8 @@ public class Channels extends VirtualFolder implements FileListener {
 				handleCred(f);
 			else if(f.getAbsolutePath().endsWith(".vcr"))
 				handleVCR(f);
-			
+			else if(f.getAbsolutePath().contains("stream.var")) 
+				defStreamVar.parse(f);
 		}	
     }
 
@@ -490,6 +493,8 @@ public class Channels extends VirtualFolder implements FileListener {
 					handleCred(f);
 				else if(f.getAbsolutePath().endsWith(".vcr"))
 					handleVCR(f);
+				else if(f.getAbsolutePath().contains("stream.var")) 
+					defStreamVar.parse(f);
 				else
 					if(f.exists())
 						parseChannels(f);
@@ -559,6 +564,10 @@ public class Channels extends VirtualFolder implements FileListener {
 	}
 	
 	public static String fileName(String name,boolean cache) {
+		return fileName(name,cache,null);
+	}
+	
+	public static String fileName(String name,boolean cache,String imdb) {
 		name=name.trim();
 		String ext=ChannelUtil.extension(name);			
 		String fName=name;
@@ -568,8 +577,15 @@ public class Channels extends VirtualFolder implements FileListener {
 			fName=ChannelUtil.append(name, null, ts);
 			fName=ChannelUtil.append(fName,null, ext);
 		}
+		if(!ChannelUtil.empty(imdb)) {
+			int pos=fName.lastIndexOf('.');
+			if(pos!=-1)
+				fName=fName.substring(0, pos-1)+"_imdb"+imdb+"_"+fName.substring(pos);
+			else
+				fName=ChannelUtil.append(fName, "_", "imdb"+imdb+"_");
+		}
+		debug("fname is "+fName);
 		// remove some odd chars
-		debug("fname "+fName);
 		fName=fName.replaceAll(" ", "_").replaceAll("<", "").replaceAll(">", "");
 		if(!cache&&save())
 			return cfg().getSavePath()+File.separator+fName;
@@ -1032,5 +1048,12 @@ public class Channels extends VirtualFolder implements FileListener {
 		System.clearProperty("sun.net.spi.nameservice.nameservers");
 		System.clearProperty("sun.net.spi.nameservice.provider.1");
 	}
+	
+	//////////////////////////////////////////////////////////////////////
+	
+	public static ChannelStreamVars defStreamVar() {
+		return inst.defStreamVar;
+	}
+	
 	
 }

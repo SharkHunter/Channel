@@ -38,6 +38,7 @@ public class ChannelSubs implements ChannelProps {
 	private String script;
 	private String[] nameScript;
 	private String[] lang;
+	private ChannelMatcher select;
 	
 	public ChannelSubs() {
 		prop=null;
@@ -69,6 +70,18 @@ public class ChannelSubs implements ChannelProps {
 					matcher=new ChannelMatcher(null,keyval[1],this);
 				else
 					matcher.setOrder(keyval[1]);
+			}
+			if(keyval[0].equalsIgnoreCase("select")) {
+				if(select==null)
+					select=new ChannelMatcher(keyval[1],null,this);
+				else
+					select.setMatcher(keyval[1]);
+			}
+			if(keyval[0].equalsIgnoreCase("select_order")) {
+				if(select==null)
+					select=new ChannelMatcher(null,keyval[1],this);
+				else
+					select.setOrder(keyval[1]);
 			}
 			if(keyval[0].equalsIgnoreCase("best_match")) {
 				try {
@@ -245,6 +258,7 @@ public class ChannelSubs implements ChannelProps {
 		path=ChannelUtil.append(path, "", map.get("episode"));
 		path=ChannelUtil.append(path, "_", lang);
 		File f=new File(path+".srt");
+		//Channels.debug("look for "+f.getAbsolutePath());
 		if(f.exists())
 			return cacheFile(f);
 		map.put("lang", lang);
@@ -291,8 +305,7 @@ public class ChannelSubs implements ChannelProps {
 		return cacheFile(f);
 	}
 	
-	public String fetchSubsUrl(HashMap<String,String> map) {
-		String mediaName=map.get("url").trim();
+	private String getMediaName(String mediaName,HashMap<String,String> map) {
 		if(nameScript!=null) {
 			String nScript=nameScript[0];
 			ArrayList<String> s=Channels.getScript(nScript);
@@ -310,6 +323,12 @@ public class ChannelSubs implements ChannelProps {
 		}	
 		else
 			mediaName=ChannelUtil.escape(mediaName);
+		return mediaName;
+	}
+	
+	public String fetchSubsUrl(HashMap<String,String> map) {
+		String mediaName=map.get("url").trim();
+		mediaName=getMediaName(mediaName,map);
 		if(ChannelUtil.empty(mediaName))
 			return null;
 		String realUrl=ChannelUtil.concatURL(url,mediaName);
@@ -343,6 +362,61 @@ public class ChannelSubs implements ChannelProps {
 			Channels.debug("page exception "+e+" "+realUrl);
 		}
 		return null;
+	}
+	
+	public HashMap<String,Object> select(HashMap<String,String> map) {
+		if(select==null)
+			return null;
+		String mediaName=map.get("url");
+		Channels.debug("sub sel name "+mediaName);
+		if(ChannelUtil.empty(mediaName))
+			return null;
+		mediaName=getMediaName(mediaName.trim(),map);
+		if(ChannelUtil.empty(mediaName))
+			return null;
+		String realUrl=ChannelUtil.concatURL(url,mediaName);
+		Channels.debug("try fecth "+realUrl);
+		try {
+			URL u=new URL(realUrl);
+			String page=ChannelUtil.fetchPage(u.openConnection());
+			Channels.debug("subs page "+page);
+			if(ChannelUtil.empty(page))
+				return null;
+			HashMap<String, Object> res=new HashMap<String,Object>();
+			select.startMatch(page);
+			while(select.match()) {
+				ChannelSubSelected css=new ChannelSubSelected();
+				css.owner=this;
+				css.url=select.getMatch("url");
+				css.script=script;
+				res.put(select.getMatch("name"), (Object)css);
+			}
+			return res;
+		}
+		catch (Exception e) {
+			Channels.debug("page exception "+e+" "+realUrl);
+		}
+		return null;
+	}
+	
+	public static String resolve(Object obj) {
+		if(obj instanceof String)
+			return downloadSubs((String)obj);
+		ChannelSubSelected css=(ChannelSubSelected)obj;
+		if(ChannelUtil.empty(css.script))
+			return css.url;
+		ArrayList<String> s=Channels.getScript(css.script);
+		if(s==null) 
+			return null;
+		HashMap<String,String> map=new HashMap<String,String>();
+		map.put("select", "true");
+		HashMap<String,String> res=ChannelNaviXProc.lite(css.url, s,map);
+		if(res==null)
+			return null;
+		String subUrl=res.get("url");
+		if(ChannelUtil.empty(subUrl))
+			return null;
+		return downloadSubs(subUrl);
 	}
 	
 	public boolean langSupported() {
@@ -396,5 +470,11 @@ public class ChannelSubs implements ChannelProps {
 	
 	public String mangle(String base) {
 		return ChannelUtil.getPropertyValue(prop, base+"_mangle");
+	}
+	
+	private class ChannelSubSelected {
+		public String url;
+		public String script;
+		public ChannelSubs owner;
 	}
 }

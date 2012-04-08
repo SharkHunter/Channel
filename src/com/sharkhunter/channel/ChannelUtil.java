@@ -23,6 +23,7 @@ import java.net.URLDecoder;
 import java.net.URLEncoder;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.zip.ZipEntry;
@@ -34,6 +35,7 @@ import net.pms.PMS;
 import net.pms.configuration.PmsConfiguration;
 import net.pms.dlna.DLNAResource;
 import net.pms.formats.Format;
+import net.pms.io.OutputParams;
 
 public class ChannelUtil {
 	
@@ -636,9 +638,11 @@ public class ChannelUtil {
 		return res;
 	}
 	
+	
 	public static String backTrack(DLNAResource start,int[] stops) {
 		return backTrack(start,stops, " ");
 	}
+	
 	
 	public static int[] getNameIndex(String[] prop) {
 		try {
@@ -983,6 +987,30 @@ public class ChannelUtil {
 		return str;
 	}
 	
+	public static List<String> addStreamVars(List<String> args,ChannelStreamVars streamVars,
+				OutputParams params) {
+		ArrayList<String> res=new ArrayList<String>();
+		for(int i=0;i<args.size();i++) {
+			String arg=args.get(i);
+			if(arg.contains("ffmpeg")) {
+				res.add(arg);
+				streamVars.resolve("ffmpeg",res,params);
+				continue;
+			}
+			if(arg.contains("mencoder")) {
+				res.add(arg);
+				streamVars.resolve("mencoder",res,params);
+				continue;
+			}
+			res.add(arg);
+		}
+		return res;
+	}
 	
-	
+	public static String ensureImdbtt(String imdb) {
+		/*if(empty(imdb))
+			return imdb;
+		return (imdb.startsWith("tt")?imdb:"tt"+imdb);*/
+		return imdb;
+	}
 }

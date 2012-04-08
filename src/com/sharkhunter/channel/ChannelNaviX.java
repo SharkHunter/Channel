@@ -5,6 +5,7 @@ import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -118,6 +119,9 @@ public class ChannelNaviX extends VirtualFolder implements ChannelScraper {
 							f,asx,this);
 					cms.setImdb(imdb);
 					cms.setRender(this.defaultRenderer);
+					ChannelStreamVars streamVars=new ChannelStreamVars(Channels.defStreamVar());
+					//streamVars.add(this, parent);
+					cms.setStreamVars(streamVars);
 					res.addChild(cms);
 				}
 			}
@@ -235,7 +239,7 @@ public class ChannelNaviX extends VirtualFolder implements ChannelScraper {
 
 	@Override
 	public String scrape(Channel ch, String url, String processorUrl,int format,DLNAResource start
-			             ,boolean noSub,String imdb,String embedSub) {
+			             ,boolean noSub,String imdb,Object embedSub) {
 		imdbId=imdb;
 		return ChannelNaviXProc.parse(url,processorUrl,format,(noSub?null:this),start);
 	}
@@ -317,6 +321,11 @@ public class ChannelNaviX extends VirtualFolder implements ChannelScraper {
 
 	@Override
 	public String backtrackedName(DLNAResource start) {
+		return null;
+	}
+
+	@Override
+	public HashMap<String, Object> subSelect(DLNAResource start, String imdb) {
 		return null;
 	}
 		

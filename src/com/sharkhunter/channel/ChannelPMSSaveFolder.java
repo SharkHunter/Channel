@@ -60,13 +60,16 @@ public class ChannelPMSSaveFolder extends VirtualFolder {
 	public void setEmbedSub(String str) {
 		embedSub=str;
 	}
-	
+		
 	public void discoverChildren() {
 		final ChannelPMSSaveFolder me=this;
 		final ChannelOffHour oh=Channels.getOffHour();
 		final String rName=name;
 		boolean save=Channels.save();
+		boolean doSubs=Channels.doSubs()&&subs&&(f==Format.VIDEO);
 		ChannelMediaStream cms;
+		ChannelStreamVars streamVars=new ChannelStreamVars(Channels.defStreamVar());
+		//streamVars.add(this, ch);
 		if(oh!=null) {
 			final boolean add=!oh.scheduled(url);
 			addChild(new VirtualVideoAction((add?"ADD to ":"DELETE from ")+
@@ -122,7 +125,12 @@ public class ChannelPMSSaveFolder extends VirtualFolder {
 			cms.setSaveMode(rawSave);
 			cms.setEmbedSub(embedSub);
 			cms.setFallbackFormat(videoFormat);
+			cms.setStreamVars(streamVars);
 			addChild(cms);
+			if(doSubs) {
+				ChannelPMSSubSelector subSel=new ChannelPMSSubSelector(ch,"Select subs - SAVE&PLAY",url,thumb,proc,f,asx,scraper,name,name,imdb);
+				addChild(subSel);
+			}
 		}
 		cms=new ChannelMediaStream(ch,"PLAY",url,thumb,proc,f,asx,scraper,name,null);
 		cms.setImdb(imdb);
@@ -130,8 +138,11 @@ public class ChannelPMSSaveFolder extends VirtualFolder {
 		cms.setSaveMode(rawSave);
 		cms.setEmbedSub(embedSub);
 		cms.setFallbackFormat(videoFormat);
+		cms.setStreamVars(streamVars);
 		addChild(cms);
-		if(Channels.doSubs()&&subs&&(f==Format.VIDEO)) {
+		if(doSubs) {
+			ChannelPMSSubSelector subSel=new ChannelPMSSubSelector(ch,"Select subs - PLAY",url,thumb,proc,f,asx,scraper,name,null,imdb);
+			addChild(subSel);
 			if(save) {
 				cms=new ChannelMediaStream(ch,"SAVE&PLAY - No Subs",url,thumb,proc,f,asx,scraper,name,name);
 				cms.noSubs();
@@ -139,6 +150,7 @@ public class ChannelPMSSaveFolder extends VirtualFolder {
 				cms.setRender(this.defaultRenderer);
 				cms.setSaveMode(rawSave);
 				cms.setFallbackFormat(videoFormat);
+				cms.setStreamVars(streamVars);
 				addChild(cms);
 			}
 			cms=new ChannelMediaStream(ch,"PLAY - No Subs",url,thumb,proc,f,asx,scraper,name,null);
@@ -147,6 +159,7 @@ public class ChannelPMSSaveFolder extends VirtualFolder {
 			cms.setRender(this.defaultRenderer);
 			cms.setSaveMode(rawSave);
 			cms.setFallbackFormat(videoFormat);
+			cms.setStreamVars(streamVars);
 			addChild(cms);
 		}
 	}

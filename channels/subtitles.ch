@@ -1,4 +1,4 @@
-version=0.52
+version=0.56
 
 ###########################
 ## s4u
@@ -295,6 +295,7 @@ scriptdef swesubName {
 	if imdb
 	  url='/title/
 	  concat url imdb
+	  play
 	else
 		rurl='http://swesub.nu/?s=
 		escape s_url
@@ -303,7 +304,7 @@ scriptdef swesubName {
 		  yurl='+(
 		  concat yurl year
 		  concat yurl ')
-		  concatl s_url yurl
+		  concat s_url yurl
 		endif
 		s_url=rurl
 		#a href="/title/tt1478338/"
@@ -316,11 +317,18 @@ scriptdef swesubName {
 
 scriptdef swesubMatch {
 	#<a href="/download/26483/" rel="nofollow">Boardwalk.Empire.S01E01.720p.HDTV.x264-IMMERSE (1 cd)</a>
-	regex='a href="([^\"]+)" [^>]+>
-	concat regex full_url
-	match s_url
-	s_url='http://swesub.nu/
-	concat s_url v1
+	if select
+		tmp='http://swesub.nu/
+		concat tmp s_url
+		s_url=tmp
+		
+	else
+		regex='a href="([^\"]+)" [^>]+>
+		concat regex full_url
+		match s_url
+		s_url='http://swesub.nu/
+		concat s_url v1
+	endif
 	s_action='geturl
 	scrape
 	url=v1
@@ -332,4 +340,7 @@ subdef swesub {
 	name_script=swesubName
 	lang=swe
 	script=swesubMatch
+	#<td class="smalltext border">											<a href="/download/28828/" rel="nofollow" class="ssg">Game of Thrones Season 1 BRRip XvidHD 720p-NPW (10 cd)</a><br/>
+	select=<a href=\"(/download[^\"]+)\"[^>]+>([^<]+)</a>
+	select_order=url,name
 }

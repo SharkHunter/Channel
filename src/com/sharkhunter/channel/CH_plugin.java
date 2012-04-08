@@ -142,16 +142,30 @@ public class CH_plugin implements AdditionalFolderAtRoot, StartStopListener
 		Channels.debug("name "+name+" params "+params.toString());
 		Channels.debug("player "+player.name());
 		dbgArg(cmdList);*/
-		//if((!(res instanceof ChannelMediaStream)))
-		if(true)
+		if((!(res instanceof ChannelMediaStream)))
 			return cmdList;
-		
+		//ArrayList<String> out=new ArrayList<String>();
 		ChannelMediaStream cms=(ChannelMediaStream)res;
+		/*for(int i=0;i<cmdList.size();i++) {
+			String c=cmdList.get(i);
+			if(c.equals("-target")) {
+				out.add("-vcodec");
+				out.add("copy");
+				out.add("-f");
+				out.add("h264");
+				i++;
+				continue;
+			}
+			out.add(c);
+		}
+		return out;*/
+		return cms.addStreamvars(cmdList,params);
+		
 		//String f=cms.realFormat();
 		/*if(ChannelUtil.empty(f))
 			return cmdList;*/
 		
-		boolean pipeSeen=false;
+		/*boolean pipeSeen=false;
 		String pipeName=null;
 		ArrayList<String> out=new ArrayList<String>();
 		for(int i=0;i<cmdList.size();i++) {
@@ -180,7 +194,7 @@ public class CH_plugin implements AdditionalFolderAtRoot, StartStopListener
 		out.add("dvd");
 		// finally add the pipe
 		out.add(pipeName);
-		return out;
+		return out;*/
 		
 /*		if(res.getSystemName().startsWith("rtmp")&&player.name().equals("PMSEncoder")) {
 			RendererConfiguration r=params.mediaRenderer;				

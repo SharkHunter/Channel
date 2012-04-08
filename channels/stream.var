@@ -1,0 +1,16 @@
+version=0.1
+
+var {
+	disp_name=Max Bitrate
+	var_name=max_br
+	values=100,75,50,25,10
+	suffix=%
+	action=maxBrStream
+}
+
+var {
+	disp_name=Init Buffer Delay
+	values=6000,8000,10000,12000
+	suffix=milliseconds
+	action=bufferDelay
+}

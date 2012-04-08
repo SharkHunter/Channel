@@ -2,6 +2,7 @@ package com.sharkhunter.channel;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -205,7 +206,7 @@ public class ChannelMedia implements ChannelProps,ChannelScraper {
 			nName="Unknown";
 		nName=StringEscapeUtils.unescapeHtml(nName);
 		parent.debug("found media "+nName+" thumb "+thumb+" url "+url+" format "+format+
-				" script "+script+" embedsubs "+subs);
+				" script "+script+" embedsubs "+subs+" imdb "+imdb);
 		// asx is weird and one would expect mencoder to support it no
 		int asx=ChannelUtil.ASXTYPE_NONE;
 		if(ChannelUtil.getProperty(prop, "auto_asx"))
@@ -246,7 +247,7 @@ public class ChannelMedia implements ChannelProps,ChannelScraper {
 	
 	@Override
 	public String scrape(Channel ch, String url, String scriptName,int format,DLNAResource start
-			             ,boolean noSub,String imdb,String embedSubs) {
+			             ,boolean noSub,String imdb,Object embedSubs) {
 		ch.debug("scrape sub "+subtitle+" format "+format);
 		String subFile="";
 		boolean live=ChannelUtil.getProperty(prop, "live");
@@ -258,40 +259,16 @@ public class ChannelMedia implements ChannelProps,ChannelScraper {
 			asx=ChannelUtil.ASXTYPE_AUTO;
 		if(type==ChannelMedia.TYPE_ASX)
 			asx=ChannelUtil.ASXTYPE_FORCE;
-		if((subtitle!=null||!ChannelUtil.empty(embedSubs))&&Channels.doSubs()&&!noSub) {
-			if(!ChannelUtil.empty(embedSubs)) {
-				// We got some embeded subs. Try and fetch it
-				// we use the embed subs for name as well
-				subFile=ChannelSubs.downloadSubs(embedSubs);
+		Channels.debug("embedsubs "+embedSubs+" nosub "+noSub);
+		if((subtitle!=null||embedSubs!=null)&&Channels.doSubs()&&!noSub) {
+			if(embedSubs!=null) {
+				subFile=ChannelSubs.resolve(embedSubs);
+			}
+			if(ChannelUtil.empty(subFile)) {
+				subFile=subScrape(start,ChannelUtil.ensureImdbtt(imdb));
+			}
+			if(!ChannelUtil.empty(subFile))
 				vars.put("subtitle", subFile);
-			}
-			if(subtitle!=null) {
-				for(int i=0;i<subtitle.length;i++) {
-					// This is moved here to make use
-					// of embeded subs
-					if(!ChannelUtil.empty(subFile))
-						break;
-					ChannelSubs subs=Channels.getSubs(subtitle[i]);
-					if(subs==null)
-						continue;
-					if(!subs.langSupported())
-						continue;
-					String realName=backtrackedName(start);
-					parent.debug("backtracked name "+realName);
-					HashMap<String,String> subName;
-					int subScript=0;
-					while((subName=parent.getSubMap(realName,subScript))!=null) {
-						if(!ChannelUtil.empty(imdb))
-							subName.put("imdb", imdb);
-						subFile=subs.getSubs(subName);
-						parent.debug("subs "+subFile);
-						vars.put("subtitle",subFile);
-						if(!ChannelUtil.empty(subFile))
-							break;
-						subScript++;
-					}
-				}
-			}
 		}	
 		Channels.debug("scrape script name "+scriptName);
 		if(ChannelUtil.empty(scriptName)) { // no script just return what we got
@@ -439,4 +416,63 @@ public class ChannelMedia implements ChannelProps,ChannelScraper {
 		return ChannelUtil.getPropertyValue(prop, base+"_mangle");
 	}
 	
+	public String subScrape(DLNAResource start,String imdb) {
+		return subScrape(start,imdb,false);
+	}
+	
+	public String subScrape(DLNAResource start,String imdb,boolean select) {
+		if(subtitle==null) 
+			return null;
+		String subFile=null;
+		for(int i=0;i<subtitle.length;i++) {
+			ChannelSubs subs=Channels.getSubs(subtitle[i]);
+			if(subs==null)
+				continue;
+			if(!subs.langSupported())
+				continue;
+			String realName=backtrackedName(start);
+			parent.debug("backtracked name "+realName);
+			HashMap<String,String> subName;
+			int subScript=0;
+			while((subName=parent.getSubMap(realName,subScript))!=null) {
+				subScript++;
+				if(!ChannelUtil.empty(imdb))
+					subName.put("imdb", ChannelUtil.ensureImdbtt(imdb));
+				subFile=subs.getSubs(subName);
+				parent.debug("subs "+subFile);
+				if(!ChannelUtil.empty(subFile))
+					return subFile;
+			}
+		}
+		return null;
+	}
+	
+	public HashMap<String,Object> subSelect(DLNAResource start,String imdb) {
+		if(subtitle==null) 
+			return null;
+		for(int i=0;i<subtitle.length;i++) {
+			ChannelSubs subs=Channels.getSubs(subtitle[i]);
+			if(subs==null)
+				continue;
+			if(!subs.langSupported())
+				continue;
+			String realName=backtrackedName(start);
+			parent.debug("backtracked name "+realName);
+			HashMap<String,String> subName;
+			int subScript=0;
+			while((subName=parent.getSubMap(realName,subScript))!=null) {
+				subScript++;
+				if(!ChannelUtil.empty(imdb))
+					subName.put("imdb", ChannelUtil.ensureImdbtt(imdb));
+				HashMap<String,Object> res=subs.select(subName);
+				if(res!=null) {
+					// Add this special matchname to make
+					// the choices "sortable"
+					res.put("__match_name__", (Object)realName);
+					return res;
+				}
+			}
+		}
+		return null;
+	}
 }

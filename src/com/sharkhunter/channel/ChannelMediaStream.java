@@ -15,6 +15,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.Date;
+import java.util.List;
 
 import net.pms.PMS;
 import net.pms.configuration.FormatConfiguration;
@@ -28,6 +29,7 @@ import net.pms.encoders.Player;
 import net.pms.formats.Format;
 import net.pms.formats.WEB;
 import net.pms.io.BufferedOutputFile;
+import net.pms.io.OutputParams;
 import net.pms.io.WindowsNamedPipe;
 
 public class ChannelMediaStream extends DLNAResource {
@@ -54,7 +56,8 @@ public class ChannelMediaStream extends DLNAResource {
 	private String videoFormat;
 	private long scrapeTime;
 	private long delay;
-	private String embedSub;
+	private Object embedSub;
+	private ChannelStreamVars streamVars;
 	
 	public ChannelMediaStream(Channel ch,String name,String nextUrl,
 			  String thumb,String proc,int type,int asx,
@@ -94,10 +97,47 @@ public class ChannelMediaStream extends DLNAResource {
 		scrapeTime=0;
 		delay=scraper.delay();
 		embedSub=null;
+		streamVars=null;
+	}
+	
+	public ChannelMediaStream(ChannelMediaStream cms) {
+		this(cms,null);
+	}
+	
+	public ChannelMediaStream(ChannelMediaStream cms,String name) {
+		super(cms.getType());
+		url=cms.url;
+		this.name=(ChannelUtil.empty(name)?cms.name:name);
+		this.thumb=cms.thumb;
+		this.processor=cms.processor;
+		this.format=cms.getType();
+		this.ch=cms.ch;
+		realUrl=null;
+		ASX=cms.ASX;
+		this.scraper=cms.scraper;
+		this.saveName=cms.saveName;
+		this.dispName=cms.dispName;
+		saver=cms.saver;
+		scraped=false;
+		startTime=0;
+		noSubs=cms.noSubs;
+		imdb=cms.imdb;
+		render=cms.render;
+		rawSave=cms.rawSave;
+		fool=Channels.cfg().netDiscStyle();
+		videoFormat=cms.videoFormat;
+		scrapeTime=0;
+		delay=cms.delay;
+		embedSub=cms.embedSub;
+		streamVars=cms.streamVars;
 	}
 	
 	public void noSubs() {
 		noSubs=true;
+	}
+	
+	public void subs() {
+		noSubs=false;
 	}
 	
 	public void setRender(RendererConfiguration r) {
@@ -112,10 +152,21 @@ public class ChannelMediaStream extends DLNAResource {
 		videoFormat=s;
 	}
 	
-	public void setEmbedSub(String str) {
+	public void setEmbedSub(Object str) {
 		embedSub=str;
 	}
 	
+	public ChannelScraper scraper() {
+		return scraper;
+	}
+	
+	public String imdb() {
+		return imdb;
+	}
+	
+	public void setName(String n) {
+		name=n;
+	}
 	
     public InputStream getThumbnailInputStream() throws IOException {
     	if (thumb != null) {
@@ -295,7 +346,7 @@ public class ChannelMediaStream extends DLNAResource {
     	boolean cache=ChannelUtil.empty(saveName);
     	if(cache)
     		sName=dispName;
-    	String fName=Channels.fileName(sName,cache);
+    	String fName=Channels.fileName(sName,cache,imdb);
     	fName=ChannelUtil.guessExt(fName,realUrl);
     	if(cache)
     		ChannelUtil.cacheFile(new File(fName),"media");
@@ -506,4 +557,24 @@ public class ChannelMediaStream extends DLNAResource {
 	public String playlistThumb() {
 		return thumb;
 	}
+	
+	public List<String> addStreamvars(List<String> cmdList,OutputParams params) {
+		if(streamVars==null)
+			return cmdList;
+		List<String> cmdList1=ChannelUtil.addStreamVars(cmdList,streamVars,params);
+		if(cmdList1==null)
+			cmdList1=cmdList;
+		return cmdList1;
+	}
+	
+	public void setStreamVars(ChannelStreamVars vars) {
+	//	streamVars=vars;
+	}
+	
+	public String toString() {
+		return super.toString()+" url "+url+" proc "+processor+" "+" real "+realUrl;
+	}
+	
+	
+	
 }

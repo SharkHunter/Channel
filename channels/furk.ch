@@ -1,4 +1,4 @@
-version=0.33
+version=0.35
 
 scriptdef furkSubs {
 	release='1
@@ -21,6 +21,8 @@ scriptdef furkSubs1 {
 }
 
 scriptdef furkSubs2 {
+	# Most likely a tv series
+	# These scripts could be combined...
 	regex='\.*\[.*?\]
 	replace s_url '
 	regex='(.*?)[Ss](\d+)[Ee](\d+) 
@@ -30,6 +32,41 @@ scriptdef furkSubs2 {
 	url=v1
 	season=v2
 	episode=v3
+	play
+}
+
+scriptdef furkSubs3 {
+	full_url=s_url
+	stripExt full_url
+	regex='(.*?)\[(\d+)\]
+	match s_url
+	year=v2
+	url=v1
+	if year
+		play
+	endif
+	regex='(.*?)\((\d+)\)
+	match s_url
+	year=v2
+	if year
+	  url=v1
+	  play
+	endif
+	regex='(.*?)(\d+) 
+	match s_url
+	year=v2
+	if year
+		url=v1
+		play
+	endif
+	regex='(.*?)[_\.](\d+)[_\.]
+	match s_url
+	year=v2
+	if year
+		url=v1
+		play
+	endif
+	url=s_url
 	play
 }
 
@@ -56,7 +93,7 @@ macrodef furkMacro {
 			order=name,url
 			subtitle=swesub,s4u
 			#,subscene
-			prop=name_index=1
+			prop=name_index=0
 		}
 	}
 }
@@ -78,7 +115,7 @@ macrodef furkFolder {
 
 channel Furk {
    img=http://www.furk.net/img/logo.png?249
-   subscript=furkSubs,furkSubs1,furkSubs2
+   subscript=furkSubs,furkSubs1,furkSubs2,furkSubs3
    login {
 	  url=http://api.furk.net/api/login/login
       passwd=pwd

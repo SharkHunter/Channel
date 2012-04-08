@@ -572,7 +572,9 @@ public class ChannelFolder implements ChannelProps, SearchObj{
 	    		}
 	    		String ru=(m1.scriptOnly()?realUrl:null);
 	    		boolean asx=ChannelUtil.getProperty(prop, "auto_asx");
-	    		m1.add(res, nName, ru, thumb, asx);
+	    		if(ChannelUtil.empty(imdb))
+	    			imdb=imdbId;
+	    		m1.add(res, nName, ru, thumb, asx,imdb);
 	    		medCnt++;
 	    		if(allPlay!=null) {
 	    			m1.add(allPlay, nName,ru, thumb, asx,ChannelMedia.SAVE_OPT_PLAY);

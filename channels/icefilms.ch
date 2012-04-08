@@ -1,4 +1,4 @@
-version=0.50
+version=0.51
 
 ###############################
 ## IceFilms new method of
@@ -140,6 +140,33 @@ scriptdef 180Script {
 }
 
 #############################
+## 180Upload script
+#############################
+
+scriptdef vhScript {
+	regex='vidhog.com/(.*)
+	match s_url
+	id=v1
+	s_postdata='op=download1&id=
+	concat s_postdata id
+	s_method='post
+	regex='name="rand" value="([^"]+)">
+	scrape
+	rand=v1
+	s_postdata='op=download2&id=
+	concat s_postdata id
+	concat s_postdata '&rand=
+	concat s_postdata rand
+	sleep '30000
+	scrape
+	#<strong><a href="http://s5a.vidhogservers.com:182/d/f2dtskjmnjhr3p57toqiwn362dn5x6h7zfgxig7fa3fy42g6s5qv2raf/the.big.bang.theory.s05e20.hdtv.xvid-fqm.avi">
+	regex='<strong><a href="([^"]+)">
+	scrape
+	url=v1
+	play
+}
+
+#############################
 ## The actual scrpaer
 #############################
 
@@ -148,7 +175,7 @@ macrodef rsTvmacro {
 		# Rapidshare
 		#https://rapidshare.com/files/2029276453/The.Big.Bang.Theory.S05E14.HDTV.XviD-LOL.avi"
 		script=rsScript
-		prop=name_index=3+2,delay=dynamic
+		prop=name_index=2+1,delay=dynamic
 		subtitle=s4u
 	}
 }
@@ -157,7 +184,16 @@ macrodef 180Tvmacro {
 	media {
 		# 180 upload
 		script=180Script
-		prop=name_index=3+2
+		prop=name_index=2+1
+		subtitle=swesub,s4u
+	}
+}
+
+macrodef vhTvmacro {
+	media {
+		# VidHog
+		script=vhScript
+		prop=name_index=2+1
 		subtitle=s4u
 	}
 }
@@ -177,6 +213,7 @@ macrodef 180mediaMacro {
 		subtitle=s4u,allSubs,podnapisiMovie
 	}
 }
+
 
 macrodef tvMacro {
 	folder {
@@ -217,6 +254,13 @@ macrodef tvMacro {
 					type=empty
 					macro=180Tvmacro
 				}
+				#folder {
+			#		matcher=go\(([0-9]+)\)'>(Source #[0-9]+|PART [0-9]+)[^<]+<span title="Hosted by[^V]+(VidHog)
+			#		order=url,name,name
+			#		prop=name_separator=###0
+		#			type=empty
+		#			macro=vhTvmacro
+		#		}
 			}
 		}
 	}

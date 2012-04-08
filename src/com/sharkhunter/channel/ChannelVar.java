@@ -1,6 +1,9 @@
 package com.sharkhunter.channel;
 
 import java.util.ArrayList;
+import java.util.List;
+
+import net.pms.io.OutputParams;
 
 public class ChannelVar {
 	
@@ -12,6 +15,8 @@ public class ChannelVar {
 	
 	private String prefix;
 	private String suffix;
+	
+	private String action;
 	
 	private final static String VAR_DELIM="@#"; 
 
@@ -38,6 +43,8 @@ public class ChannelVar {
 				suffix=keyval[1];
 			if(keyval[0].equalsIgnoreCase("prefix"))
 				prefix=keyval[1];
+			if(keyval[0].equalsIgnoreCase("action")) // action script for stream vars
+				action=keyval[1];
 		}
 	}
 	
@@ -76,4 +83,15 @@ public class ChannelVar {
 		return values;
 	}
 	
+	public void setChannel(Channel ch) {
+		parent=ch;
+	}
+	
+	public void action(String player,List<String> list,OutputParams params) {
+		String str;
+		if(action==null) // no action
+			return;
+		if(ChannelBuiltIn.action(action,player,currVal,list,params));
+			return;
+	}
 }
