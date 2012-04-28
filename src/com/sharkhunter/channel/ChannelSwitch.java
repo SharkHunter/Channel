@@ -57,6 +57,8 @@ public class ChannelSwitch implements ChannelProps {
 			if(keyval[0].equalsIgnoreCase("format"))
 				format=ChannelUtil.getFormat(keyval[1],format);
 		}
+		if(matcher!=null)
+			matcher.processProps(prop);
 	}
 	
 	public void parentFormat(int f) {

@@ -256,6 +256,7 @@ public class ChannelLogin {
 			((HttpsURLConnection) connection).setInstanceFollowRedirects(true);   
 			((HttpsURLConnection) connection).setRequestMethod(method);
 			String page=ChannelUtil.postPage(connection, query);
+			Channels.debug("login res page "+page);
 			if(ChannelUtil.empty(page))
 				return null;
 			return getCookie(connection,a);
@@ -306,7 +307,7 @@ public class ChannelLogin {
 				Channels.debug("pre_fetch name "+name+" url "+url);
 				if(ChannelUtil.empty(name)||ChannelUtil.empty(url))
 					throw new Exception("Bad pre_fetch reply");
-				ChannelUtil.append(params, "&", name+"="+url);
+				params=ChannelUtil.append(params, "&", name+"="+url);
 				preFetched=true;
 			}
 			if(type==ChannelLogin.AUTO_COOKIE)

@@ -1,6 +1,7 @@
 package com.sharkhunter.channel;
 
 import java.io.InputStream;
+import java.util.HashMap;
 
 import net.pms.dlna.virtual.VirtualFolder;
 import net.pms.dlna.virtual.VirtualVideoAction;
@@ -22,6 +23,8 @@ public class ChannelPMSSaveFolder extends VirtualFolder {
 	private boolean rawSave;
 	private String videoFormat;
 	private String embedSub;
+	private HashMap<String,String> stash;
+
 	
 	private static final long AUTO_PLAY_FACTOR=(1000*15);
 	
@@ -60,6 +63,10 @@ public class ChannelPMSSaveFolder extends VirtualFolder {
 	public void setEmbedSub(String str) {
 		embedSub=str;
 	}
+	
+	public void setStash(HashMap<String,String> map) {
+		stash=map;
+	}
 		
 	public void discoverChildren() {
 		final ChannelPMSSaveFolder me=this;
@@ -79,7 +86,8 @@ public class ChannelPMSSaveFolder extends VirtualFolder {
 						return false;
 					String rUrl=url;
 					if(scraper!=null)
-						rUrl=scraper.scrape(ch, url, proc, f, this,false,null,embedSub);
+						rUrl=scraper.scrape(ch, url, proc, f, this,false,null,
+											embedSub,stash);
 					oh.update(rUrl, rName, add);
 					me.childDone();
 					return add;
@@ -108,7 +116,8 @@ public class ChannelPMSSaveFolder extends VirtualFolder {
 							return false;
 						String rUrl=url;
 						if(scraper!=null)
-							rUrl=scraper.scrape(ch, url, proc, f, this,false,null,embedSub);
+							rUrl=scraper.scrape(ch, url, proc, f, this,false,null,
+												embedSub,stash);
 						if(ChannelUtil.empty(rUrl))
 							return false;
 						Thread t=ChannelUtil.backgroundDownload(rName, rUrl, false);
@@ -126,9 +135,11 @@ public class ChannelPMSSaveFolder extends VirtualFolder {
 			cms.setEmbedSub(embedSub);
 			cms.setFallbackFormat(videoFormat);
 			cms.setStreamVars(streamVars);
+			cms.setStash(stash);
 			addChild(cms);
 			if(doSubs) {
-				ChannelPMSSubSelector subSel=new ChannelPMSSubSelector(ch,"Select subs - SAVE&PLAY",url,thumb,proc,f,asx,scraper,name,name,imdb);
+				ChannelPMSSubSelector subSel=new ChannelPMSSubSelector(ch,"Select subs - SAVE&PLAY",url,thumb,proc,f,asx,
+																	   scraper,name,name,imdb,stash);
 				addChild(subSel);
 			}
 		}
@@ -139,9 +150,11 @@ public class ChannelPMSSaveFolder extends VirtualFolder {
 		cms.setEmbedSub(embedSub);
 		cms.setFallbackFormat(videoFormat);
 		cms.setStreamVars(streamVars);
+		cms.setStash(stash);
 		addChild(cms);
 		if(doSubs) {
-			ChannelPMSSubSelector subSel=new ChannelPMSSubSelector(ch,"Select subs - PLAY",url,thumb,proc,f,asx,scraper,name,null,imdb);
+			ChannelPMSSubSelector subSel=new ChannelPMSSubSelector(ch,"Select subs - PLAY",url,
+											thumb,proc,f,asx,scraper,name,null,imdb,stash);
 			addChild(subSel);
 			if(save) {
 				cms=new ChannelMediaStream(ch,"SAVE&PLAY - No Subs",url,thumb,proc,f,asx,scraper,name,name);
@@ -151,6 +164,7 @@ public class ChannelPMSSaveFolder extends VirtualFolder {
 				cms.setSaveMode(rawSave);
 				cms.setFallbackFormat(videoFormat);
 				cms.setStreamVars(streamVars);
+				cms.setStash(stash);
 				addChild(cms);
 			}
 			cms=new ChannelMediaStream(ch,"PLAY - No Subs",url,thumb,proc,f,asx,scraper,name,null);
@@ -160,6 +174,7 @@ public class ChannelPMSSaveFolder extends VirtualFolder {
 			cms.setSaveMode(rawSave);
 			cms.setFallbackFormat(videoFormat);
 			cms.setStreamVars(streamVars);
+			cms.setStash(stash);
 			addChild(cms);
 		}
 	}

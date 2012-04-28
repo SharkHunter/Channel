@@ -142,6 +142,8 @@ public class ChannelMedia implements ChannelProps,ChannelScraper {
 			if(keyval[0].equalsIgnoreCase("fallback_video"))
 				videoFormat=ChannelUtil.ensureDot(keyval[1].trim());
 		}
+		if(matcher!=null)
+			matcher.processProps(prop);
 	}
 	
 	public void setFallBackFormat(String s) {
@@ -162,24 +164,24 @@ public class ChannelMedia implements ChannelProps,ChannelScraper {
 		params.put(key, val);
 	}
 	public void add(DLNAResource res,String nName,String url,String thumb,boolean autoASX) {
-		add(res,nName,url,thumb,autoASX,null,-1,ChannelMedia.SAVE_OPT_NONE,null);
+		add(res,nName,url,thumb,autoASX,null,-1,ChannelMedia.SAVE_OPT_NONE,null, null);
 	}
 
 	public void add(DLNAResource res,String nName,String url,String thumb,boolean autoASX,int sOpt) {
-		add(res,nName,url,thumb,autoASX,null,-1,sOpt,null);
+		add(res,nName,url,thumb,autoASX,null,-1,sOpt,null, null);
 	}
 	
 	public void add(DLNAResource res,String nName,String url,String thumb,boolean autoASX,String imdb) {
-		add(res,nName,url,thumb,autoASX,imdb,-1,ChannelMedia.SAVE_OPT_NONE,null);
+		add(res,nName,url,thumb,autoASX,imdb,-1,ChannelMedia.SAVE_OPT_NONE,null, null);
 	}
 	
 	public void add(DLNAResource res,String nName,String url,String thumb,
 			boolean autoASX,String imdb,int f,String subs) {
-		add(res,nName,url,thumb,autoASX,imdb,f,ChannelMedia.SAVE_OPT_NONE,subs);
+		add(res,nName,url,thumb,autoASX,imdb,f,ChannelMedia.SAVE_OPT_NONE,subs, null);
 	}
 	
 	public void add(final DLNAResource res,String nName,String url,String thumb,
-			boolean autoASX,String imdb,int f,int sOpt,String subs) {
+			boolean autoASX,String imdb,int f,int sOpt,String subs, HashMap<String, String> rtmpStash) {
 		if(!ChannelUtil.empty(thumbURL)) {
 			if(ChannelUtil.getProperty(prop, "use_conf_thumb"))
 				thumb=thumbURL;
@@ -206,7 +208,7 @@ public class ChannelMedia implements ChannelProps,ChannelScraper {
 			nName="Unknown";
 		nName=StringEscapeUtils.unescapeHtml(nName);
 		parent.debug("found media "+nName+" thumb "+thumb+" url "+url+" format "+format+
-				" script "+script+" embedsubs "+subs+" imdb "+imdb);
+				" script "+script+" embedsubs "+subs+" imdb "+imdb+" stash "+rtmpStash);
 		// asx is weird and one would expect mencoder to support it no
 		int asx=ChannelUtil.ASXTYPE_NONE;
 		if(ChannelUtil.getProperty(prop, "auto_asx"))
@@ -223,6 +225,7 @@ public class ChannelMedia implements ChannelProps,ChannelScraper {
 			sf.setEmbedSub(subs);
 			sf.setSaveMode(ChannelUtil.getProperty(prop, "raw_save"));
 			sf.setFallbackFormat(videoFormat);
+			sf.setStash(rtmpStash);
 			res.addChild(sf);
 		}
 		else {
@@ -237,6 +240,7 @@ public class ChannelMedia implements ChannelProps,ChannelScraper {
 			cms.setSaveMode(ChannelUtil.getProperty(prop, "raw_save"));
 			cms.setFallbackFormat(videoFormat);
 			cms.setEmbedSub(subs);
+			cms.setStash(rtmpStash);
 			res.addChild(cms);
 		}
 	}
@@ -247,7 +251,7 @@ public class ChannelMedia implements ChannelProps,ChannelScraper {
 	
 	@Override
 	public String scrape(Channel ch, String url, String scriptName,int format,DLNAResource start
-			             ,boolean noSub,String imdb,Object embedSubs) {
+			             ,boolean noSub,String imdb,Object embedSubs,HashMap<String,String> extraMap) {
 		ch.debug("scrape sub "+subtitle+" format "+format);
 		String subFile="";
 		boolean live=ChannelUtil.getProperty(prop, "live");
@@ -273,6 +277,10 @@ public class ChannelMedia implements ChannelProps,ChannelScraper {
 		Channels.debug("scrape script name "+scriptName);
 		if(ChannelUtil.empty(scriptName)) { // no script just return what we got
 			vars.put("url", ChannelUtil.parseASX(url,asx));
+			if(extraMap!=null)
+				vars.putAll(extraMap);
+			if(live)
+				vars.put("live", "true");	
 			return ChannelUtil.createMediaUrl(vars,format,ch);
 		}
 		ch.debug("media scrape type "+scriptType+" name "+scriptName);

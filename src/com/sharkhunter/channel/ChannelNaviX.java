@@ -239,7 +239,7 @@ public class ChannelNaviX extends VirtualFolder implements ChannelScraper {
 
 	@Override
 	public String scrape(Channel ch, String url, String processorUrl,int format,DLNAResource start
-			             ,boolean noSub,String imdb,Object embedSub) {
+			             ,boolean noSub,String imdb,Object embedSub,HashMap<String,String> extraMap) {
 		imdbId=imdb;
 		return ChannelNaviXProc.parse(url,processorUrl,format,(noSub?null:this),start);
 	}

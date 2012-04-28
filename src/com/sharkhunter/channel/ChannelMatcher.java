@@ -10,6 +10,7 @@ public class ChannelMatcher implements ChannelProps{
 	 private ChannelProps properties;
 	 private Matcher matcher;
 	 private Channel parent;
+	 private int flags;
 	 
 	 private static final String lcbr="###lcbr###";
 	 private static final String rcbr="###rcbr###";
@@ -20,25 +21,30 @@ public class ChannelMatcher implements ChannelProps{
 		 if(ChannelUtil.empty(order)) //  no order configured, use default
 			 order="url,name,thumb";
 		 if(reg!=null)
-			 regStr=reg;//this.regexp=Pattern.compile(fixReg(reg),Pattern.MULTILINE);//|Pattern.DOTALL);
+			 regStr=reg;
 		 this.order=order.split(",");
 		 this.properties=prop;
 		 regexp=null;
 		 parent=null;
+		 flags=Pattern.MULTILINE;
 	  }
 	 
 	 public void setChannel(Channel ch) {
 		 parent=ch;
 	 }
+	 
+	 public void processProps(String[] props) {
+		 if(ChannelUtil.getProperty(props, "matcher_dotall"))
+			 flags|=Pattern.DOTALL;
+	 }
 
 	 public Pattern getRegexp() {
-		 //return this.regexp;
-		 return Pattern.compile(fixReg(regStr),Pattern.MULTILINE);
+		 return Pattern.compile(fixReg(regStr),flags);
 	 }
 
 	 public void setMatcher(String reg) {
 		 if(!ChannelUtil.empty(reg))
-			 regStr=reg;//regexp=Pattern.compile(fixReg(reg),Pattern.MULTILINE);
+			 regStr=reg;
 	 }
 	 
 	 private String fixReg(String str) {
@@ -56,7 +62,7 @@ public class ChannelMatcher implements ChannelProps{
 	 public void startMatch(String str) {
 		 if(ChannelUtil.empty(regStr))
 			 return;
-		 regexp=Pattern.compile(fixReg(regStr),Pattern.MULTILINE);
+		 regexp=Pattern.compile(fixReg(regStr),flags);
 		 this.matcher=this.regexp.matcher(str);
 	 }
 

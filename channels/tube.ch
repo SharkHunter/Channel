@@ -1,4 +1,4 @@
-version=0.1
+version=0.12
 
 scriptdef tubeSub1 {
 	url=s_url
@@ -57,12 +57,19 @@ macrodef tvMacro {
 		prop=prepend_thumb=http://www.tubeplus.me/
 		#post_script=tubeTvScript
 		folder {
-			#href=/player/1972239/The_Big_Bang_Theory/season_5/episode_18/The_Werewolf_Transformation/">Episode 18 - The Werewolf Transformation<
-			matcher=href=(/player[^\"]+)\">([^<]+)<
-			order=url,name
-			url=http://www.tubeplus.me/
-			macro=tubeMedia
-			prop=name_separator=-
+				matcher=href=\"(/player[^\"]+)\">WATCH ONLINE</a>.*imdb\.com/title/tt(\d+)
+				order=url,imdb
+				url=http://www.tubeplus.me/
+				type=empty
+				prop=matcher_dotall
+				folder {
+					#href=/player/1972239/The_Big_Bang_Theory/season_5/episode_18/The_Werewolf_Transformation/">Episode 18 - The Werewolf Transformation<
+					matcher=href=(/player[^\"]+)\">([^<]+)<
+					order=url,name
+					url=http://www.tubeplus.me/
+					macro=tubeMedia
+					prop=name_separator=-,movieinfo
+				}
 		}
 	}
 }

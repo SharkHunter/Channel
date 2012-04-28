@@ -15,6 +15,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
 
 import net.pms.PMS;
@@ -58,6 +59,7 @@ public class ChannelMediaStream extends DLNAResource {
 	private long delay;
 	private Object embedSub;
 	private ChannelStreamVars streamVars;
+	private HashMap<String,String> stash;
 	
 	public ChannelMediaStream(Channel ch,String name,String nextUrl,
 			  String thumb,String proc,int type,int asx,
@@ -130,6 +132,7 @@ public class ChannelMediaStream extends DLNAResource {
 		delay=cms.delay;
 		embedSub=cms.embedSub;
 		streamVars=cms.streamVars;
+		stash=cms.stash;
 	}
 	
 	public void noSubs() {
@@ -166,6 +169,10 @@ public class ChannelMediaStream extends DLNAResource {
 	
 	public void setName(String n) {
 		name=n;
+	}
+	
+	public void setStash(HashMap<String,String> map) {
+		stash=map;
 	}
 	
     public InputStream getThumbnailInputStream() throws IOException {
@@ -226,7 +233,8 @@ public class ChannelMediaStream extends DLNAResource {
     public void scrape() {
     	if(!scraped) {
     		if(scraper!=null)
-    			realUrl=scraper.scrape(ch,url,processor,format,this,noSubs,imdb,embedSub);
+    			realUrl=scraper.scrape(ch,url,processor,format,this,noSubs,imdb,
+    								   embedSub,stash);
     		else
     			realUrl=ChannelUtil.parseASX(url, ASX);
     		scrapeTime=System.currentTimeMillis();
@@ -331,7 +339,8 @@ public class ChannelMediaStream extends DLNAResource {
     	Channels.debug("cms getinp/0 scrape "+scraper+" url "+realUrl);
     	if(!scraped) {
     		if(scraper!=null)
-    			realUrl=scraper.scrape(ch,url,processor,format,this,noSubs,imdb,embedSub);
+    			realUrl=scraper.scrape(ch,url,processor,format,this,noSubs,imdb,
+    									embedSub,stash);
     		else
     			realUrl=ChannelUtil.parseASX(url, ASX);
     	}
@@ -541,7 +550,8 @@ public class ChannelMediaStream extends DLNAResource {
 		if(scraper==null)
 			ChannelUtil.parseASX(url, ASX);
 		if(ChannelUtil.empty(processor))
-			return scraper.scrape(ch,url,processor,format,this,noSubs,imdb,embedSub);
+			return scraper.scrape(ch,url,processor,format,this,noSubs,imdb,
+								  embedSub,stash);
 		return url;
 	}
 	

@@ -24,7 +24,7 @@ init {
 			def seenSub = false
 			def args = ''
 			def swfUrl=''
-			def force=pmsConf['rtmdump.force']
+			def force=pmsConf['rtmpdump.force']
 
 			//mencoderArgs << '-mc' << '0.1'
 			//mencoderArgs << '-channels' << '6'
@@ -71,7 +71,7 @@ init {
 						rtmpdumpArgs << name
 						break
 					case '-p':
-						args+=' pageurl='+value
+						args+=' pageUrl='+value
 						rtmpdumpArgs << name
 						rtmpdumpArgs << quoteURI(value)
 						break
@@ -114,6 +114,7 @@ init {
                 }
             }
             if (seenURL) {
+			log.info("seenSubs "+seenSubs+" force "+force)
                 // rtmpdump doesn't log to stdout, so no need to use -q on Windows
 				$PARAMS.waitbeforestart = 6000L
 				if(!seenSub&&!force) {

@@ -78,6 +78,8 @@ public class ChannelItem implements ChannelProps{
 				matcher.setChannel(parent);
 			}
 		}
+		if(matcher!=null)
+			matcher.processProps(prop);
 	}
 	
 	public boolean autoMedia() {

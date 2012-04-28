@@ -268,6 +268,8 @@ public class ChannelFolder implements ChannelProps, SearchObj{
 			if(keyval[0].equalsIgnoreCase("fallback_video"))
 				videoFormat=ChannelUtil.ensureDot(keyval[1].trim());
 		}
+		if(matcher!=null)
+			matcher.processProps(prop);
 	}
 	
 	public int getType() {
@@ -585,7 +587,7 @@ public class ChannelFolder implements ChannelProps, SearchObj{
 	    	}
 	    	m.startMatch(page);
 	    	while(m.match()) {
-	    		Channels.debug("allplay "+allPlay+" cfg "+Channels.cfg().allPlay());
+	    		//Channels.debug("allplay "+allPlay+" cfg "+Channels.cfg().allPlay());
 	    		if(allPlay==null&&Channels.cfg().allPlay()) {
 	    			allPlay=new ChannelPMSAllPlay("PLAY",pThumb);
 	    			//res.addChild(allPlay);
@@ -603,6 +605,9 @@ public class ChannelFolder implements ChannelProps, SearchObj{
 	    		String subs=m.getMatch("subs", false);
 	    		String playpath=m.getMatch("playpath",false);
 	    		String swfplayer=m.getMatch("swfVfy",false);
+	    		String swfUrl=m.getMatch("swfUrl",false);
+	    		String pageUrl=m.getMatch("pageUrl",false);
+	    		String app=m.getMatch("app",false);
 	    		thumb=ChannelUtil.getThumb(thumb, pThumb, parent);
 	    		parent.debug("media matching using "+m.getRegexp().pattern());
 	    		if(ChannelUtil.empty(someName))
@@ -612,17 +617,28 @@ public class ChannelFolder implements ChannelProps, SearchObj{
 	    		Channels.debug("set fb format "+videoFormat+" url "+mUrl);
 	    		m1.setFallBackFormat(videoFormat);
     			boolean asx=ChannelUtil.getProperty(prop, "auto_asx");
+    			HashMap<String,String> map=new HashMap<String,String>();
+    			if(!ChannelUtil.empty(swfUrl))
+    				map.put("swfurl", swfUrl);
+    			if(!ChannelUtil.empty(playpath))
+    				map.put("playpath", playpath);
+    			if(!ChannelUtil.empty(swfplayer))
+    				map.put("swfVfy", swfplayer);
+    			if(!ChannelUtil.empty(pageUrl))
+    				map.put("pageurl", pageUrl);
+    			if(!ChannelUtil.empty(app))
+    				map.put("app", app);
 	    		m1.add(res, someName, mUrl, thumb,
-	    				asx,imdbId,format,subs);
+	    				asx,imdbId,format,ChannelMedia.SAVE_OPT_NONE,subs,map);
 	    		m1.stash("playpath",playpath);
 	    		m1.stash("swfVfy",swfplayer);
 	    		medCnt++;
 	    		if(allPlay!=null) {
 	    			m1.add(allPlay, someName, mUrl, thumb,
-		    				asx,imdbId,format,ChannelMedia.SAVE_OPT_PLAY,subs);
+		    				asx,imdbId,format,ChannelMedia.SAVE_OPT_PLAY,subs, null);
 	    			if(Channels.save())
 	    				m1.add(allSave, someName, mUrl, thumb,
-	    	    				asx,imdbId,format,ChannelMedia.SAVE_OPT_SAVE,subs);
+	    	    				asx,imdbId,format,ChannelMedia.SAVE_OPT_SAVE,subs, null);
 	    		}
 	    		if(m1.onlyFirst())
 	    			break;

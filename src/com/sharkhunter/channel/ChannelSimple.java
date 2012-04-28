@@ -59,6 +59,8 @@ public class ChannelSimple implements ChannelProps {
 				matcher.setChannel(parent);
 			}
 		}
+		if(matcher!=null)
+			matcher.processProps(prop);
 	}
 	
 	public ChannelMatcher getMatcher() {

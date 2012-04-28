@@ -24,13 +24,21 @@ public class ChannelPMSSubSelector extends VirtualFolder {
 	private String dispName;
 	private String saveName;
 	private String imdb;
-	
+	private HashMap<String,String> stash;
+
 	private String matchName;
+	
+	public ChannelPMSSubSelector(Channel ch,String name,String nextUrl,
+				 String thumb,String proc,int type,int asx,
+				 ChannelScraper scraper,String dispName,
+				 String saveName,String imdb) {
+		this(ch,name,nextUrl,thumb,proc,type,asx,scraper,dispName,saveName,imdb,null);
+	}
 	
 	public ChannelPMSSubSelector(Channel ch,String name,String nextUrl,
 			  					 String thumb,String proc,int type,int asx,
 			  					 ChannelScraper scraper,String dispName,
-			  					 String saveName,String imdb) {
+			  					 String saveName,String imdb,HashMap<String,String> stash) {
 		super(name,thumb);
 		url=nextUrl;
 		this.name=name;
@@ -44,6 +52,7 @@ public class ChannelPMSSubSelector extends VirtualFolder {
 		this.dispName=dispName;
 		this.imdb=imdb;
 		matchName=null;
+		this.stash=stash;
 	}
 
 	public void discoverChildren() {
@@ -61,6 +70,7 @@ public class ChannelPMSSubSelector extends VirtualFolder {
 		// to play even if nothing is good enough...
 		ChannelMediaStream cms=new ChannelMediaStream(ch,"PLAY (no subs match)",url,null,proc,type,asx,scraper,dispName,saveName);
 		cms.setImdb(imdb);
+		cms.setStash(stash);
 		addChild(cms);
 		// sort the result
 		TreeMap<Integer,TreeSet<String>> m=sortMap(choices);
@@ -70,11 +80,13 @@ public class ChannelPMSSubSelector extends VirtualFolder {
 				cms=new ChannelMediaStream(ch,key,url,null,proc,type,asx,scraper,dispName,saveName);
 				cms.setEmbedSub(choices.get(key));
 				cms.setImdb(imdb);
+				cms.setStash(stash);
 				addChild(cms);
 			}
 		}
 		cms=new ChannelMediaStream(ch,"PLAY (no subs match)",url,null,proc,type,asx,scraper,dispName,saveName);
 		cms.setImdb(imdb);
+		cms.setStash(stash);
 		addChild(cms);
 	}
 	
