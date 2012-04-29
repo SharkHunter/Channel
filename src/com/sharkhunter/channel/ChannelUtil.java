@@ -587,7 +587,7 @@ public class ChannelUtil {
 				rUrl=ChannelUtil.append(rUrl, "&--swfVfy=", escape(vars.get("swfvfy")));
 				rUrl=ChannelUtil.append(rUrl, "&-s=", escape(vars.get("swfplayer")));
 				rUrl=ChannelUtil.append(rUrl, "&-a=", escape(vars.get("app")));
-				rUrl=ChannelUtil.append(rUrl, "&-p=", escape(vars.get("pageurl").trim()));
+				rUrl=ChannelUtil.append(rUrl, "&-p=", escape(vars.get("pageurl")));
 				rUrl=ChannelUtil.append(rUrl, "&-s=", escape(vars.get("swfurl")));
 				String sub=vars.get("subtitle");
 				if(!empty(sub)) { // we got subtitles
