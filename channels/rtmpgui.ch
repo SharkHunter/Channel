@@ -1,11 +1,11 @@
-version=0.10
+version=0.11
 
 channel RTMPGui {
-   #img=http://www.furk.net/img/logo.png?249
    folder {
 		name=A-Z
 		type=ATZ
 		url=http://apps.ohlulz.com/rtmpgui/list.xml
+		prop=cache,cache_age=0
 		media {
 			matcher=<title><!\[CDATA\[([^\]]+)\]\]></title>\s*.*?\s*<swfUrl><!\[CDATA\[([^\]]+)\]\]></swfUrl>\s*<link><!\[CDATA\[([^\]]+)\]\]></link>\s*<pageUrl><!\[CDATA\[([^\]]+)\]\]></pageUrl>\s*<playpath><!\[CDATA\[([^\]]+)\]\]></playpath>\s*.*?\s*<advanced><!\[CDATA\[\]\]></advanced>
 			order=name,swfUrl,url,pageUrl,playpath

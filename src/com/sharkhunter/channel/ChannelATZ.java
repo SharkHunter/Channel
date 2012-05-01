@@ -22,12 +22,21 @@ public class ChannelATZ extends VirtualFolder {
 	}
 	
 	public void discoverChildren() {
+		String slash="/";
+		boolean low=folder.getProperty("atz_lowercase");
+		if(folder.getProperty("atz_noslash"))
+			slash="";
+		if(folder.getProperty("cache")) // cache cleanup need here
+			folder.addCacheClear(this);
 		for(char i='A';i<='Z';i++) {
+			String ch=String.valueOf(i);
+			if(low)
+				ch=ch.toLowerCase();
 			if(folder.getType()==ChannelFolder.TYPE_ATZ)
 				addChild(new ChannelPMSFolder(folder,i,url));
 			else if(folder.getType()==ChannelFolder.TYPE_ATZ_LINK) {
 				addChild(new ChannelPMSFolder(folder,String.valueOf(i),null,
-						   "/"+String.valueOf(i),folder.getThumb()));
+						   slash+ch,folder.getThumb()));
 			}
 		}
 		if(folder.getType()==ChannelFolder.TYPE_ATZ) {
@@ -42,7 +51,7 @@ public class ChannelATZ extends VirtualFolder {
 		if(folder.getType()==ChannelFolder.TYPE_ATZ)
 			addChild(new ChannelPMSFolder(folder,"#",otherStr,url,folder.getThumb()));
 		else if(folder.getType()==ChannelFolder.TYPE_ATZ_LINK) {
-			addChild(new ChannelPMSFolder(folder,"#",null,"/"+otherStr,folder.getThumb()));
+			addChild(new ChannelPMSFolder(folder,"#",null,slash+otherStr,folder.getThumb()));
 		}
 	}
 	

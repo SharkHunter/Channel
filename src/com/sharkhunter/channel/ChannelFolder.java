@@ -1,8 +1,10 @@
 package com.sharkhunter.channel;
 
 import java.io.BufferedReader;
+import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.FileInputStream;
+import java.io.IOException;
 import java.io.InputStreamReader;
 import java.net.MalformedURLException;
 import java.net.Proxy;
@@ -10,6 +12,7 @@ import java.net.URL;
 import java.net.URLConnection;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Calendar;
 import java.util.HashMap;
 
 import org.apache.commons.lang.StringEscapeUtils;
@@ -304,6 +307,10 @@ public class ChannelFolder implements ChannelProps, SearchObj{
 		return ChannelUtil.getPropertyValue(prop, p);
 	}
 	
+	public boolean getProperty(String p) {
+		return ChannelUtil.getProperty(prop, p);
+	}
+	
 	public String[] getPropList() {
 		return prop;
 	}
@@ -464,6 +471,10 @@ public class ChannelFolder implements ChannelProps, SearchObj{
 	public void match(DLNAResource res,ChannelFilter filter,String urlEnd,
 			String pThumb,String nName,String imdb) throws MalformedURLException {
 		String page="";
+		boolean cache=ChannelUtil.getProperty(prop, "cache");
+		File cFile=cacheFile();
+		if(cache&&!isATZ())
+			addCacheClear(res,cFile);
 //		parent.debug("folder match "+name+" nName "+nName);
 		if(ChannelUtil.getProperty(prop, "test_login")) {
 			parent.prepareCom();
@@ -497,13 +508,21 @@ public class ChannelFolder implements ChannelProps, SearchObj{
 				post=false;
 		}
 		boolean dummy=false;
+		boolean oldCache=false;
 		if(url!=null)
 			dummy=url.equals("dummy_url");
 		if(!post)
 			realUrl=ChannelUtil.concatURL(url,StringEscapeUtils.unescapeHtml(urlEnd));
 		if(dummy)
 			realUrl=urlEnd;
-		
+		if(cache&&cFile.exists()) {
+			String ageTime=ChannelUtil.getPropertyValue(prop, "cache_age");
+			if(ChannelUtil.empty(ageTime))
+				ageTime="7";
+			oldCache=oldCache(ageTime,cFile);
+			if(!oldCache)
+				realUrl=cFile.toURI().toURL().toString();
+		}
 		//realUrl=ChannelNaviXProc.simple(realUrl, pre_script);
 		realUrl=ChannelScriptMgr.runScript(pre_script, realUrl, parent);
 		if(!ChannelUtil.empty(realUrl)&&!dummy) {
@@ -532,8 +551,27 @@ public class ChannelFolder implements ChannelProps, SearchObj{
 			}
 			parent.debug("page "+page);
 			if(ChannelUtil.empty(page)) {
-				return;
+				if(cache&&oldCache) { // use the old cache no matter what
+					urlobj=new URL(cFile.toURI().toURL().toString().replaceAll(" ", "%20"));
+					try {
+						page=ChannelUtil.fetchPage(urlobj.openConnection());
+					} catch (IOException e) {
+					}
+					if(ChannelUtil.empty(page)) // still empty
+						return;
+				}
+				else
+					return;
 			}
+			if(cache&&!cFile.exists()) {
+				cFile.delete();
+				try {
+					ChannelUtil.downloadText(new ByteArrayInputStream(page.getBytes()), cFile);
+				} catch (Exception e) {
+				}
+			}
+			else if(oldCache) 
+				cFile.delete();
 		}
 		int form=format;
 		//Channels.debug("format before flipp "+format);
@@ -1069,5 +1107,43 @@ public class ChannelFolder implements ChannelProps, SearchObj{
 	
 	public String mangle(String base) {
 		return ChannelUtil.getPropertyValue(prop, base+"_mangle");
+	}
+	
+	////////////////////////////////////////////////////////////////
+	// Cahceing folders
+	////////////////////////////////////////////////////////////////
+	
+	private File cacheFile() {
+		return new File(Channels.dataPath()+File.separator+parent.name()+"_"+name);
+	}
+	
+	public void addCacheClear(DLNAResource res) {
+		addCacheClear(res,cacheFile());
+	}
+	
+	private void addCacheClear(DLNAResource res,final File f) {
+		res.addChild(new VirtualVideoAction("Force update", true) {
+			public boolean enable() {
+				f.delete();
+				return true;
+			}
+		});
+	}
+	
+	private boolean oldCache(String time,File f) {
+		if(time.equals("0")) // never age this entry
+			return false;
+		int t;
+		try {
+			t=Integer.parseInt(time);
+			
+		} catch (Exception e) {
+			t=7;
+		}
+		Calendar c=Calendar.getInstance();
+		Calendar d=Calendar.getInstance();
+		d.setTimeInMillis(f.lastModified());
+		d.add(Calendar.DATE, t);
+		return c.after(d);
 	}
 }
