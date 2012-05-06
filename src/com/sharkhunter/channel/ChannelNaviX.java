@@ -52,14 +52,29 @@ public class ChannelNaviX extends VirtualFolder implements ChannelScraper {
 		return name;
 	}
 	
+	private void doAdd(DLNAResource upper,DLNAResource res,String name,String url) {
+		if(Channels.isCode(name, ChannelIllegal.TYPE_NAME)||
+ 		   Channels.isCode(url, ChannelIllegal.TYPE_URL)) {
+			ChannelPMSCode code=new ChannelPMSCode(name,null);
+			code.addChild(res);
+			upper.addChild(code);
+		}
+		else
+			upper.addChild(res);
+	}
+	
 	private void addMedia(String name,String nextUrl,String thumb,String proc,String type,String pp,
 			DLNAResource res,String imdb) {
 		if(type!=null) {
 			if(pp!=null)
 				nextUrl=nextUrl+pp;
+			if(Channels.isIllegal(nextUrl, ChannelIllegal.TYPE_URL))
+				return;
 			if(!ChannelUtil.empty(thumb)&&thumb.equalsIgnoreCase("default"))
 				thumb=null;
 			name=washName(name);
+			if(Channels.isIllegal(name, ChannelIllegal.TYPE_NAME))
+				return;
 			parent.debug("url "+nextUrl+" type "+type+" processor "+proc+" name "+name);
 			if(type.equalsIgnoreCase("playlist")) {
 				String cn=ChannelUtil.getPropertyValue(props, "continue_name");
@@ -83,7 +98,7 @@ public class ChannelNaviX extends VirtualFolder implements ChannelScraper {
 						}
 					}
 				}
-				res.addChild(new ChannelNaviX(parent,name,thumb,nextUrl,props,subtitle));
+				doAdd(res,new ChannelNaviX(parent,name,thumb,nextUrl,props,subtitle),name,nextUrl);
 			}
 			else if(type.equalsIgnoreCase("search")) {
 				ChannelNaviXSearch sobj=new ChannelNaviXSearch(this,nextUrl);
@@ -94,7 +109,7 @@ public class ChannelNaviX extends VirtualFolder implements ChannelScraper {
 				int f=ChannelUtil.getFormat(type);
 				if(f==-1)
 					f=Format.VIDEO; // guess
-				res.addChild(new Feed(name,nextUrl,f));
+				doAdd(res,new Feed(name,nextUrl,f),name,nextUrl);
 			}
 			else {
 				int f=ChannelUtil.getFormat(type);
@@ -112,7 +127,7 @@ public class ChannelNaviX extends VirtualFolder implements ChannelScraper {
 					ChannelPMSSaveFolder sf=new ChannelPMSSaveFolder(parent,name,nextUrl,thumb,proc,
 							asx,f,this);
 					sf.setImdb(imdb);
-					res.addChild(sf);
+					doAdd(res,sf,name,nextUrl);
 				}
 				else {
 					ChannelMediaStream cms=new ChannelMediaStream(parent,name,nextUrl,thumb,proc,
@@ -122,7 +137,7 @@ public class ChannelNaviX extends VirtualFolder implements ChannelScraper {
 					ChannelStreamVars streamVars=new ChannelStreamVars(Channels.defStreamVar());
 					//streamVars.add(this, parent);
 					cms.setStreamVars(streamVars);
-					res.addChild(cms);
+					doAdd(res,cms,name,nextUrl);
 				}
 			}
 		}

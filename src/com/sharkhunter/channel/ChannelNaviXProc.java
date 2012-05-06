@@ -53,7 +53,7 @@ public class ChannelNaviXProc {
 /*			if(val.charAt(stop-1)=='\'')
 				return val.substring(1, stop-1);
 			else*/
-				return val.substring(1);
+				return ChannelUtil.separatorToken(val.substring(1));
 		}
 		else  { // variable
 			return storedVal;

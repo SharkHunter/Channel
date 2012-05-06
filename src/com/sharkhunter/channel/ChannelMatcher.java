@@ -3,6 +3,8 @@ package com.sharkhunter.channel;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import org.apache.commons.lang.StringEscapeUtils;
+
 public class ChannelMatcher implements ChannelProps{
 	 private Pattern regexp;
 	 private String regStr;
@@ -126,6 +128,7 @@ public class ChannelMatcher implements ChannelProps{
 	 
 	 private String pend(String str,String field) {
 		 str=esc(unesc(str,field),field);
+		 //str=StringEscapeUtils.unescapeHtml(str); // do this always
 		 String r1=ChannelUtil.append(str, null, properties.append(field));
 		 return doMangle(ChannelUtil.append(properties.prepend(field), null, r1),field);
 	 }

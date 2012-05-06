@@ -28,6 +28,7 @@ init {
 
 			//mencoderArgs << '-mc' << '0.1'
 			//mencoderArgs << '-channels' << '6'
+			ffmpegArgs << '-b' << '1024k'
 
             for (pair in pairs) {
                 def name = pair.name
@@ -71,7 +72,7 @@ init {
 						rtmpdumpArgs << name
 						break
 					case '-p':
-						args+=' pageUrl='+value
+						args+=' pageurl='+value
 						rtmpdumpArgs << name
 						rtmpdumpArgs << quoteURI(value)
 						break
@@ -114,7 +115,6 @@ init {
                 }
             }
             if (seenURL) {
-			log.info("seenSubs "+seenSubs+" force "+force)
                 // rtmpdump doesn't log to stdout, so no need to use -q on Windows
 				$PARAMS.waitbeforestart = 6000L
 				if(!seenSub&&!force) {
@@ -127,7 +127,10 @@ init {
 					$DOWNLOADER += rtmpdumpArgs
 					if(seenSub) {
 						$TRANSCODER = $MENCODER + mencoderArgs
-					}						
+					}
+					else {
+						$TRANSCODER = $FFMPEG + ffmpegArgs
+					}
 				}
             } else {
                 log.error("invalid rtmpdump:// URI: no -r or --rtmp parameter supplied: ${$URI}")

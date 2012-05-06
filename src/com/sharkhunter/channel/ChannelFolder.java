@@ -596,11 +596,15 @@ public class ChannelFolder implements ChannelProps, SearchObj{
 		DLNAResource allPlay=null;
 		DLNAResource allSave=null;
 		int medCnt=0;
+		HashMap<String,String> uniqueMedia = new HashMap<String,String>();   // from matched name to matched URL
+    	boolean discardDuplicates = ChannelUtil.getProperty(prop, "discard_duplicates");
 	    for(int i=0;i<med.size();i++) {
 	    	ChannelMedia m1=med.get(i);
 	    	ChannelMatcher m=m1.getMatcher();
 	    	Channels.debug("media "+m+" sc "+m1.scriptOnly());
 	    	if(m==null) { // no matcher => static media
+	    		if(Channels.isIllegal(nName, ChannelIllegal.TYPE_NAME))
+	    				continue;
 	    		String thumb=ChannelUtil.getThumb(null, pThumb, parent);
 	    		if(allPlay==null&&Channels.cfg().allPlay()) {
 	    			allPlay=new ChannelPMSAllPlay("PLAY",pThumb);
@@ -611,6 +615,8 @@ public class ChannelFolder implements ChannelProps, SearchObj{
 	    			}
 	    		}
 	    		String ru=(m1.scriptOnly()?realUrl:null);
+	    		if(Channels.isIllegal(ru, ChannelIllegal.TYPE_URL))
+	    			continue;
 	    		boolean asx=ChannelUtil.getProperty(prop, "auto_asx");
 	    		if(ChannelUtil.empty(imdb))
 	    			imdb=imdbId;
@@ -635,9 +641,22 @@ public class ChannelFolder implements ChannelProps, SearchObj{
 	    			}
 	    		}
 	    		String someName=m.getMatch("name",false);
+	    		parent.debug("media matching using "+m.getRegexp().pattern()+" name "+someName);
+	    		if(Channels.isIllegal(someName, ChannelIllegal.TYPE_NAME))
+	    			continue;
 	    		if(filter!=null&&!filter.filter(someName))
 	    			continue;
 	    		String mUrl=m.getMatch("url",true);
+	    		if(Channels.isIllegal(mUrl, ChannelIllegal.TYPE_URL))
+	    			continue;
+	    		if (discardDuplicates) {
+	    			if (uniqueMedia.containsKey(someName)) {
+	    				/*String storedUrl=uniqueMedia.get(someName);
+	    				if(storedUrl.equals(mUrl))*/
+	    					continue;
+	    			}
+	    			uniqueMedia.put(someName, mUrl);
+	    		}
 	    		String thumb=m.getMatch("thumb",false);
 	    		String imdbId=m.getMatch("imdb",false);
 	    		String subs=m.getMatch("subs", false);
@@ -647,7 +666,6 @@ public class ChannelFolder implements ChannelProps, SearchObj{
 	    		String pageUrl=m.getMatch("pageUrl",false);
 	    		String app=m.getMatch("app",false);
 	    		thumb=ChannelUtil.getThumb(thumb, pThumb, parent);
-	    		parent.debug("media matching using "+m.getRegexp().pattern());
 	    		if(ChannelUtil.empty(someName))
 	    			someName=nName;
 	    		if(ChannelUtil.empty(imdbId))
@@ -666,6 +684,16 @@ public class ChannelFolder implements ChannelProps, SearchObj{
     				map.put("pageurl", pageUrl);
     			if(!ChannelUtil.empty(app))
     				map.put("app", app);
+    			if(Channels.isCode(someName, ChannelIllegal.TYPE_NAME)||
+    			   Channels.isCode(mUrl, ChannelIllegal.TYPE_URL)) {
+    				ChannelPMSCode addOn=new ChannelPMSCode(someName,thumb);
+    				m1.add(addOn, someName, mUrl, thumb,
+    	    				asx,imdbId,format,ChannelMedia.SAVE_OPT_NONE,subs,map);
+    				m1.stash("playpath",playpath);
+    	    		m1.stash("swfVfy",swfplayer);
+    				res.addChild(addOn);
+    				continue;
+    			}
 	    		m1.add(res, someName, mUrl, thumb,
 	    				asx,imdbId,format,ChannelMedia.SAVE_OPT_NONE,subs,map);
 	    		m1.stash("playpath",playpath);
@@ -682,6 +710,7 @@ public class ChannelFolder implements ChannelProps, SearchObj{
 	    			break;
 	    	}
 	    } 
+	    Channels.debug("all media done cnt "+medCnt);
 	    if(medCnt>1) {
 	    	if(allPlay!=null)
 	    		res.addChild(allPlay);
@@ -700,6 +729,9 @@ public class ChannelFolder implements ChannelProps, SearchObj{
 	    		//if(filter!=null&&!filter.filter(someName))
 	    			//continue;
 	    		String iUrl=m.getMatch("url",true);
+	    		if(Channels.isIllegal(someName, ChannelIllegal.TYPE_NAME)||
+	    		   Channels.isIllegal(iUrl, ChannelIllegal.TYPE_URL))
+	    		   continue;
 	    		String thumb=m.getMatch("thumb",false);
 	    		thumb=ChannelUtil.getThumb(thumb, pThumb, parent);
 	    		PMS.debug("found item "+someName+" url "+iUrl);
@@ -725,9 +757,13 @@ public class ChannelFolder implements ChannelProps, SearchObj{
 	    	parent.debug("switch matching using expr "+m.getRegexp().pattern());
 	    	while(m.match()) {
 	    		String someName=m.getMatch("name",false);
+	    		if(Channels.isIllegal(someName, ChannelIllegal.TYPE_NAME))
+	 	    		   continue;
 	    		if(filter!=null&&!filter.filter(someName))
 	    			continue;
 	    		String fUrl=m.getMatch("url",true);
+	    		if(Channels.isIllegal(fUrl, ChannelIllegal.TYPE_URL))
+	    			continue;
 	    		String thumb=m.getMatch("thumb",false);
 	    		parent.debug("matched "+someName+" url "+fUrl);
 	    		ChannelPMSSwitch csp=new ChannelPMSSwitch(ch,sw,someName,null,fUrl,thumb);
@@ -771,13 +807,17 @@ public class ChannelFolder implements ChannelProps, SearchObj{
 	    	parent.debug("folder matching using expr "+m.getRegexp().pattern());
 	    	HashMap<String,ArrayList<ChannelPMSFolder>> groups=new HashMap<String,ArrayList<ChannelPMSFolder>>();
 	    	HashMap<String,String> uniqueNames = new HashMap<String,String>();   // from matched name to matched URL
-	    	boolean discardDuplicates = ChannelUtil.getProperty(prop, "discard_duplicates");
+	    	//boolean discardDuplicates = ChannelUtil.getProperty(prop, "discard_duplicates");
 	    	boolean ignoreMatch = ChannelUtil.getProperty(prop, "ignore_match");
 	    	while(m.match()) {
 	    		String someName=m.getMatch("name",false);
+	    		if(Channels.isIllegal(someName, ChannelIllegal.TYPE_NAME))
+	 	    		   continue;
 	    		if(filter!=null&&!filter.filter(someName))
 	    			continue;
 	    		String fUrl=m.getMatch("url",true);
+	    		if(Channels.isIllegal(fUrl, ChannelIllegal.TYPE_URL))
+	 	    		   continue;
 	    		String thumb=m.getMatch("thumb",false);
 	    		String group=m.getMatch("group",false);
 	    		String imdbId=m.getMatch("imdb",false);
@@ -1114,7 +1154,10 @@ public class ChannelFolder implements ChannelProps, SearchObj{
 	////////////////////////////////////////////////////////////////
 	
 	private File cacheFile() {
-		return new File(Channels.dataPath()+File.separator+parent.name()+"_"+name);
+		String n=name;
+		if(url!=null)
+			n=""+url.hashCode();
+		return new File(Channels.dataPath()+File.separator+parent.name()+"_"+n);
 	}
 	
 	public void addCacheClear(DLNAResource res) {

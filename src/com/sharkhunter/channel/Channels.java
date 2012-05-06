@@ -22,13 +22,14 @@ import org.apache.commons.io.FileUtils;
 import net.pms.PMS;
 import net.pms.dlna.DLNAResource;
 import net.pms.dlna.virtual.VirtualFolder;
+import net.pms.dlna.virtual.VirtualVideoAction;
 import no.geosoft.cc.io.FileListener;
 import no.geosoft.cc.io.FileMonitor;
 
 public class Channels extends VirtualFolder implements FileListener {
 
 	// Version string
-	public static final String VERSION="1.73";
+	public static final String VERSION="1.75";
 	
 	// Constants for RTMP string constructions
 	public static final int RTMP_MAGIC_TOKEN=1;
@@ -65,6 +66,9 @@ public class Channels extends VirtualFolder implements FileListener {
     private ChannelMovieInfo movieInfo;
     private ArrayList<ArrayList<String>> favorite;
     private ChannelStreamVars defStreamVar;
+    private ArrayList<ChannelIllegal> illegals;
+    private ArrayList<ChannelIllegal> codes;
+    private boolean allUnlocked;
     
     public Channels(String path,String name,String img) {
     	super(name,img);
@@ -87,6 +91,8 @@ public class Channels extends VirtualFolder implements FileListener {
     	cookies=new HashMap<String,ArrayList<ChannelAuth>>();
     	proxies=new HashMap<String,ChannelProxy>();
     	stash=new HashMap<String,HashMap<String,String>>();
+    	illegals=new ArrayList<ChannelIllegal>();
+    	codes=new ArrayList<ChannelIllegal>();
     	cache=new ChannelCache(path);
     	defStreamVar=new ChannelStreamVars();
     	searchDb=new ChannelSearch(new File(dataPath()+File.separator+"search.txt"));
@@ -99,7 +105,9 @@ public class Channels extends VirtualFolder implements FileListener {
     	// Add std folders
     	addChild(cache);
     	addChild(searchDb);
+    	addChild(new ChannelPMSCode("Unlock All",null,true));
     	fileMonitor=null;
+    	allUnlocked=false;
     }
     
     public void start(long poll) {
@@ -318,6 +326,16 @@ public class Channels extends VirtualFolder implements FileListener {
     	    	}
     	    	stash.put(sName, newStash);
     	    }
+    	    if(str.startsWith("illegal")) {
+    	    	ArrayList<String> iData=ChannelUtil.gatherBlock(lines, i+1);
+    	    	i+=iData.size();
+    	    	illegals.add(new ChannelIllegal(iData));
+    	    }
+    	    if(str.startsWith("code")) {
+    	    	ArrayList<String> iData=ChannelUtil.gatherBlock(lines, i+1);
+    	    	i+=iData.size();
+    	    	codes.add(new ChannelIllegal(iData));
+    	    }
     	}
     }
     
@@ -349,6 +367,10 @@ public class Channels extends VirtualFolder implements FileListener {
     	    	continue; // don't append these
     	    }	
     	    if(str.trim().startsWith("favorite")) 
+    	    	defines=true;
+    	    if(str.trim().startsWith("illegal")) 
+    	    	defines=true;
+    	    if(str.trim().startsWith("code")) 
     	    	defines=true;
     	    sb.append(str);
     	    sb.append("\n");
@@ -1055,5 +1077,36 @@ public class Channels extends VirtualFolder implements FileListener {
 		return inst.defStreamVar;
 	}
 	
+	///////////////////////////////////////////////////////////////////////
+	
+	private static boolean isIllegal(ArrayList<ChannelIllegal> list,String str,int type) {
+		for(ChannelIllegal ill : list) {
+			if(ill.isIllegal(str, type)) 
+				return true;
+		}
+		return false;
+	}
+	
+	public static boolean isIllegal(String str,int type) {
+		return isIllegal(inst.illegals,str,type);
+	}
+	
+	public static boolean isCode(String str,int type) {
+		if(allUnlocked())
+			return false;
+		return isIllegal(inst.codes,str,type);
+	}
+	
+	public static String getCode() {
+		return (String) PMS.getConfiguration().getCustomProperty("channels.code");
+	}
+	
+	public static void unlockAll() {
+		inst.allUnlocked=true;
+	}
+	
+	public static boolean allUnlocked() {
+		return inst.allUnlocked;
+	}
 	
 }
