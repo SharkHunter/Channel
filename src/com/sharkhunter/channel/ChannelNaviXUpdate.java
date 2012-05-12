@@ -9,11 +9,13 @@ import java.util.regex.Pattern;
 
 public class ChannelNaviXUpdate {
 	
-	private static String myUrl="http://navix.turner3d.net/playlist/mine.plx";
-	private static String loginUrl="http://navix.turner3d.net/members";
-	private static String upUrl="http://navix.turner3d.net/mylists";
+	private static String baseUrl="http://www.navixtreme.com/";
+	private static String myUrl=baseUrl+"playlist/mine.plx";
+	private static String loginUrl=baseUrl+"members";
+	private static String upUrl=baseUrl+"mylists";
 	private static String listId=null;
 	private static String naviCookie=null;
+	private static boolean local;
 	
 	private static boolean setId(String url,String name,String name1,String type) {
 		Pattern re=Pattern.compile("/(\\d+)/");
@@ -49,19 +51,28 @@ public class ChannelNaviXUpdate {
 	}
 	
 	private static void fetchCookie(ChannelCred cr) throws Exception{
+		if(cr==null)
+			return;
 		URL u=new URL(loginUrl);
 		String query="action=takelogin&ajax=1&username="+cr.user+"&password="+cr.pwd;
 		String page=ChannelUtil.postPage(u.openConnection(), query);
-		if(ChannelUtil.empty(page))
-			return;
+		if(ChannelUtil.empty(page)) 
+			throw new Exception("Empty NaviX login page");
 		String[] lines=page.split("\n");
 		if(!lines[0].contains("ok"))
-			return;
+			throw new Exception("NaviX login failed "+page);
 		naviCookie="l_access="+lines[1].trim();
 	}
 	
 	private static void fetchListId(String name) throws Exception {
 		Channels.debug("using "+name+" as NaviX upload list");
+		if(name.equals("local")) {
+			local=true;
+			name=Channels.cfg().getNaviXUpload2();
+			Channels.debug("remote "+name+" used as NaviX list");
+			if(ChannelUtil.empty(name))
+				return;
+		}
 		URL u=new URL(myUrl);
 		URLConnection c=u.openConnection();
 		String page=ChannelUtil.fetchPage(c);
@@ -88,6 +99,7 @@ public class ChannelNaviXUpdate {
 	}
 	
 	public static void init(String listName,ChannelCred cred) throws Exception {
+		local=false;
 		fetchCookie(cred);
 		fetchListId(listName);		
 	}
@@ -107,7 +119,7 @@ public class ChannelNaviXUpdate {
 		upload(query);
 	}
 	
-	public static void updateMedia(String name,String url,String proc,int format,
+	public static void sync(String name,String url,String proc,int format,
 			String thumb,String imdb) throws Exception {
 		if(ChannelUtil.empty(proc)) // just to make sure
 			proc="";
@@ -117,6 +129,30 @@ public class ChannelNaviXUpdate {
 			imdb="";
 		else
 			imdb="imdb="+imdb+"!";
+		if(url.startsWith("rtmpdump://")) {
+			// need to split the rtmpdump stuff back agian
+			int pos=url.indexOf("?");
+			if(pos!=-1) {
+				StringBuffer sb=new StringBuffer();
+				String tmp[]=url.substring(pos+1).split("&");
+				for(int i=0;i<tmp.length;i++) {
+					String[] s=ChannelUtil.unescape(tmp[i]).split("=",2);
+					if(s[0].equals("-r"))  { //special stuff
+						sb.append(s[1]);
+						sb.append(" ");
+						continue;
+					}
+					sb.append(ChannelUtil.rtmpOp(s[0]));
+					if(s.length>1) {
+						sb.append("="+s[1]);
+					}
+					else
+						sb.append("=true");
+					sb.append(" ");
+				}
+				url=sb.toString();
+			}
+		}
 		String query="action=item_save&id=0&list_id="+listId+"&text_local=0&"+
 		"list_pos=top&type="+ChannelUtil.format2str(format).toLowerCase()+
 		"&name="+ChannelUtil.escape(name)+
@@ -127,8 +163,21 @@ public class ChannelNaviXUpdate {
 		upload(query);
 	}
 	
-	public static boolean active() {
+	public static void updateMedia(Channel ch,String name,String url,String proc,int format,
+			String thumb,String imdb) throws Exception {
+		if(local) {
+			Channels.addToPLX(ch,name,url,proc,format,thumb,imdb);
+		}
+		if(netActive())
+			sync(name,url,proc,format,thumb,imdb);
+	}
+	
+	public static boolean netActive() {
 		return (!ChannelUtil.empty(listId))&&(!ChannelUtil.empty(naviCookie));
+	}
+	
+	public static boolean active() {
+		return local||netActive();
 	}
 
 }

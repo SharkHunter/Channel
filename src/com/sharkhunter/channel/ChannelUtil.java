@@ -570,6 +570,8 @@ public class ChannelUtil {
 		
 		if(!rtmpStream(rUrl)) // type is sopcast etc.
 			return rUrl;
+		if(rUrl.startsWith("rtmpdump://"))
+			return rUrl;
 		
 		switch(rtmpMet) {
 			case Channels.RTMP_MAGIC_TOKEN:
@@ -602,6 +604,23 @@ public class ChannelUtil {
 		}
 		Channels.debug("return media url "+rUrl);
 		return rUrl;
+	}
+	
+	public static String rtmpOp(String op) {
+		if(op.equals("-r"))
+			return "";
+		if(op.equals("-y"))
+			return "playpath";
+		if(op.equals("-s"))
+			return "swfUrl";
+		if(op.equals("-p"))
+			return "pageUrl";
+		if(op.equals("-v"))
+			return "live";
+		if(op.equals("--swfVfy"))
+			return "swfVfy";
+		return op;
+			
 	}
 	
 	public static String backTrack(DLNAResource start,int stop) {

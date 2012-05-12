@@ -6,9 +6,11 @@ import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.FileReader;
+import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.net.MalformedURLException;
 import java.net.UnknownHostException;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
@@ -21,6 +23,7 @@ import org.apache.commons.io.FileUtils;
 
 import net.pms.PMS;
 import net.pms.dlna.DLNAResource;
+import net.pms.dlna.PlaylistFolder;
 import net.pms.dlna.virtual.VirtualFolder;
 import net.pms.dlna.virtual.VirtualVideoAction;
 import no.geosoft.cc.io.FileListener;
@@ -29,7 +32,7 @@ import no.geosoft.cc.io.FileMonitor;
 public class Channels extends VirtualFolder implements FileListener {
 
 	// Version string
-	public static final String VERSION="1.75";
+	public static final String VERSION="1.76";
 	
 	// Constants for RTMP string constructions
 	public static final int RTMP_MAGIC_TOKEN=1;
@@ -103,6 +106,16 @@ public class Channels extends VirtualFolder implements FileListener {
     	dbg.start();
     	stash.put("default", new HashMap<String,String>());
     	// Add std folders
+    	try {
+			ChannelNaviX local=new ChannelNaviX(null,"Local Playlist",null,
+												localPLX().toURI().toURL().toString(),
+												null,null);
+			local.setIgnoreSave();
+			local.setIgnoreFav();
+			addChild(local);
+		} catch (MalformedURLException e) {
+		}
+    	
     	addChild(cache);
     	addChild(searchDb);
     	addChild(new ChannelPMSCode("Unlock All",null,true));
@@ -147,17 +160,21 @@ public class Channels extends VirtualFolder implements FileListener {
     			debug("No navix upload playlist configured");
     			return;
     		}
+    		boolean added=false;
     		for(int i=0;i<cred.size();i++) {
         		ChannelCred cr=cred.get(i);
         		if(ChannelUtil.empty(cr.channelName))
         			continue;
         		if(cr.channelName.equalsIgnoreCase("navix")) {
         			ChannelNaviXUpdate.init(cfg.getNaviXUpload(),cr);
+        			added=true;
         			break;
         		}
     		}
+    		if(!added)
+    			ChannelNaviXUpdate.init(cfg.getNaviXUpload(),null);
 		} catch (Exception e) {
-			debug("error navix up startup");
+			debug("error navix up startup "+e);
 		}
     }
     
@@ -1094,6 +1111,8 @@ public class Channels extends VirtualFolder implements FileListener {
 	public static boolean isCode(String str,int type) {
 		if(allUnlocked())
 			return false;
+		if(ChannelUtil.empty(getCode()))
+			return false;
 		return isIllegal(inst.codes,str,type);
 	}
 	
@@ -1109,4 +1128,41 @@ public class Channels extends VirtualFolder implements FileListener {
 		return inst.allUnlocked;
 	}
 	
+	//////////////////////////////////////////////////////////////////////////
+	
+	public static File localPLX() {
+		return new File(dataPath()+File.separator+"navix_local.plx");
+	}
+	
+	public static void addToPLX(Channel ch,String name,String url,String proc,int format,
+			String thumb,String imdb) throws IOException {
+		FileWriter out=new FileWriter(localPLX(),true);
+		StringBuffer sb=new StringBuffer();
+		sb.append("###################\n");
+		sb.append("name=");
+		sb.append(name.trim());
+		sb.append("\n");
+		sb.append("type=");
+		sb.append(ChannelUtil.format2str(format));
+		sb.append("\n");
+		sb.append("channel=");
+		sb.append(ch.name());
+		sb.append("\n");
+		if(!ChannelUtil.empty(thumb)) {
+			sb.append("thumb=");
+			sb.append(thumb);
+			sb.append("\n");
+		}
+		if(!ChannelUtil.empty(proc)) {
+			sb.append("processor=");
+			sb.append(proc);
+			sb.append("\n");
+		}
+		sb.append("URL=");
+		sb.append(url);
+		sb.append("\n");
+		sb.append("###################\n");
+		out.write(sb.toString());
+		out.close();
+	}
 }

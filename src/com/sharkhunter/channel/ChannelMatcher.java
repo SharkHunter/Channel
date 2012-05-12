@@ -38,6 +38,8 @@ public class ChannelMatcher implements ChannelProps{
 	 public void processProps(String[] props) {
 		 if(ChannelUtil.getProperty(props, "matcher_dotall"))
 			 flags|=Pattern.DOTALL;
+		 if(ChannelUtil.getProperty(props, "no_case"))
+			 flags|=Pattern.CASE_INSENSITIVE;
 	 }
 
 	 public Pattern getRegexp() {

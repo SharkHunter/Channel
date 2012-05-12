@@ -100,7 +100,11 @@ public class ChannelPMSSaveFolder extends VirtualFolder {
 					try {
 						if(me.preventAutoPlay())
 							return false;
-						ChannelNaviXUpdate.updateMedia(rName, url, proc, f,thumb,imdb);
+						String rUrl=url;
+						if(scraper!=null)
+							rUrl=scraper.scrape(ch, url, proc, f, this,true,null,
+												embedSub,stash);
+						ChannelNaviXUpdate.updateMedia(ch,rName, rUrl, proc, f,thumb,imdb);
 					} catch (Exception e) {
 					}
 					me.childDone();

@@ -1,4 +1,4 @@
-version=0.14
+version=0.15
 
 scriptdef fix_ampand {
 	regex='&nbsp;
@@ -51,6 +51,11 @@ media {
 
 macrodef myMedia {
 	media {
+			matcher=title<span[^>]+>&gt;</span></span></span>([^<]+)<.*?link<span [^>]+>&gt;</span></span></span>([^\s]+)\s*playpath=([^\s]+)\s*swfUrl=&quot;([^&]+)&quot;\s*(&nbsp;)*\s*pageUrl=&quot;([^&]+)&quot;<span .*?thumbnail<span class=\"re2\">&gt;</span></span></span>([^<]+)<
+			order=name,url,playpath,swfUrl,dummy,pageUrl,thumb
+			prop=matcher_dotall
+		}
+	media {
 			matcher=title<span[^>]+>&gt;</span></span></span>([^<]+)<.*?link<span [^>]+>&gt;</span></span></span>([^\s]+)\s*playpath=([^\s]+)\s*swfUrl=&quot;([^&]+)&quot;\s*(&nbsp;)*\s*pageUrl=([^<]+)<span .*?thumbnail<span class=\"re2\">&gt;</span></span></span>([^<]+)<
 			order=name,url,playpath,swfUrl,dummy,pageUrl,thumb
 			prop=matcher_dotall
@@ -64,7 +69,7 @@ channel RTMPLists {
 			name=A-Z
 			type=ATZ
 			url=http://pastebin.com/k7uavgZR
-			prop=cache
+			prop=cache,discard_duplicates
 			macro=myMedia
 		}
    }
@@ -87,7 +92,7 @@ channel RTMPLists {
 			url=http://home.no/chj191/LiveTV.xml
 			prop=cache
 			media {
-				matcher=title>([^<]+)</title>\s*<link>([^<]+)</link>\s*<thumbnail>([^<]+)</thumbnail>
+				matcher=title>[^\\]*[\\]*\s*([^<]+)</title>\s*<link>([^<]+)</link>\s*<thumbnail>([^<]+)</thumbnail>
 				order=name,url,thumb
 			}
 		}

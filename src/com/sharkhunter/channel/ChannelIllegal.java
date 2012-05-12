@@ -35,20 +35,27 @@ public class ChannelIllegal {
 		}
 	}
 	
+	private boolean handleString(String str) {
+		if(ChannelUtil.getProperty(prop, "exact")) {
+			if(ChannelUtil.getProperty(prop, "no_case"))
+				return regexp.equalsIgnoreCase(str);
+			else
+				return regexp.equals(str);
+		}
+		else {
+			if(ChannelUtil.getProperty(prop, "no_case"))
+				return regexp.toLowerCase().contains(str.toLowerCase());
+			else
+				return regexp.contains(str);
+		}
+	}
+	
 	public boolean isIllegal(String str,int type) {
 		if(ChannelUtil.empty(regexp)||type!=this.type||str==null)
 			return false;
 		if(ChannelUtil.getProperty(prop, "string")||
 		   ChannelUtil.getProperty(prop, "exact")) {
-			if(ChannelUtil.getProperty(prop, "exact")) {
-				if(ChannelUtil.getProperty(prop, "no_case"))
-					return regexp.equalsIgnoreCase(str);
-				else
-					return regexp.equals(str);
-			}
-			else {
-				return regexp.contains(str);
-			}
+			return handleString(str);
 		}
 		int flags=0;
 		if(ChannelUtil.getProperty(prop, "no_case"))
