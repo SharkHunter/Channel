@@ -258,6 +258,10 @@ public class ChannelMediaStream extends DLNAResource {
     			fixStuff(realUrl.substring(8),false);
     		}
     	}
+    	if(media==null) {
+    		media=new DLNAMediaInfo();
+    		media.audioCodes=new ArrayList<DLNAMediaAudio>();
+    	}
     	if(noSubs) { // make sure subs are off here
 			media_subtitle=new DLNAMediaSubtitle();
 			media_subtitle.id=-1;
@@ -265,12 +269,9 @@ public class ChannelMediaStream extends DLNAResource {
     	Channels.debug("call update");
     	updateStreamDetails();
     	fool=false;
-    	if(media==null) {
-    		media=new DLNAMediaInfo();
-    		media.audioCodes=new ArrayList<DLNAMediaAudio>();
-    	}
     	ch.prepareCom();
     }
+    
     
     public InputStream getInputStream(long low, long high, double timeseek, RendererConfiguration mediarenderer) throws IOException {
     	if(parent instanceof ChannelPMSSaveFolder)
@@ -293,7 +294,7 @@ public class ChannelMediaStream extends DLNAResource {
     	if(parent instanceof ChannelPMSSaveFolder)
     		if(((ChannelPMSSaveFolder)parent).preventAutoPlay())
     			return null;
-    	Channels.debug("cms getinp/0 scrape "+scraper+" url "+realUrl);
+    	Channels.debug("cms getinp/2... scrape "+scraper+" url "+realUrl);
     	scrape_i();
     	if(delayed())
     		return null;
@@ -321,6 +322,7 @@ public class ChannelMediaStream extends DLNAResource {
 			}
 			if(!ChannelUtil.empty(cookie))
 				conn.setRequestProperty("Cookie",cookie);
+			conn.connect();
 			InputStream is=conn.getInputStream();
 			if((saveName!=null)||Channels.cache()) {
 				return startSave(is);
@@ -337,14 +339,9 @@ public class ChannelMediaStream extends DLNAResource {
 
     public InputStream getInputStream() {
     	Channels.debug("cms getinp/0 scrape "+scraper+" url "+realUrl);
-    	if(!scraped) {
-    		if(scraper!=null)
-    			realUrl=scraper.scrape(ch,url,processor,format,this,noSubs,imdb,
-    									embedSub,stash);
-    		else
-    			realUrl=ChannelUtil.parseASX(url, ASX);
-    	}
-    	scraped=true;
+    	scrape_i();
+    	if(delayed())
+    		return null;
     	if(ChannelUtil.empty(realUrl))
     		return null;
     	return getStream();
@@ -443,8 +440,9 @@ public class ChannelMediaStream extends DLNAResource {
     }
     
     private String ensureExt(String str) {
-    	if(legalExt(ChannelUtil.extension(str)))
+    	if(legalExt(ChannelUtil.extension(str))) {
     		return str;
+    	}
     	if(ChannelUtil.empty(videoFormat))
     		return str+ch.fallBackVideoFormat();
     	return str+(videoFormat);

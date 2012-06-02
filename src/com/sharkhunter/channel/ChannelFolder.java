@@ -35,6 +35,7 @@ public class ChannelFolder implements ChannelProps, SearchObj{
 	public static final int TYPE_NAVIX_SEARCH=8;
 	public static final int TYPE_ACTION=9;	
 	public static final int TYPE_REMATCH=10;
+	public static final int TYPE_EXEC=11;
 	
 	public boolean Ok;
 	
@@ -359,6 +360,8 @@ public class ChannelFolder implements ChannelProps, SearchObj{
 			return ChannelFolder.TYPE_ACTION;
 		if(t.compareToIgnoreCase("rematch")==0)
 			return ChannelFolder.TYPE_REMATCH;
+		if(t.compareToIgnoreCase("exec")==0)
+			return ChannelFolder.TYPE_EXEC;
 		return ChannelFolder.TYPE_NORMAL;
 	}
 	
@@ -550,6 +553,8 @@ public class ChannelFolder implements ChannelProps, SearchObj{
 				page="";
 			}
 			parent.debug("page "+page);
+			if(type==ChannelFolder.TYPE_EXEC) // execfolders are done
+				return;
 			if(ChannelUtil.empty(page)) {
 				if(cache&&oldCache) { // use the old cache no matter what
 					urlobj=new URL(cFile.toURI().toURL().toString().replaceAll(" ", "%20"));
@@ -630,6 +635,7 @@ public class ChannelFolder implements ChannelProps, SearchObj{
 	    		continue;
 	    	}
 	    	m.startMatch(page);
+	    	parent.debug("media matching using "+m.getRegexp().pattern());
 	    	while(m.match()) {
 	    		//Channels.debug("allplay "+allPlay+" cfg "+Channels.cfg().allPlay());
 	    		if(allPlay==null&&Channels.cfg().allPlay()) {
@@ -641,7 +647,6 @@ public class ChannelFolder implements ChannelProps, SearchObj{
 	    			}
 	    		}
 	    		String someName=m.getMatch("name",false);
-	    		parent.debug("media matching using "+m.getRegexp().pattern()+" name "+someName);
 	    		if(Channels.isIllegal(someName, ChannelIllegal.TYPE_NAME))
 	    			continue;
 	    		if(filter!=null&&!filter.filter(someName))
@@ -811,8 +816,6 @@ public class ChannelFolder implements ChannelProps, SearchObj{
 	    	boolean ignoreMatch = ChannelUtil.getProperty(prop, "ignore_match");
 	    	while(m.match()) {
 	    		String someName=m.getMatch("name",false);
-	    		if(Channels.isIllegal(someName, ChannelIllegal.TYPE_NAME))
-	 	    		   continue;
 	    		if(filter!=null&&!filter.filter(someName))
 	    			continue;
 	    		String fUrl=m.getMatch("url",true);
@@ -832,17 +835,21 @@ public class ChannelFolder implements ChannelProps, SearchObj{
 	    			cf.thumb_script="imdbThumb";
 	    		}
 	    		else {
-	    			//Channels.debug("thumb1 "+thumb);
 	    			thumb=ChannelUtil.getThumb(thumb, pThumb, parent);
-	    			//Channels.debug("thumb2 "+thumb);
 	    			
 	    		}
 	    		parent.debug("matching "+someName+" url "+fUrl+" thumb "+thumb+" group "+group+" imdb "+imdbId);
-	    		if(ChannelUtil.empty(someName))
-	    				someName=nName;
-	    		//parent.debug("cf.name "+cf.name+" ignore "+ignoreMatch);
 	    		if(ignoreMatch)
+    				someName=cf.name;
+	    		if(ChannelUtil.empty(someName)) {
+	    			if(ChannelUtil.empty(cf.name))
+	    				someName=nName;
+	    			else
 	    				someName=cf.name;
+	    		}
+	    		if(Channels.isIllegal(someName, ChannelIllegal.TYPE_NAME))
+	 	    		   continue;
+	    		//parent.debug("cf.name "+cf.name+" ignore "+ignoreMatch);
 	    		if(ChannelUtil.getProperty(cf.prop, "prepend_parenturl"))
 	    			fUrl=ChannelUtil.concatURL(realUrl,fUrl);
 	    		fUrl=ChannelScriptMgr.runScript(post_script, fUrl, parent,page);
@@ -877,6 +884,21 @@ public class ChannelFolder implements ChannelProps, SearchObj{
 	    		}
 	    		if(cf.type==ChannelFolder.TYPE_EMPTY)
 	    			cf.match(res,null,fUrl,thumb,someName,imdbId);
+	    		else if(cf.type==ChannelFolder.TYPE_EXEC) {
+	    			final String vvaUrl=fUrl;
+	    			final ChannelFolder fcf=cf;
+	    			final DLNAResource myRes=res;
+	    			res.addChild(new VirtualVideoAction(someName,true) {
+	    				public boolean enable() {
+	    					try {
+								fcf.match(myRes,null,vvaUrl,null,null,null);
+							} catch (MalformedURLException e) {
+								Channels.debug("bad match for exec folder "+e);
+							}
+							return true;
+	    				}
+	    			});
+	    		}
 	    		else {
 	    			Channels.debug("add "+someName+" furl "+fUrl);
 	    			ChannelPMSFolder cpf=new ChannelPMSFolder(cf,someName,null,fUrl,thumb);

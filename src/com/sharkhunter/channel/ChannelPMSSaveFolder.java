@@ -67,6 +67,13 @@ public class ChannelPMSSaveFolder extends VirtualFolder {
 	public void setStash(HashMap<String,String> map) {
 		stash=map;
 	}
+	
+	private String displayName(String n) {
+		if(Channels.cfg().longSaveName())
+			return ChannelUtil.append(n, " ", name);
+		else
+			return n;
+	}
 		
 	public void discoverChildren() {
 		final ChannelPMSSaveFolder me=this;
@@ -132,7 +139,36 @@ public class ChannelPMSSaveFolder extends VirtualFolder {
 					return true;
 				}
 			});
-			cms=new ChannelMediaStream(ch,"SAVE&PLAY",url,thumb,proc,f,asx,scraper,name,name);
+			if(!doSubs||Channels.cfg().oldSub()) {
+				cms=new ChannelMediaStream(ch,displayName("SAVE&PLAY"),url,thumb,
+						proc,f,asx,scraper,name,name);
+				cms.setImdb(imdb);
+				cms.setRender(this.defaultRenderer);
+				cms.setSaveMode(rawSave);
+				cms.setEmbedSub(embedSub);
+				cms.setFallbackFormat(videoFormat);
+				cms.setStreamVars(streamVars);
+				cms.setStash(stash);
+				addChild(cms);
+			}
+			if(doSubs) {
+				if(Channels.cfg().oldSub()) {
+					ChannelPMSSubSelector subSel=new ChannelPMSSubSelector(ch,displayName("Select subs - SAVE&PLAY"),
+							url,thumb,proc,f,asx,
+							scraper,name,name,imdb,stash);
+					addChild(subSel);
+				}
+				else {
+					ChannelPMSSubSiteSelector subSel=new ChannelPMSSubSiteSelector(ch,displayName("Select subs - SAVE&PLAY"),
+							url,thumb,proc,f,asx,
+							scraper,name,name,imdb,stash);
+					addChild(subSel);
+				}
+			}
+		}
+		if(!doSubs||Channels.cfg().oldSub()) {
+			cms=new ChannelMediaStream(ch,displayName("PLAY"),url,thumb,
+					proc,f,asx,scraper,name,null);
 			cms.setImdb(imdb);
 			cms.setRender(this.defaultRenderer);
 			cms.setSaveMode(rawSave);
@@ -141,27 +177,23 @@ public class ChannelPMSSaveFolder extends VirtualFolder {
 			cms.setStreamVars(streamVars);
 			cms.setStash(stash);
 			addChild(cms);
-			if(doSubs) {
-				ChannelPMSSubSelector subSel=new ChannelPMSSubSelector(ch,"Select subs - SAVE&PLAY",url,thumb,proc,f,asx,
-																	   scraper,name,name,imdb,stash);
+		}
+		if(doSubs) {
+			if(Channels.cfg().oldSub()) {
+				ChannelPMSSubSelector subSel=new ChannelPMSSubSelector(ch,displayName("Select subs - PLAY"),
+						url,thumb,proc,f,asx,
+						scraper,name,name,imdb,stash);
 				addChild(subSel);
 			}
-		}
-		cms=new ChannelMediaStream(ch,"PLAY",url,thumb,proc,f,asx,scraper,name,null);
-		cms.setImdb(imdb);
-		cms.setRender(this.defaultRenderer);
-		cms.setSaveMode(rawSave);
-		cms.setEmbedSub(embedSub);
-		cms.setFallbackFormat(videoFormat);
-		cms.setStreamVars(streamVars);
-		cms.setStash(stash);
-		addChild(cms);
-		if(doSubs) {
-			ChannelPMSSubSelector subSel=new ChannelPMSSubSelector(ch,"Select subs - PLAY",url,
-											thumb,proc,f,asx,scraper,name,null,imdb,stash);
-			addChild(subSel);
+			else {
+				ChannelPMSSubSiteSelector subSel=new ChannelPMSSubSiteSelector(ch,displayName("Select subs - PLAY"),
+						url,thumb,proc,f,asx,
+						scraper,name,name,imdb,stash);
+				addChild(subSel);
+			}
 			if(save) {
-				cms=new ChannelMediaStream(ch,"SAVE&PLAY - No Subs",url,thumb,proc,f,asx,scraper,name,name);
+				cms=new ChannelMediaStream(ch,displayName("SAVE&PLAY - No Subs"),url,
+										   thumb,proc,f,asx,scraper,name,name);
 				cms.noSubs();
 				cms.setImdb(imdb);
 				cms.setRender(this.defaultRenderer);
@@ -171,7 +203,8 @@ public class ChannelPMSSaveFolder extends VirtualFolder {
 				cms.setStash(stash);
 				addChild(cms);
 			}
-			cms=new ChannelMediaStream(ch,"PLAY - No Subs",url,thumb,proc,f,asx,scraper,name,null);
+			cms=new ChannelMediaStream(ch,displayName("PLAY - No Subs"),url,thumb,
+								       proc,f,asx,scraper,name,null);
 			cms.noSubs();
 			cms.setImdb(imdb);
 			cms.setRender(this.defaultRenderer);
@@ -205,5 +238,26 @@ public class ChannelPMSSaveFolder extends VirtualFolder {
 	
 	public void setFallbackFormat(String s) {
 		videoFormat=s;
+	}
+	
+	public boolean isRefreshNeeded() {
+		return true;
+	}
+    
+    public boolean refreshChildren() {
+    	refreshChildren(null);
+    	return true;
+    }
+	
+	public boolean refreshChildren(String str) {
+		if(str==null)
+			return false;
+		getChildren().clear();
+		discoverChildren(str);
+		return true;
+	}
+	
+	public void resolve() {
+		setDiscovered(false);
 	}
 }

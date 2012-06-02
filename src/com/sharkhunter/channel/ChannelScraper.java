@@ -1,5 +1,6 @@
 package com.sharkhunter.channel;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 
@@ -11,4 +12,6 @@ public interface ChannelScraper {
 	public long delay();
 	public String backtrackedName(DLNAResource start);
 	public HashMap<String, Object> subSelect(DLNAResource start,String imdb);
+	public HashMap<String, Object> subSelect(DLNAResource start,String imdb,String site);
+	public ArrayList<String> subSites();
 }

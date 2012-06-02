@@ -9,6 +9,7 @@ import java.util.TreeSet;
 
 import org.apache.commons.lang.StringUtils;
 
+import net.pms.dlna.DLNAResource;
 import net.pms.dlna.virtual.VirtualFolder;
 
 public class ChannelPMSSubSelector extends VirtualFolder {
@@ -27,6 +28,7 @@ public class ChannelPMSSubSelector extends VirtualFolder {
 	private HashMap<String,String> stash;
 
 	private String matchName;
+	private String site;
 	
 	public ChannelPMSSubSelector(Channel ch,String name,String nextUrl,
 				 String thumb,String proc,int type,int asx,
@@ -53,25 +55,34 @@ public class ChannelPMSSubSelector extends VirtualFolder {
 		this.imdb=imdb;
 		matchName=null;
 		this.stash=stash;
+		site=null;
+	}
+	
+	public void setSite(String s) {
+		site=s;
 	}
 
 	public void discoverChildren() {
 		if(scraper==null)
 			return;
-		HashMap<String,Object> choices=scraper.subSelect(this, imdb);
+		DLNAResource start=this;
+		if(start.getParent() instanceof ChannelPMSSubSiteSelector) // compensate
+			start=start.getParent();
+		Channels.debug("sub sel site "+site);
+		HashMap<String,Object> choices=scraper.subSelect(start, imdb,site);
 		if(choices==null)
 			return;
 		// extract the match name (remove to avoid it to be sorted)
 		matchName=(String)choices.get("__match_name__");
 		choices.remove("__match_name__");
-		if(choices.isEmpty()) // no idea to continue
-			return;
 		// Add a special PLAY at the top and bottom to make it esaier
 		// to play even if nothing is good enough...
 		ChannelMediaStream cms=new ChannelMediaStream(ch,"PLAY (no subs match)",url,null,proc,type,asx,scraper,dispName,saveName);
 		cms.setImdb(imdb);
 		cms.setStash(stash);
 		addChild(cms);
+		if(choices.isEmpty()) // no idea to continue
+			return;
 		// sort the result
 		TreeMap<Integer,TreeSet<String>> m=sortMap(choices);
 		for(Integer id : m.keySet()) {

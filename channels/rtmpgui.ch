@@ -1,4 +1,4 @@
-version=0.11
+version=0.12
 
 channel RTMPGui {
    folder {
@@ -20,7 +20,8 @@ channel RTMPGui {
 			order=name,swfUrl,url,pageUrl,playpath,app
 		}
 		media {
-			matcher=<title><!\[CDATA\[([^\]]+)\]\]></title>\s*.*?\s*<swfUrl><!\[CDATA\[([^\]]+)\]\]></swfUrl>\s*<link><!\[CDATA\[([^\]]+)\]\]></link>\s*<pageUrl><!\[CDATA\[([^\]]+)\]\]></pageUrl>\s*<playpath><!\[CDATA\[([^\]]+)\]\]></playpath>\s*.*?\s*<advanced><!\[CDATA\[-v -a ([^\]]+)\]\]></advanced>
+			#matcher=<title><!\[CDATA\[([^\]]+)\]\]></title>\s*.*?\s*<swfUrl><!\[CDATA\[([^\]]+)\]\]></swfUrl>\s*<link><!\[CDATA\[([^\]]+)\]\]></link>\s*<pageUrl><!\[CDATA\[([^\]]+)\]\]></pageUrl>\s*<playpath><!\[CDATA\[([^\]]+)\]\]></playpath>\s*.*?\s*<advanced><!\[CDATA\[-v -a ([^\]]+)\]\]></advanced>
+			matcher=<title><!\[CDATA\[([^>]+)\]\]></title>\s*.*?\s*<swfUrl><!\[CDATA\[([^>]+)\]\]></swfUrl>\s*<link><!\[CDATA\[([^>]+)\]\]></link>\s*<pageUrl><!\[CDATA\[([^>]+)\]\]></pageUrl>.*\s<playpath><!\[CDATA\[([^>]+)></playpath>.*\s*.*\s*.*<advanced><!\[CDATA\[-v -a ([^>]+)\]\]></advanced>
 			order=name,swfUrl,url,pageUrl,playpath,app
 			prop=live
 		}

@@ -105,6 +105,14 @@ public class ChannelSubs implements ChannelProps {
 				lang=keyval[1].trim().split(",");
 			}
 		}
+		if(select!=null)
+			select.processProps(prop);
+		if(matcher!=null)
+			matcher.processProps(prop);
+	}
+	
+	public String getName() {
+		return name;
 	}
 	
 	private String rarFile(File f) {
@@ -119,13 +127,14 @@ public class ChannelSubs implements ChannelProps {
 			rarFile = new Archive(f);
 			FileHeader fh =rarFile.nextFileHeader();
 			while(fh!=null) {
-				if(!fh.getFileNameString().contains(".srt"))
+				if(!fh.getFileNameString().contains(".srt")) {
+					fh =rarFile.nextFileHeader();
 					continue;
+				}
 				String fName=dPath+File.separator+fh.getFileNameString();
 				FileOutputStream fos=null;
 				if(rename) {
 					String i=first?"":"_"+String.valueOf(id++);
-					
 				}
 				if(concat) {
 					if(first) {
@@ -280,6 +289,7 @@ public class ChannelSubs implements ChannelProps {
 	}
 	
 	public static String downloadSubs(String subUrl,String name) {
+		name=name.replaceAll("[\\?&=;,]", "").replace('/', '_').replace('\\', '_');
 		String path=Channels.dataPath()+File.separator+name+".srt";
 		ChannelSubs nullSub=new ChannelSubs();
 		return nullSub.downloadSubs(subUrl,path,false,false);
@@ -389,6 +399,7 @@ public class ChannelSubs implements ChannelProps {
 				css.owner=this;
 				css.url=select.getMatch("url");
 				css.script=script;
+				css.name=mediaName;
 				res.put(select.getMatch("name"), (Object)css);
 			}
 			return res;
@@ -403,8 +414,12 @@ public class ChannelSubs implements ChannelProps {
 		if(obj instanceof String)
 			return downloadSubs((String)obj);
 		ChannelSubSelected css=(ChannelSubSelected)obj;
+		Channels.debug("resolve subtitle url="+css.url+",script="+css.script);
 		if(ChannelUtil.empty(css.script))
-			return css.url;
+			if(ChannelUtil.empty(css.name))
+				return downloadSubs(css.url);
+			else
+				return downloadSubs(css.url,css.name);
 		ArrayList<String> s=Channels.getScript(css.script);
 		if(s==null) 
 			return null;
@@ -416,7 +431,10 @@ public class ChannelSubs implements ChannelProps {
 		String subUrl=res.get("url");
 		if(ChannelUtil.empty(subUrl))
 			return null;
-		return downloadSubs(subUrl);
+		if(ChannelUtil.empty(css.name))
+			return downloadSubs(subUrl);
+		else
+			return downloadSubs(subUrl,css.name);
 	}
 	
 	public boolean langSupported() {
@@ -472,9 +490,14 @@ public class ChannelSubs implements ChannelProps {
 		return ChannelUtil.getPropertyValue(prop, base+"_mangle");
 	}
 	
+	public boolean selectable() {
+		return (select!=null);
+	}
+	
 	private class ChannelSubSelected {
 		public String url;
 		public String script;
+		public String name;
 		public ChannelSubs owner;
 	}
 }

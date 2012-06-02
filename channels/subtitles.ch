@@ -1,4 +1,4 @@
-version=0.56
+version=0.57
 
 ###########################
 ## s4u
@@ -43,11 +43,14 @@ subdef s4u {
    #Http://api.s4u.se/ Version / ApiKey / xml | json | serialize / movie | serie | all / imdb | tmdb | tvdb | title | rls | fname / SearchString / 
    url=http://api.s4u.se/Beta/LL3ift66Sddwo1e/xml/
    # <div class="DL_Box"> <a href="dl.php?cat=film&amp;dl=9062">
-   matcher=<download_zip>([^<]+)</download_zip>
-   best_match=1
+   #matcher=<download_zip>([^<]+)</download_zip>
+#   best_match=1
+   matcher=.*
    name_script=s4uName
    lang=swe
-   prop=zip_force
+   prop=zip_force,matcher_dotall
+   select=<file_name>([^<]+)</file_name>.*?<download_zip>([^<]+)</download_zip>
+   select_order=name,url
 }
 
 ###################################
@@ -343,4 +346,32 @@ subdef swesub {
 	#<td class="smalltext border">											<a href="/download/28828/" rel="nofollow" class="ssg">Game of Thrones Season 1 BRRip XvidHD 720p-NPW (10 cd)</a><br/>
 	select=<a href=\"(/download[^\"]+)\"[^>]+>([^<]+)</a>
 	select_order=url,name
+}
+
+############################################################
+## undertexter.se
+############################################################
+
+scriptdef utName {
+	url='?p=soek&add=arkiv&submit=S%F6k&select2=&str=
+	escape s_url
+	concat url s_url
+	play	
+}
+
+scriptdef ut302 {
+	s_action='geturl
+	scrape
+	url=v1
+	play
+}
+
+subdef ut.se {
+	url=http://www.undertexter.se/
+	name_script=utName
+	lang=swe
+	script=ut302
+	select=title=\"[^\"]+" alt=\"[^\"]+\" href=\"(http://www.undertexter.se/laddatext[^\"]+)\">.*?Nedladdningar[^<]+<br>.*?<br>\s*([^<]+)</td>
+	select_order=url,name
+	prop=matcher_dotall
 }

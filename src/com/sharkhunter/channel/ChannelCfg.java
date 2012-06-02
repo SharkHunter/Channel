@@ -52,6 +52,8 @@ public class ChannelCfg {
 	private boolean allPlay;
 	private String proxyDNS;
 	private int proxyDNSMode;
+	private boolean longSaveName;
+	private boolean oldSub;
 	
 	public ChannelCfg(Channels top) {
 		chPath=null;
@@ -73,6 +75,8 @@ public class ChannelCfg {
 		allPlay=true;
 		proxyDNS=null;
 		proxyDNSMode=PROXY_DNS_NONE;
+		longSaveName=false;
+		oldSub=false;
 	}
 	
 	///////////////////////////////////
@@ -139,6 +143,10 @@ public class ChannelCfg {
 	
 	public void setFavorite(boolean b) {
 		favorite=b;
+	}
+	
+	public void setLongSvaeName(boolean b) {
+		longSaveName=b;
 	}
 	
 	////////////////////////////////////////
@@ -237,6 +245,14 @@ public class ChannelCfg {
 		return proxyDNS;
 	}
 	
+	public boolean longSaveName() {
+		return longSaveName;
+	}
+	
+	public boolean oldSub() {
+		return oldSub;
+	}
+	
 	////////////////////////////////////////
 	// Misc. methods
 	////////////////////////////////////////
@@ -278,6 +294,9 @@ public class ChannelCfg {
 		String nul=(String)PMS.getConfiguration().getCustomProperty("channels.navix_upload");
 		String ap=(String)PMS.getConfiguration().getCustomProperty("channels.all_play");
 		String pdns=(String)PMS.getConfiguration().getCustomProperty("channels.proxy_dns");
+		String lsn=(String)PMS.getConfiguration().getCustomProperty("channels.long_savename");
+		String os=(String)PMS.getConfiguration().getCustomProperty("channels.old_sub");
+		
 		if(rtmpMode!=null) {
 			if(rtmpMode.trim().equalsIgnoreCase("1"))
 				Channels.rtmpMethod(Channels.RTMP_MAGIC_TOKEN);
@@ -356,6 +375,10 @@ public class ChannelCfg {
 			if(tmp.length>1)
 				navixUploadList2=tmp[1];
 		}
+		if(!ChannelUtil.empty(lsn)&&lsn.equalsIgnoreCase("true"))
+			longSaveName=true;
+		if(!ChannelUtil.empty(os)&&os.equalsIgnoreCase("true"))
+			oldSub=true;
 	}
 
 	private void configPath(String key,String val) {
@@ -390,6 +413,8 @@ public class ChannelCfg {
 			PMS.getConfiguration().setCustomProperty("channels.subtitles",String.valueOf(Channels.doSubs()));
 			PMS.getConfiguration().setCustomProperty("channels.group_folder",String.valueOf(Channels.useGroupFolder()));
 			PMS.getConfiguration().setCustomProperty("channels.favorite",String.valueOf(favorite));
+			PMS.getConfiguration().setCustomProperty("channels.long_savename",String.valueOf(longSaveName));
+			PMS.getConfiguration().setCustomProperty("channels.oldSub",String.valueOf(oldSub));
 			if(!ChannelUtil.empty(navixUploadList)) 
 				PMS.getConfiguration().setCustomProperty("channels.navix_upload",
 						ChannelUtil.append(navixUploadList,",",navixUploadList2));

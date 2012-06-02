@@ -967,6 +967,8 @@ public class ChannelUtil {
 			return "recurse";
 		case ChannelFolder.TYPE_SEARCH:
 			return "search";
+		case ChannelFolder.TYPE_EXEC:
+			return "exec";
 		default:
 			return "normal";
 		}

@@ -1,8 +1,8 @@
-version=0.11
+version=0.12
 
 macrodef sweswitch {
 switch {
-		matcher=<a href=\"magnet:[^=]+=urn:btih:([^&]+)&dn=([^&]+)&tr
+		matcher=href=\"magnet:[^=]+=urn:btih:([^&]+)&amp;dn=([^&]+)&
 		order=url,name
 		name=Furk
 		action=upload
@@ -22,9 +22,8 @@ switch {
 
 macrodef swemacro {
 folder {
-	matcher=<a href=\"(torrents-details[^\"]+)\".*?src=([^>]+)>.*?<b>([^<]+)</b>.*?imdb\.com/title/tt(\d+)
+	matcher=<a href=\'(http://swesub\.tv/torrents-details[^\']+)\'.*?src=([^ ]+) .*?title=\'([^\']+)\'.*?<b>([^<]+)</b>.*?imdb\.com/title/tt(\d+)
 	order=url,thumb,name,imdb
-	url=http://swesub.tv/
 	prop=movieinfo,matcher_dotall
 	macro=sweswitch
  }
@@ -33,12 +32,12 @@ folder {
 channel Swesub.tv {
 	folder {
 	  name=TV Serier
-	  url=http://swesub.tv/torrents.php?parent_cat=Tv%20shows
+	  url=http://swesub.tv/torrents.php?parent_cat=Tv-serie
 	  macro=swemacro
 	}
 	folder {
 	  name=Filmer
-	  url=http://swesub.tv/torrents.php?parent_cat=Movies
+	  url=http://swesub.tv/torrents.php?parent_cat=Film
 	  macro=swemacro
 	}
 	folder {
