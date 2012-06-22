@@ -178,6 +178,8 @@ public class ChannelMediaStream extends DLNAResource {
     public InputStream getThumbnailInputStream() throws IOException {
     	if (thumb != null) {
     		try {
+    			if(thumb.startsWith("/resource/"))
+    				return getResourceInputStream(thumb.substring(10));
     			return downloadAndSend(thumb, true);
     		}
     		catch (Exception e) {
@@ -280,7 +282,7 @@ public class ChannelMediaStream extends DLNAResource {
     	scrape_i();
     	if(delayed())
     		return null;
-    	InputStream is=super.getInputStream(low,high,timeseek,mediarenderer);
+    	InputStream is=null;//super.getInputStream(low,high,timeseek,mediarenderer);
     	if((saveName!=null)||Channels.cache()) {
     		return startSave(is);
     	}

@@ -468,6 +468,8 @@ public class ChannelMedia implements ChannelProps,ChannelScraper {
 				continue;
 			res.add(subs.getName());
 		}
+		if(Channels.openSubs()!=null)
+			res.add(Channels.openSubs().getName());
 		return res;
 	}
 	

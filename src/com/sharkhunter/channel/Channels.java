@@ -32,7 +32,7 @@ import no.geosoft.cc.io.FileMonitor;
 public class Channels extends VirtualFolder implements FileListener {
 
 	// Version string
-	public static final String VERSION="1.77";
+	public static final String VERSION="1.78";
 	
 	// Constants for RTMP string constructions
 	public static final int RTMP_MAGIC_TOKEN=1;
@@ -72,6 +72,7 @@ public class Channels extends VirtualFolder implements FileListener {
     private ArrayList<ChannelIllegal> illegals;
     private ArrayList<ChannelIllegal> codes;
     private boolean allUnlocked;
+    private ChannelSubs openSubs;
     
     public Channels(String path,String name,String img) {
     	super(name,img);
@@ -85,6 +86,7 @@ public class Channels extends VirtualFolder implements FileListener {
     	appendTS=false;
     	groupFolder=false;
     	movieInfo=null;
+    	openSubs=null;
     	// Setup list and tables
     	favorite=new ArrayList<ArrayList<String>>();
     	chFiles=new ArrayList<File>();
@@ -121,6 +123,7 @@ public class Channels extends VirtualFolder implements FileListener {
     	addChild(new ChannelPMSCode("Unlock All",null,true));
     	fileMonitor=null;
     	allUnlocked=false;
+    	setOpenSubs(true);
     }
     
     public void start(long poll) {
@@ -677,6 +680,8 @@ public class Channels extends VirtualFolder implements FileListener {
 	}
 	
 	public static ChannelSubs getSubs(String name) {
+		if(inst.openSubs!=null&&name.equals(inst.openSubs.getName()))
+			return inst.openSubs;
 		return inst.subtitles.get(name);
 	}
 	
@@ -1165,5 +1170,27 @@ public class Channels extends VirtualFolder implements FileListener {
 		out.write(sb.toString());
 		out.close();
 	}
+	
+	//////////////////////////////////////////////////////
+	
+	public static ChannelSubs openSubs() {
+		return inst.openSubs;
+	}
+	
+	public static void setOpenSubs(boolean b) {
+		if(b) {
+			try {
+				inst.openSubs=new ChannelOpenSubs();
+			}
+			catch ( java.lang.NoClassDefFoundError e) {
+				Channels.debug("OpenSubs not loaded ignore integration");
+				inst.openSubs=null;
+			}
+		}
+		else
+			inst.openSubs=null;
+	}
+	
+	
 
 }

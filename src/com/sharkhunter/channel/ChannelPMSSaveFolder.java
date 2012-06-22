@@ -253,7 +253,7 @@ public class ChannelPMSSaveFolder extends VirtualFolder {
 		if(str==null)
 			return false;
 		getChildren().clear();
-		discoverChildren(str);
+		//discoverChildren(str);
 		return true;
 	}
 	

@@ -88,8 +88,10 @@ public class ChannelPMSSubSelector extends VirtualFolder {
 		for(Integer id : m.keySet()) {
 			TreeSet<String> l=m.get(id);
 			for(String key : l) {
-				cms=new ChannelMediaStream(ch,key,url,null,proc,type,asx,scraper,dispName,saveName);
-				cms.setEmbedSub(choices.get(key));
+				Object obj=choices.get(key);
+				String thumb=ChannelSubs.icon(obj, null);
+				cms=new ChannelMediaStream(ch,key,url,thumb,proc,type,asx,scraper,dispName,saveName);
+				cms.setEmbedSub(obj);
 				cms.setImdb(imdb);
 				cms.setStash(stash);
 				addChild(cms);

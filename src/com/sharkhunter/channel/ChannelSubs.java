@@ -16,6 +16,7 @@ import java.util.HashMap;
 import java.util.Locale;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import java.util.zip.GZIPInputStream;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
 
@@ -113,6 +114,10 @@ public class ChannelSubs implements ChannelProps {
 	
 	public String getName() {
 		return name;
+	}
+	
+	public void setName(String name) {
+		this.name=name;
 	}
 	
 	private String rarFile(File f) {
@@ -400,6 +405,13 @@ public class ChannelSubs implements ChannelProps {
 				css.url=select.getMatch("url");
 				css.script=script;
 				css.name=mediaName;
+				css.lang=null;
+				if(!ChannelUtil.empty(select.getMatch("lang")))
+					css.lang=select.getMatch("lang");
+				if(ChannelUtil.empty(css.lang)) {
+					if(lang!=null&&lang.length==1&&!lang[0].equalsIgnoreCase("all"))
+						css.lang=lang[0];
+				}
 				res.put(select.getMatch("name"), (Object)css);
 			}
 			return res;
@@ -409,12 +421,30 @@ public class ChannelSubs implements ChannelProps {
 		}
 		return null;
 	}
+
+	public static String icon(Object obj,String icon) {
+		if(obj instanceof String)
+			return icon;
+		ChannelSubSelected css=(ChannelSubSelected)obj;
+		if(ChannelUtil.empty(css.lang)) 
+			return icon;
+		return "/resource/images/codes/"+ChannelISO.iso(css.lang, 3)+".png";
+	}
+	
+	public String resolve(ChannelSubSelected css) {
+		return "";
+	}
 	
 	public static String resolve(Object obj) {
 		if(obj instanceof String)
 			return downloadSubs((String)obj);
 		ChannelSubSelected css=(ChannelSubSelected)obj;
 		Channels.debug("resolve subtitle url="+css.url+",script="+css.script);
+		if(css.owner!=null) {
+			String res=css.owner.resolve(css);
+			if(!ChannelUtil.empty(res))
+				return res;
+		}
 		if(ChannelUtil.empty(css.script))
 			if(ChannelUtil.empty(css.name))
 				return downloadSubs(css.url);
@@ -492,12 +522,5 @@ public class ChannelSubs implements ChannelProps {
 	
 	public boolean selectable() {
 		return (select!=null);
-	}
-	
-	private class ChannelSubSelected {
-		public String url;
-		public String script;
-		public String name;
-		public ChannelSubs owner;
 	}
 }
