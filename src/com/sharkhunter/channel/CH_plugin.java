@@ -1,9 +1,17 @@
 package com.sharkhunter.channel;
+import java.io.BufferedOutputStream;
 import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.zip.ZipEntry;
+import java.util.zip.ZipInputStream;
 
 import javax.swing.JComponent;
+
+import org.apache.commons.configuration.ConfigurationException;
 
 import net.pms.PMS;
 import net.pms.configuration.RendererConfiguration;
@@ -20,6 +28,7 @@ public class CH_plugin implements AdditionalFolderAtRoot, StartStopListener
 						, FinalizeTranscoderArgsListener {
 
 	private static final long DEFAULT_POLL_INTERVAL=20000;
+	private static boolean initFetchPending=false;
 	private Channels chRoot;
 	private ChannelCfg cfg;
 	private ChannelGUI gui;
@@ -45,6 +54,10 @@ public class CH_plugin implements AdditionalFolderAtRoot, StartStopListener
 			chRoot=new Channels(path,pluginName,img);
 			cfg=new ChannelCfg(chRoot);
 			cfg.init();
+			if(initFetchPending) {
+				initFetchPending=false;
+				cfg.fetchChannels();
+			}
 			chRoot.setCfg(cfg);
 			Channels.debug("starting");
 			chRoot.start(getInterval());
@@ -110,6 +123,49 @@ public class CH_plugin implements AdditionalFolderAtRoot, StartStopListener
 	public void nowPlaying(DLNAMediaInfo arg0, DLNAResource arg1) {
 		if(arg1 instanceof ChannelMediaStream)
 			((ChannelMediaStream)arg1).nowPlaying();
+	}
+	
+	public static void postInstall() {
+		initFetchPending=true;
+		PMS.getConfiguration().setCustomProperty("channels.path", "extras\\channels");
+		PMS.getConfiguration().setCustomProperty("pmsencoder.script.directory" ,"extras\\scripts");
+		PMS.getConfiguration().setCustomProperty("cookie.path","extras\\cookies");
+		PMS.getConfiguration().setCustomProperty("perl.path","extras\\perl\\bin\\perl.exe");
+		PMS.getConfiguration().setCustomProperty("python.path","extras\\Python27\\python.exe");
+		PMS.getConfiguration().setCustomProperty("rtmpdump.path","extras\\bin\\rtmpdump.exe");
+		PMS.getConfiguration().setCustomProperty("youtube-dl.path","extras\\bin\\youtube-dl.exe");
+		try {
+			PMS.getConfiguration().save();
+		} catch (ConfigurationException e) {
+		}
+		ZipInputStream zis;
+		File pepy=new File("extras" + File.separator + "pepy.zip");
+		if(!pepy.exists())
+			return;
+		try {
+			zis = new ZipInputStream(new FileInputStream(pepy));
+			ZipEntry entry;
+			 while((entry = zis.getNextEntry()) != null) {
+				 File dst=new File("extras" + File.separator + entry.getName());
+				 if(entry.isDirectory()) {
+					 dst.mkdirs();
+					 continue;
+				 }
+				 int count;
+				 byte data[] = new byte[4096];
+				 FileOutputStream fos = new FileOutputStream(dst);
+				 BufferedOutputStream dest = new BufferedOutputStream(fos, 4096);
+				 while ((count = zis.read(data, 0, 4096)) != -1) {
+					 dest.write(data, 0, count);
+				 }
+				 dest.flush();
+				 dest.close();
+			 }
+			 zis.close();
+		 } catch (Exception e) {
+			 PMS.info("unzip error "+e);
+		 }
+		 pepy.delete();
 	}
 	
 	private void removeArg(List<String> list,String arg) {

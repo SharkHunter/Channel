@@ -476,7 +476,7 @@ public class ChannelCfg {
 	            byte data[] = new byte[BUFFER];
 	            // write the files to the disk
 	            String fName=chPath+File.separator+entry.getName();
-	            if(entry.getName().contains(".groovy")) // script
+	            if(!entry.getName().contains(".ch")) // script
 	            	if(scriptPath!=null)
 	            		fName=scriptPath+File.separator+entry.getName();
 	            FileOutputStream fos1 = new FileOutputStream(fName);
