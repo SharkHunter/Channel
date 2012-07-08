@@ -8,7 +8,10 @@ import java.sql.Date;
 import java.text.SimpleDateFormat;
 import java.util.Locale;
 
+import org.apache.commons.configuration.ConfigurationException;
+
 import net.pms.PMS;
+import net.pms.configuration.PmsConfiguration;
 
 public class ChannelDbg {
 	private BufferedWriter os;
@@ -23,9 +26,28 @@ public class ChannelDbg {
         sdfDate = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss", Locale.US); //$NON-NLS-1$
 	}
 	
+	private void ensureDbgPack() throws ConfigurationException {
+		PmsConfiguration conf=PMS.getConfiguration();
+		String str = (String) conf.getCustomProperty("dbgpack");
+		if (str == null) {
+			str=f.getPath();
+		}
+		else {
+			if(str.contains(f.getPath()))
+				return;
+			str=str+","+f.getPath();
+		}
+		conf.setCustomProperty("dbgpack", str);
+		conf.save();
+	}
+	
 	public void start() {
 		if(os!=null)
 			return;
+		try {
+			ensureDbgPack();
+		} catch (ConfigurationException e1) {
+		}
 		try {
 			os=new BufferedWriter(new FileWriter(f,false));
 			debug("Started "+Channels.VERSION);

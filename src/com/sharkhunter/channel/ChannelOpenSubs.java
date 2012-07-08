@@ -15,8 +15,10 @@ public class ChannelOpenSubs extends ChannelSubs {
 		super.setName("OpenSubtitles");
 		// Check if OpenSubs is installed, this is
 		// an ugly but effective way
+		img="http://static.opensubtitles.org/gfx/logo.gif";
 		OpenSubtitle.getName("xxx");
 	}
+	
 		
 	public boolean selectable() {
 		return true;

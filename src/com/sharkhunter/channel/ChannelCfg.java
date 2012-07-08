@@ -253,6 +253,10 @@ public class ChannelCfg {
 		return oldSub;
 	}
 	
+	public String getCurlPath() {
+		return (String) PMS.getConfiguration().getCustomProperty("curl.path");
+	}
+	
 	////////////////////////////////////////
 	// Misc. methods
 	////////////////////////////////////////

@@ -1,4 +1,4 @@
-version=0.57
+version=0.58
 
 ###########################
 ## s4u
@@ -48,6 +48,7 @@ subdef s4u {
    matcher=.*
    name_script=s4uName
    lang=swe
+   img=http://s4u.se/img/navigation/frame.png
    prop=zip_force,matcher_dotall
    select=<file_name>([^<]+)</file_name>.*?<download_zip>([^<]+)</download_zip>
    select_order=name,url
@@ -342,6 +343,7 @@ subdef swesub {
 	url=http://swesub.nu/
 	name_script=swesubName
 	lang=swe
+	img=http://swesub.nu/img/swesub-logotype.png
 	script=swesubMatch
 	#<td class="smalltext border">											<a href="/download/28828/" rel="nofollow" class="ssg">Game of Thrones Season 1 BRRip XvidHD 720p-NPW (10 cd)</a><br/>
 	select=<a href=\"(/download[^\"]+)\"[^>]+>([^<]+)</a>
@@ -370,6 +372,7 @@ subdef ut.se {
 	url=http://www.undertexter.se/
 	name_script=utName
 	lang=swe
+	img=http://www.undertexter.se/bilder/bar_new5.jpg
 	script=ut302
 	select=title=\"[^\"]+" alt=\"[^\"]+\" href=\"(http://www.undertexter.se/laddatext[^\"]+)\">.*?Nedladdningar[^<]+<br>.*?<br>\s*([^<]+)</td>
 	select_order=url,name

@@ -189,7 +189,7 @@ public class ChannelMediaStream extends DLNAResource {
     }
     
     
-    private void updateStreamDetails() {
+    private void updateStreamDetails(boolean loop) {
     	Format old_ext=ext;
     	// update format, use checktype to be future proof
     	ext=null;
@@ -228,8 +228,28 @@ public class ChannelMediaStream extends DLNAResource {
 		}
 		// if we didn't find a new player leave the old one
       //  if(pl!=null)
-		Channels.debug("set player to "+pl);
-        	player=pl;
+    	boolean forceTranscode = false;
+		if (getExt() != null) {
+			forceTranscode = getExt().skip(PMS.getConfiguration().getForceTranscode(), getDefaultRenderer() != null ? getDefaultRenderer().getTranscodedExtensions() : null);
+		}
+
+		boolean isIncompatible = false;
+
+		if (!getExt().isCompatible(getMedia(),getDefaultRenderer())) {
+			isIncompatible = true;
+		}
+		Channels.debug("set player to nullplayer "+isIncompatible+" force "+forceTranscode);
+		if(!fool)
+			setPlayer(pl);
+		else
+			setPlayer(new ChannelNullPlayer(isIncompatible||forceTranscode));
+    }
+    
+    public DLNAMediaSubtitle getSubs() {
+    	DLNAMediaSubtitle sub=this.getMediaSubtitle();
+    	if(sub!=null&&sub.id!=-1)
+    		return null;
+    	return sub;
     }
     
     public void scrape() {
@@ -269,7 +289,7 @@ public class ChannelMediaStream extends DLNAResource {
 			media_subtitle.id=-1;
 		}
     	Channels.debug("call update");
-    	updateStreamDetails();
+    	updateStreamDetails(true);
     	fool=false;
     	ch.prepareCom();
     }
@@ -422,7 +442,7 @@ public class ChannelMediaStream extends DLNAResource {
     	}
 		if(format==Format.AUDIO)
 			return u.substring(u.lastIndexOf("/")+1);
-		if(u.startsWith("http")&&fool)
+		if((u.startsWith("http")||u.startsWith("rtmp"))&&fool)
 			return ensureExt(u.substring(u.lastIndexOf("/")+1));
 		return (u); // need this to
     }

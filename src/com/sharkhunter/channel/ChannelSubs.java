@@ -40,6 +40,7 @@ public class ChannelSubs implements ChannelProps {
 	private String[] nameScript;
 	private String[] lang;
 	private ChannelMatcher select;
+	protected String img;
 	
 	public ChannelSubs() {
 		prop=null;
@@ -105,6 +106,9 @@ public class ChannelSubs implements ChannelProps {
 			if(keyval[0].equalsIgnoreCase("lang")) {
 				lang=keyval[1].trim().split(",");
 			}
+			if(keyval[0].equalsIgnoreCase("img")) {
+				img=keyval[1];
+			}
 		}
 		if(select!=null)
 			select.processProps(prop);
@@ -118,6 +122,10 @@ public class ChannelSubs implements ChannelProps {
 	
 	public void setName(String name) {
 		this.name=name;
+	}
+	
+	public String getImg() {
+		return img;
 	}
 	
 	private String rarFile(File f) {
@@ -202,7 +210,7 @@ public class ChannelSubs implements ChannelProps {
 					continue;
 				if(rename) {
 					String i=first?"":"_"+String.valueOf(id++);
-					fName=(f.getAbsolutePath()+i+".srt").replace(".zip", "");
+					fName=dPath+File.separator+i+entry.getName();		
 				}
 				if(concat) {
 					if(first) {

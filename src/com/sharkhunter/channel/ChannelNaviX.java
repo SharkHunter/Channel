@@ -350,34 +350,19 @@ public class ChannelNaviX extends VirtualFolder implements ChannelScraper {
 
 	@Override
 	public String backtrackedName(DLNAResource start) {
-		return null;
+		return ChannelSubUtil.backtrackedName(start, props);
 	}
-
-	@Override
-	public HashMap<String, Object> subSelect(DLNAResource start, String imdb) {
-		return null;
-	}
-
-	@Override
-	public HashMap<String, Object> subSelect(DLNAResource start, String imdb,
-			String site) {
-		return null;
-	}
-
-	@Override
+	
 	public ArrayList<String> subSites() {
-		if(subtitle==null) 
-			return null;
-		ArrayList<String> res=new ArrayList<String>();
-		for(int i=0;i<subtitle.length;i++) {
-			ChannelSubs subs=Channels.getSubs(subtitle[i]);
-			if(subs==null)
-				continue;
-			if(!subs.langSupported())
-				continue;
-			res.add(subs.getName());
-		}
-		return res;
+		return ChannelSubUtil.subSites(subtitle);
 	}
-		
+	
+	public HashMap<String,Object> subSelect(DLNAResource start,String imdb) {
+		return ChannelSubUtil.subSelect(start, imdb, subtitle, parent);
+	}
+	
+	public HashMap<String,Object> subSelect(DLNAResource start,String imdb,String subSite) {
+		return ChannelSubUtil.subSelect(start, imdb, subSite, subtitle, parent);
+	}
+	
 }

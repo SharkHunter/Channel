@@ -1,6 +1,7 @@
 package com.sharkhunter.channel;
 
 import java.io.*;
+
 import net.pms.network.HTTPResource;
 import net.pms.dlna.virtual.*;
 

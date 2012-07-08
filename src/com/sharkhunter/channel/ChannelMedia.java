@@ -402,12 +402,7 @@ public class ChannelMedia implements ChannelProps,ChannelScraper {
 	}
 	
 	public String backtrackedName(DLNAResource start) {
-		String realName=ChannelUtil.backTrack(start,ChannelUtil.getNameIndex(prop),
-				ChannelUtil.getPropertyValue(prop, "name_separator"));
-		// Maybe we should mangle the name?
-		String nameMangle=ChannelUtil.getPropertyValue(prop, "name_mangle");
-		realName=ChannelUtil.mangle(nameMangle, realName);
-		return realName;
+		return ChannelSubUtil.backtrackedName(start, prop);
 	}
 
 	@Override
@@ -457,64 +452,14 @@ public class ChannelMedia implements ChannelProps,ChannelScraper {
 	}
 	
 	public ArrayList<String> subSites() {
-		if(subtitle==null) 
-			return null;
-		ArrayList<String> res=new ArrayList<String>();
-		for(int i=0;i<subtitle.length;i++) {
-			ChannelSubs subs=Channels.getSubs(subtitle[i]);
-			if(subs==null)
-				continue;
-			if(!subs.langSupported()||!subs.selectable())
-				continue;
-			res.add(subs.getName());
-		}
-		if(Channels.openSubs()!=null)
-			res.add(Channels.openSubs().getName());
-		return res;
+		return ChannelSubUtil.subSites(subtitle);
 	}
 	
 	public HashMap<String,Object> subSelect(DLNAResource start,String imdb) {
-		if(subtitle==null) 
-			return null;
-		for(int i=0;i<subtitle.length;i++) {
-			ChannelSubs subs=Channels.getSubs(subtitle[i]);
-			if(subs==null)
-				continue;
-			if(!subs.langSupported()||!subs.selectable())
-				continue;
-			return subSelect(start,imdb,subs);
-		}
-		return null;
+		return ChannelSubUtil.subSelect(start, imdb, subtitle, parent);
 	}
 	
 	public HashMap<String,Object> subSelect(DLNAResource start,String imdb,String subSite) {
-		if(ChannelUtil.empty(subSite)) // fallback solution
-			return subSelect(start,imdb);
-		ChannelSubs subs=Channels.getSubs(subSite);
-		if(subs==null)
-			return null;
-		if(!subs.langSupported()||!subs.selectable())
-			return null;
-		return subSelect(start,imdb,subs);
-	}
-	
-	private HashMap<String,Object> subSelect(DLNAResource start,String imdb,ChannelSubs subs) {
-		String realName=backtrackedName(start);
-		parent.debug("backtracked name "+realName);
-		HashMap<String,String> subName;
-		int subScript=0;
-		while((subName=parent.getSubMap(realName,subScript))!=null) {
-			subScript++;
-			if(!ChannelUtil.empty(imdb))
-				subName.put("imdb", ChannelUtil.ensureImdbtt(imdb));
-			HashMap<String,Object> res=subs.select(subName);
-			if(res!=null&&!res.isEmpty()) {
-				// Add this special matchname to make
-				// the choices "sortable"
-				res.put("__match_name__", (Object)realName);
-				return res;
-			}
-		}
-		return null;
+		return ChannelSubUtil.subSelect(start, imdb, subSite, subtitle, parent);
 	}
 }

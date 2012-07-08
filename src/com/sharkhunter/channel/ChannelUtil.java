@@ -419,9 +419,13 @@ public class ChannelUtil {
 	}
 	
 	public static String extension(String fileName) {
+		return extension(fileName,false);
+	}
+	
+	public static String extension(String fileName,boolean stripDot) {
 		int pos=fileName.lastIndexOf('.');
 		if((pos>0)&&(pos<fileName.length()-1))
-			return fileName.substring(pos);
+			return fileName.substring(pos+(stripDot?1:0));
 		return null;
 	}
 	

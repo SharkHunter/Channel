@@ -1,8 +1,6 @@
 package com.sharkhunter.channel;
 
 import java.io.InputStream;
-import java.util.ArrayList;
-import java.util.Comparator;
 import java.util.HashMap;
 import java.util.TreeMap;
 import java.util.TreeSet;
@@ -60,6 +58,9 @@ public class ChannelPMSSubSelector extends VirtualFolder {
 	
 	public void setSite(String s) {
 		site=s;
+		ChannelSubs subs=Channels.getSubs(site);
+		if(!ChannelUtil.empty(subs.getImg()))
+			thumbnailIcon=subs.getImg();
 	}
 
 	public void discoverChildren() {
