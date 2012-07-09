@@ -14,6 +14,8 @@ public class ChannelBuiltIn {
 			return maxBr(player,value,list);
 		if(act.equals("bufferDelay"))
 			return delay(value,par);
+		if(act.equals("subDelay"))
+			return subDelay(player,value,list);
 		return false;
 	}
 	
@@ -26,13 +28,20 @@ public class ChannelBuiltIn {
 		}
 	}
 	
-	private static boolean delay(String value,OutputParams par) {
-		int time=getInt(value,0);
-		if(time!=0) {
-			par.waitbeforestart=time;
-			return true;
+	private static boolean subDelay(String player,String value,List<String> list) {
+		if(player.equalsIgnoreCase("mencoder")&&!value.equals("0")) {
+			list.add("-subdelay");
+			list.add(value);
 		}
-		return false;
+		return true;
+	}
+	
+	private static boolean delay(String value,OutputParams par) {
+		int time=getInt(value,-1);
+		if(time>0) {
+			par.waitbeforestart=time;
+		}
+		return true;
 	}
 	
 	private static boolean maxBr(String player,String value,List<String> list) {
@@ -46,8 +55,6 @@ public class ChannelBuiltIn {
 			arg="-b";
 		if(ChannelUtil.empty(arg))
 			return false;
-		/*list.add(arg);
-		list.add(""+effBr);*/
 		return true;
 	}
 

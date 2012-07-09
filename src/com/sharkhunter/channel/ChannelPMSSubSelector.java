@@ -28,6 +28,8 @@ public class ChannelPMSSubSelector extends VirtualFolder {
 	private String matchName;
 	private String site;
 	
+	private ChannelStreamVars streamVars;
+	
 	public ChannelPMSSubSelector(Channel ch,String name,String nextUrl,
 				 String thumb,String proc,int type,int asx,
 				 ChannelScraper scraper,String dispName,
@@ -54,6 +56,7 @@ public class ChannelPMSSubSelector extends VirtualFolder {
 		matchName=null;
 		this.stash=stash;
 		site=null;
+		streamVars=null;
 	}
 	
 	public void setSite(String s) {
@@ -61,6 +64,10 @@ public class ChannelPMSSubSelector extends VirtualFolder {
 		ChannelSubs subs=Channels.getSubs(site);
 		if(!ChannelUtil.empty(subs.getImg()))
 			thumbnailIcon=subs.getImg();
+	}
+	
+	public void setStreamVars(ChannelStreamVars vars) {
+		streamVars=vars;
 	}
 
 	public void discoverChildren() {
@@ -81,6 +88,7 @@ public class ChannelPMSSubSelector extends VirtualFolder {
 		ChannelMediaStream cms=new ChannelMediaStream(ch,"PLAY (no subs match)",url,null,proc,type,asx,scraper,dispName,saveName);
 		cms.setImdb(imdb);
 		cms.setStash(stash);
+		cms.setStreamVars(streamVars);
 		addChild(cms);
 		if(choices.isEmpty()) // no idea to continue
 			return;
@@ -95,12 +103,16 @@ public class ChannelPMSSubSelector extends VirtualFolder {
 				cms.setEmbedSub(obj);
 				cms.setImdb(imdb);
 				cms.setStash(stash);
+				ChannelStreamVars sVar=new ChannelStreamVars(streamVars);
+				sVar.setInstance(String.valueOf(key.hashCode()));
+				cms.setStreamVars(sVar);
 				addChild(cms);
 			}
 		}
 		cms=new ChannelMediaStream(ch,"PLAY (no subs match)",url,null,proc,type,asx,scraper,dispName,saveName);
 		cms.setImdb(imdb);
 		cms.setStash(stash);
+		cms.setStreamVars(streamVars);
 		addChild(cms);
 	}
 	

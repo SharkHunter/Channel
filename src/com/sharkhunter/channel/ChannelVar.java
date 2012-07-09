@@ -10,6 +10,7 @@ public class ChannelVar {
 	private String name;
 	private String var_name;
 	private String currVal;
+	private String defaultVal;
 	private String[] values;
 	private Channel parent;	
 	
@@ -18,12 +19,23 @@ public class ChannelVar {
 	
 	private String action;
 	
+	private int type;
+	
+	private String instance;
+	
+	public final static int VAR_TYPE_STD=0;
+	public final static int VAR_TYPE_INC=1;
+	private final static String[] INC_VALUES={"","+1","-1","+5","-5","+10","-10"};
+	
 	private final static String VAR_DELIM="@#"; 
 
 	public ChannelVar(ArrayList<String> data,Channel parent) {
 		this.parent=parent;
+		type=VAR_TYPE_STD;
 		suffix="";
 		prefix="";
+		currVal="0";
+		defaultVal="";
 		for(int i=0;i<data.size();i++) {
 			String line=data.get(i).trim();
 			if(line==null)
@@ -39,13 +51,44 @@ public class ChannelVar {
 				values=keyval[1].split(",");
 				currVal=values[0];
 			}
+			if(keyval[0].equalsIgnoreCase("default")) 
+				defaultVal=keyval[1];
 			if(keyval[0].equalsIgnoreCase("suffix"))
 				suffix=keyval[1];
 			if(keyval[0].equalsIgnoreCase("prefix"))
 				prefix=keyval[1];
 			if(keyval[0].equalsIgnoreCase("action")) // action script for stream vars
 				action=keyval[1];
+			if(keyval[0].equalsIgnoreCase("type")) {
+				if(keyval[1].equalsIgnoreCase("inc")) 
+					type=VAR_TYPE_INC;
+				if(keyval[1].equalsIgnoreCase("std"))
+					type=VAR_TYPE_STD;
+			}
 		}
+		if(type==VAR_TYPE_INC) { 
+			if(values==null)
+				values=INC_VALUES;
+			else {
+				String[] old=values;
+				values=new String[(values.length*2)+1];
+				int j=1;
+				for(int i=0;i<old.length;i++) {
+					values[j]="+"+old[i];
+					values[j+1]="-"+old[i];
+					j+=2;
+				}
+			}
+			if(ChannelUtil.empty(defaultVal))
+				defaultVal=currVal;
+			else
+				currVal=defaultVal;
+			values[0]="Clear current : "+currVal;
+		}
+	}
+	
+	public int type() {
+		return type;
 	}
 	
 	public String displayName() {
@@ -60,14 +103,55 @@ public class ChannelVar {
 		return currVal;
 	}
 	
+	private static int getInt(String i) {
+		try {
+			return Integer.parseInt(i);
+		}	
+		catch (Exception e) {
+			return 0;
+		}
+	}
+	
 	public void setValue(String v) {
-		currVal=v;
-		Channels.setChVar(parent.getName(), name, currVal);
+		if(v==null) //  no need to set this
+			return;
+		String[] tmp=v.split("@");
+		if(tmp.length==2) {
+			if(!ChannelUtil.empty(instance)) {
+				if(!tmp[1].equals(instance))
+					return;
+			}
+			v=tmp[0];
+		}
+		if(type==VAR_TYPE_INC) {
+			if(v.startsWith("Clear current")) // clear it
+				currVal=defaultVal;
+			else {
+				int val=getInt(currVal);
+				int factor=getInt(v);
+				currVal=String.valueOf(val+factor);
+			}
+			values[0]="Clear current : "+currVal;
+		}
+		else
+			currVal=v;
+		Channels.setChVar(parent.getName(), name, ChannelUtil.append(currVal,"@",instance));
 	}
 	
 	public void setValue(int i) {
-		currVal=values[i];
-		Channels.setChVar(parent.getName(), name, currVal);
+		if(type==VAR_TYPE_INC) {
+			if(i==0) // clear it
+				currVal=defaultVal;
+			else {
+				int val=getInt(currVal);
+				int factor=getInt(values[i]);
+				currVal=String.valueOf(val+factor);
+			}
+			values[0]="Clear current : "+currVal;
+		}
+		else
+			currVal=values[i];
+		Channels.setChVar(parent.getName(), name, ChannelUtil.append(currVal,"@",instance));
 	}
 	
 	public String resolve(String str) {
@@ -88,10 +172,25 @@ public class ChannelVar {
 	}
 	
 	public void action(String player,List<String> list,OutputParams params) {
-		String str;
 		if(action==null) // no action
 			return;
-		if(ChannelBuiltIn.action(action,player,currVal,list,params));
+		if(ChannelBuiltIn.action(action,player,currVal,list,params))
 			return;
+		String data=player+" "+currVal;
+		String res=ChannelScriptMgr.runScript(action, data, parent, true);
+		Channels.debug("extrnal var script "+action+" returned "+res);
+		if(ChannelUtil.empty(res))
+			return;
+		String[] tmp=res.split("\n");
+		for(int i=0;i<tmp.length;i++) {
+			String[] kv=tmp[i].split("=",2);
+			list.add(kv[0]);
+			if(kv.length>1)
+				list.add(kv[1]);
+		}
+	}
+	
+	public void setInstance(String inst) {
+		instance=inst;
 	}
 }

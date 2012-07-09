@@ -14,6 +14,7 @@ import net.pms.io.OutputParams;
 
 public class ChannelStreamVars {
 	private HashMap<String,ChannelVar> vars;
+	private String instance;
 	
 	public ChannelStreamVars() {
 		vars=new HashMap<String,ChannelVar>();
@@ -21,6 +22,7 @@ public class ChannelStreamVars {
 	
 	public ChannelStreamVars(ChannelStreamVars def) {
 		vars=new HashMap<String,ChannelVar>(def.vars);
+		instance=def.instance;
 	}
 	
 	public void parse(File f) throws Exception {
@@ -59,6 +61,7 @@ public class ChannelStreamVars {
 		for(String var: vars.keySet()) {
 			ChannelVar v=vars.get(var);
 			v.setChannel(ch);
+			v.setValue(ch.trashVar(var));
 			res.addChild(new ChannelPMSVar(var,v));
 		}
 	}
@@ -69,5 +72,8 @@ public class ChannelStreamVars {
 			v.action(player,list,params);
 		}
 	}
-
+	
+	public void setInstance(String inst) {
+		instance=inst;
+	}
 }

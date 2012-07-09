@@ -83,7 +83,8 @@ public class ChannelPMSSaveFolder extends VirtualFolder {
 		boolean doSubs=Channels.doSubs()&&subs&&(f==Format.VIDEO);
 		ChannelMediaStream cms;
 		ChannelStreamVars streamVars=new ChannelStreamVars(Channels.defStreamVar());
-		//streamVars.add(this, ch);
+		streamVars.add(this, ch);
+		streamVars.setInstance(String.valueOf(name.hashCode()));
 		if(oh!=null) {
 			final boolean add=!oh.scheduled(url);
 			addChild(new VirtualVideoAction((add?"ADD to ":"DELETE from ")+
@@ -156,12 +157,14 @@ public class ChannelPMSSaveFolder extends VirtualFolder {
 					ChannelPMSSubSelector subSel=new ChannelPMSSubSelector(ch,displayName("Select subs - SAVE&PLAY"),
 							url,thumb,proc,f,asx,
 							scraper,name,name,imdb,stash);
+					subSel.setStreamVars(streamVars);
 					addChild(subSel);
 				}
 				else {
 					ChannelPMSSubSiteSelector subSel=new ChannelPMSSubSiteSelector(ch,displayName("Select subs - SAVE&PLAY"),
 							url,thumb,proc,f,asx,
 							scraper,name,name,imdb,stash);
+					subSel.setStreamVars(streamVars);
 					addChild(subSel);
 				}
 			}
@@ -183,12 +186,14 @@ public class ChannelPMSSaveFolder extends VirtualFolder {
 				ChannelPMSSubSelector subSel=new ChannelPMSSubSelector(ch,displayName("Select subs - PLAY"),
 						url,thumb,proc,f,asx,
 						scraper,name,name,imdb,stash);
+				subSel.setStreamVars(streamVars);
 				addChild(subSel);
 			}
 			else {
 				ChannelPMSSubSiteSelector subSel=new ChannelPMSSubSiteSelector(ch,displayName("Select subs - PLAY"),
 						url,thumb,proc,f,asx,
 						scraper,name,name,imdb,stash);
+				subSel.setStreamVars(streamVars);
 				addChild(subSel);
 			}
 			if(save) {

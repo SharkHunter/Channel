@@ -43,6 +43,7 @@ public class Channel extends VirtualFolder {
 	private String videoFormat;
 	
 	private HashMap<String,ChannelVar> vars;
+	private HashMap<String,String> trashVars;
 	
 	public Channel(String name) {
 		super(name,null);
@@ -58,6 +59,7 @@ public class Channel extends VirtualFolder {
 		actions=new ArrayList<ChannelFolder>();
 		videoFormat=".flv";
 		vars=new HashMap<String,ChannelVar>();
+		trashVars=new HashMap<String,String>();
 		Ok=true;
 	}
 	
@@ -404,6 +406,10 @@ public class Channel extends VirtualFolder {
 		ChannelVar v=vars.get(var);
 		if(v!=null)
 			v.setValue(val);
+		else {
+			// might be a stream var, save for later
+			trashVars.put(var, val);
+		}
 	}
 	
 	public String resolveVars(String str) {
@@ -415,5 +421,9 @@ public class Channel extends VirtualFolder {
 	
 	public HashMap<String,ChannelVar> vars() {
 		return vars;
+	}
+	
+	public String trashVar(String var) {
+		return trashVars.get(var);
 	}
 }

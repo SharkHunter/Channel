@@ -8,7 +8,7 @@ public class ChannelPMSVar extends VirtualFolder {
 	private ChannelVar var;
 	private long changed;
 	
-	private static final long AUTO_PLAY_FACTOR=(1000*15);
+	private static final long AUTO_PLAY_FACTOR=(1000*5);
 
 	public ChannelPMSVar(String name,ChannelVar v) {
 		super("Set "+name+" variable",null);
@@ -17,7 +17,7 @@ public class ChannelPMSVar extends VirtualFolder {
 	}
 	
 	private boolean preventAutoPlay() {
-		// Normally changed is 0 and 0+15000 is never larger
+		// Normally changed is 0 and 0+5000 is never larger
 		// then now.
 		return (changed+AUTO_PLAY_FACTOR)>System.currentTimeMillis();
 	}

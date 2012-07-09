@@ -238,7 +238,7 @@ public class ChannelMediaStream extends DLNAResource {
 		if (!getExt().isCompatible(getMedia(),getDefaultRenderer())) {
 			isIncompatible = true;
 		}
-		Channels.debug("set player to nullplayer "+isIncompatible+" force "+forceTranscode);
+		Channels.debug("set player to nullplayer "+isIncompatible+" force "+forceTranscode+" fool "+fool);
 		if(!fool)
 			setPlayer(pl);
 		else
@@ -589,6 +589,7 @@ public class ChannelMediaStream extends DLNAResource {
 	}
 	
 	public List<String> addStreamvars(List<String> cmdList,OutputParams params) {
+		Channels.debug("streamvars adding "+getName()+" "+streamVars);
 		if(streamVars==null)
 			return cmdList;
 		List<String> cmdList1=ChannelUtil.addStreamVars(cmdList,streamVars,params);
@@ -598,7 +599,8 @@ public class ChannelMediaStream extends DLNAResource {
 	}
 	
 	public void setStreamVars(ChannelStreamVars vars) {
-	//	streamVars=vars;
+		Channels.debug("cms set stream vars "+vars);
+		streamVars=vars;
 	}
 	
 	public String toString() {

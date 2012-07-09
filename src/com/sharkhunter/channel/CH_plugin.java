@@ -194,96 +194,10 @@ public class CH_plugin implements AdditionalFolderAtRoot, StartStopListener
 	public List<String> finalizeTranscoderArgs(Player player, String name,
 			DLNAResource res, DLNAMediaInfo media, OutputParams params,
 			List<String> cmdList) {
-	/*	Channels.debug("finalize args:");
-		Channels.debug("name "+name+" params "+params.toString());
-		Channels.debug("player "+player.name());
-		dbgArg(cmdList);*/
 		if((!(res instanceof ChannelMediaStream)))
 			return cmdList;
-		//ArrayList<String> out=new ArrayList<String>();
 		ChannelMediaStream cms=(ChannelMediaStream)res;
-		/*for(int i=0;i<cmdList.size();i++) {
-			String c=cmdList.get(i);
-			if(c.equals("-target")) {
-				out.add("-vcodec");
-				out.add("copy");
-				out.add("-f");
-				out.add("h264");
-				i++;
-				continue;
-			}
-			out.add(c);
-		}
-		return out;*/
 		return cms.addStreamvars(cmdList,params);
-		
-		//String f=cms.realFormat();
-		/*if(ChannelUtil.empty(f))
-			return cmdList;*/
-		
-		/*boolean pipeSeen=false;
-		String pipeName=null;
-		ArrayList<String> out=new ArrayList<String>();
-		for(int i=0;i<cmdList.size();i++) {
-			String arg=cmdList.get(i);
-			if(arg.equals("|")) {
-				pipeSeen=true;
-				continue;
-			}
-			if(arg.startsWith("\\\\.\\pipe\\")) {
-				pipeName=arg;
-				continue;
-			}
-			if(arg.startsWith("-target")) { // skip this + next
-				i++;
-				continue;
-			}
-			// rest of the args are added
-			out.add(arg);
-		}
-		// now add the special args
-		out.add("-vcodec");
-		out.add("copy");
-		out.add("-acodec");
-		out.add("copy");
-		out.add("-f");
-		out.add("dvd");
-		// finally add the pipe
-		out.add(pipeName);
-		return out;*/
-		
-/*		if(res.getSystemName().startsWith("rtmp")&&player.name().equals("PMSEncoder")) {
-			RendererConfiguration r=params.mediaRenderer;				
-			//if(r.isPS3()||r.isXBOX())
-		/*	if(!r.isBRAVIA()) {
-				boolean pipeSeen=false;
-				String pipeName=null;
-				ArrayList<String> out=new ArrayList<String>();
-				for(int i=0;i<cmdList.size();i++) {
-					String arg=cmdList.get(i);
-					if(arg.equals("|")) {
-						pipeSeen=true;
-						continue;
-					}
-					if(arg.startsWith("\\\\.\\pipe\\")) {
-						pipeName=arg;
-						continue;
-					}
-					if(arg.equals("-o")||arg.equals("-"))
-						continue;
-					if(!pipeSeen)
-						out.add(arg);
-				}
-				if(ChannelUtil.empty(pipeName))
-					return cmdList;
-				out.add("-o");
-				out.add(pipeName);
-				dbgArg(out);
-				return out;
-			}
-			dbgArg(cmdList);
-			return cmdList;
-		}*/
 	}
 	
 	/*public DLNAResource fromPlaylist(String name,String uri,String thumb,

@@ -20,6 +20,7 @@ public class ChannelPMSSubSiteSelector extends VirtualFolder {
 	private String saveName;
 	private String imdb;
 	private HashMap<String,String> stash;
+	private ChannelStreamVars streamVars;
 	
 	public ChannelPMSSubSiteSelector(Channel ch,String name,String nextUrl,
 			String thumb,String proc,int type,int asx,
@@ -45,6 +46,11 @@ public class ChannelPMSSubSiteSelector extends VirtualFolder {
 		this.dispName=dispName;
 		this.imdb=imdb;
 		this.stash=stash;
+		streamVars=null;
+	}
+	
+	public void setStreamVars(ChannelStreamVars vars) {
+		streamVars=vars;
 	}
 	
 	public void discoverChildren() {
@@ -58,6 +64,7 @@ public class ChannelPMSSubSiteSelector extends VirtualFolder {
 											 proc,type,asx,scraper,dispName,saveName,
 											 imdb,stash);
 			subSel.setSite(site);
+			subSel.setStreamVars(streamVars);
 			addChild(subSel);
 		}
 	}

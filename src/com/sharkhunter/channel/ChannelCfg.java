@@ -226,7 +226,8 @@ public class ChannelCfg {
 	}
 	
 	public boolean netDiscStyle() {
-		return netDisc;
+		//return netDisc;
+		return false;
 	}
 	
 	public boolean rawSave() {
@@ -565,15 +566,18 @@ public class ChannelCfg {
 			String[] varData=vars.split(",");
 			String vData=ch+"."+var;
 			String pData="";
+			boolean found=false;
 			for(int i=0;i<varData.length;i++) {
 				if(varData[i].startsWith(vData)) {
 					pData=pData+putData+",";
+					found=true;
 				}
 				else
 					pData=pData+varData[i]+",";
 			}
-			putData=pData;
-			
+			if(!found) // new variable
+				pData=putData+","+pData;
+			putData=pData;		
 		}
 		try {
 			PMS.getConfiguration().setCustomProperty("channels.ch_vars", putData);
