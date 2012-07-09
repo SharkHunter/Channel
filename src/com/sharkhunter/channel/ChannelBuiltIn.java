@@ -11,7 +11,7 @@ public class ChannelBuiltIn {
 	public static boolean action(String act,String player,String value,List<String> list,
 				OutputParams par) {
 		if(act.equals("maxBrStream"))
-			return maxBr(player,value,list);
+			return true;//maxBr(player,value,list);
 		if(act.equals("bufferDelay"))
 			return delay(value,par);
 		if(act.equals("subDelay"))

@@ -181,6 +181,8 @@ public class ChannelVar {
 		Channels.debug("extrnal var script "+action+" returned "+res);
 		if(ChannelUtil.empty(res))
 			return;
+		if(res.equals(data)) // no script found (probably)
+			return;
 		String[] tmp=res.split("\n");
 		for(int i=0;i<tmp.length;i++) {
 			String[] kv=tmp[i].split("=",2);
