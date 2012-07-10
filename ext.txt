@@ -1,5 +1,5 @@
 name=Channels
-url=http://sharkhunter-shb.googlecode.com/files/list.txt
+url=https://raw.github.com/SharkHunter/Channel/master/ch_inst.txt
 desc=Find your online media easy from the XMB.
 rating=5.0
 type=list
