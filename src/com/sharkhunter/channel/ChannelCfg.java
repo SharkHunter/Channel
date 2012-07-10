@@ -559,12 +559,12 @@ public class ChannelCfg {
 	// Channel Var functions
 	///////////////////////////////////////////////////
 	
-	public void putChVars(String ch,String var,String val) {
-		String putData=ch+"."+var+"."+val;
+	public void putChVars(String ch,String inst,String var,String val) {
+		String vData=ChannelUtil.append(ch, "@", inst);
+		String putData=vData+"@"+var+"@"+val;
 		String vars=(String)PMS.getConfiguration().getCustomProperty("channels.ch_vars");
 		if(!ChannelUtil.empty(vars)) {
 			String[] varData=vars.split(",");
-			String vData=ch+"."+var;
 			String pData="";
 			boolean found=false;
 			for(int i=0;i<varData.length;i++) {
@@ -592,12 +592,16 @@ public class ChannelCfg {
 			return;
 		String[] varData=vars.split(",");
 		for(int i=0;i<varData.length;i++) {
-			String[] var=varData[i].split("\\.");
+			String[] var=varData[i].split("@",4);
+			Channels.debug("var "+var.length);
 			if(var.length<3)
 				continue;
 			if(!var[0].equals(chName))
 				continue;
-			ch.setVar(var[1],var[2]);
+			if(var.length>3) // we got an instance
+				ch.setVar(var[1],var[2],var[3]);
+			else
+				ch.setVar(var[1],var[2]);
 		}
 	}
 }

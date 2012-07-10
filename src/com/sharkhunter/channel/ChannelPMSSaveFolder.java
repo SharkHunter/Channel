@@ -83,8 +83,8 @@ public class ChannelPMSSaveFolder extends VirtualFolder {
 		boolean doSubs=Channels.doSubs()&&subs&&(f==Format.VIDEO);
 		ChannelMediaStream cms;
 		ChannelStreamVars streamVars=new ChannelStreamVars(Channels.defStreamVar());
+		streamVars.setInstance(name.hashCode());
 		streamVars.add(this, ch);
-		streamVars.setInstance(String.valueOf(name.hashCode()));
 		if(oh!=null) {
 			final boolean add=!oh.scheduled(url);
 			addChild(new VirtualVideoAction((add?"ADD to ":"DELETE from ")+

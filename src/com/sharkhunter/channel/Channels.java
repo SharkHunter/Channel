@@ -1056,8 +1056,8 @@ public class Channels extends VirtualFolder implements FileListener {
 		cfg().chVars(channel,ch);
 	}
 	
-	public static void setChVar(String ch,String var,String val) {
-		cfg().putChVars(ch,var,val);
+	public static void setChVar(String ch,String inst,String var,String val) {
+		cfg().putChVars(ch,inst,var,val);
 	}
 	
 	////////////////////////////////////////////////////////////////

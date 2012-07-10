@@ -5,6 +5,7 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.util.ArrayList;
+import java.util.Formatter;
 import java.util.HashMap;
 import java.util.List;
 
@@ -61,7 +62,15 @@ public class ChannelStreamVars {
 		for(String var: vars.keySet()) {
 			ChannelVar v=vars.get(var);
 			v.setChannel(ch);
-			v.setValue(ch.trashVar(var));
+			String[] tmp=ch.trashVar(var);
+			if(tmp!=null) {
+				Channels.debug("add stream var "+v.displayName()+" inst "+tmp[0]+" val "+tmp[1]);
+				if(!ChannelUtil.empty(tmp[0])) // instance found verify that it's correct
+					if(!tmp[0].equals(instance))
+						continue;
+				v.initValue(tmp[1]);
+			}
+			v.setInstance(instance);
 			res.addChild(new ChannelPMSVar(var,v));
 		}
 	}
@@ -71,6 +80,10 @@ public class ChannelStreamVars {
 			ChannelVar v=vars.get(var);
 			v.action(player,list,params);
 		}
+	}
+	
+	public void setInstance(int i) {
+		setInstance(String.format("%x", i));
 	}
 	
 	public void setInstance(String inst) {

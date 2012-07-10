@@ -113,16 +113,6 @@ public class ChannelVar {
 	}
 	
 	public void setValue(String v) {
-		if(v==null) //  no need to set this
-			return;
-		String[] tmp=v.split("@");
-		if(tmp.length==2) {
-			if(!ChannelUtil.empty(instance)) {
-				if(!tmp[1].equals(instance))
-					return;
-			}
-			v=tmp[0];
-		}
 		if(type==VAR_TYPE_INC) {
 			if(v.startsWith("Clear current")) // clear it
 				currVal=defaultVal;
@@ -135,7 +125,15 @@ public class ChannelVar {
 		}
 		else
 			currVal=v;
-		Channels.setChVar(parent.getName(), name, ChannelUtil.append(currVal,"@",instance));
+		Channels.setChVar(parent.getName(), instance, name, currVal);
+	}
+	
+	public void initValue(String v) {
+		currVal=v;
+		if(type==VAR_TYPE_INC) {
+			values[0]="Clear current : "+currVal;
+		}
+		Channels.setChVar(parent.getName(), instance, name, currVal);
 	}
 	
 	public void setValue(int i) {
@@ -151,7 +149,7 @@ public class ChannelVar {
 		}
 		else
 			currVal=values[i];
-		Channels.setChVar(parent.getName(), name, ChannelUtil.append(currVal,"@",instance));
+		Channels.setChVar(parent.getName(), instance,name, currVal);
 	}
 	
 	public String resolve(String str) {
@@ -190,6 +188,10 @@ public class ChannelVar {
 			if(kv.length>1)
 				list.add(kv[1]);
 		}
+	}
+	
+	public void setInstance(int i) {
+		setInstance(String.format("%x", i));
 	}
 	
 	public void setInstance(String inst) {

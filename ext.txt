@@ -1,1 +1,13 @@
-http://get-flash-videos.googlecode.com/files/combined-get_flash_videos-1.24,raw,get-flash-videos.path
+name=Channels
+url=http://sharkhunter-shb.googlecode.com/files/list.txt
+desc=Find your online media easy from the XMB.
+rating=5.0
+type=list
+author=SharkHunter
+
+name=MovieInfo
+url=https://github.com/downloads/SharkHunter/MovieInfo/mi_inst.txt
+desc=Get info from IMDB etc. about movies
+type=list
+author=A lot of people
+

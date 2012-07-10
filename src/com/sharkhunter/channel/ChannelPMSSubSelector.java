@@ -104,7 +104,7 @@ public class ChannelPMSSubSelector extends VirtualFolder {
 				cms.setImdb(imdb);
 				cms.setStash(stash);
 				ChannelStreamVars sVar=new ChannelStreamVars(streamVars);
-				sVar.setInstance(String.valueOf(key.hashCode()));
+				sVar.setInstance(key.hashCode());
 				cms.setStreamVars(sVar);
 				addChild(cms);
 			}
