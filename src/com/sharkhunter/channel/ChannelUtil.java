@@ -423,6 +423,8 @@ public class ChannelUtil {
 	}
 	
 	public static String extension(String fileName,boolean stripDot) {
+		if(ChannelUtil.empty(fileName))
+			return null;
 		int pos=fileName.lastIndexOf('.');
 		if((pos>0)&&(pos<fileName.length()-1))
 			return fileName.substring(pos+(stripDot?1:0));
@@ -717,7 +719,7 @@ public class ChannelUtil {
 	}
 	
 	public static String execute(String script,String url,String format) {
-		ProcessBuilder pb=new ProcessBuilder(script,url,format);
+		ProcessBuilder pb=new ProcessBuilder(script,"\""+url+"\"",format);
 		return execute(pb);
 	}
 	
@@ -1017,6 +1019,8 @@ public class ChannelUtil {
 		ArrayList<String> res=new ArrayList<String>();
 		for(int i=0;i<args.size();i++) {
 			String arg=args.get(i);
+			if(arg==null)
+				continue;
 			if(arg.contains("ffmpeg")) {
 				res.add(arg);
 				streamVars.resolve("ffmpeg",res,params);

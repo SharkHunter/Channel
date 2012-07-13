@@ -21,6 +21,7 @@ import java.util.TimerTask;
 
 import net.pms.PMS;
 import net.pms.encoders.Player;
+import net.pms.encoders.PlayerFactory;
 import net.pms.io.OutputParams;
 import net.pms.io.ProcessWrapper;
 
@@ -214,7 +215,7 @@ public class ChannelOffHour {
 	}
 	
 	private Player getPMSEnc() {
-		ArrayList<Player> pls=PMS.get().getPlayers();
+		ArrayList<Player> pls=PlayerFactory.getPlayers();
 		for(int i=0;i<pls.size();i++) {
 			if(pls.get(i).name().equalsIgnoreCase("pmsencoder"))
 				return pls.get(i);

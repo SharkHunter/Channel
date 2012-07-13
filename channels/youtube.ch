@@ -1,10 +1,12 @@
-version = 0.31
+version = 0.40
 
 macrodef apiMedia {
 	media {
 		#matcher=media:title[^>]+>([^\<]+)</media:title>.*?<media:player url='[^']+' />
 		matcher=media:player url=\'([^\']+)\'/><media:thumbnail url='([^']+)'.*?media:title[^>]+>([^\<]+)</media:title>
 		order=url,thumb,name
+		escript=youtube-dl.bat
+		prop=no_fromat,url_unescape
 	}
 }
 
@@ -13,12 +15,14 @@ macrodef ytMedia {
 		#<a href="/watch?v=8hMsNRMIHZQ&amp;feature=tn" title="Shay Given&#39;s tears over Gary Speed&#39;s death." class="yt-uix-tile-link"  >Shay Given&#39;s tears over Gary Speed&#39;s death.</a>
 		matcher = <a href=\"([^\"]+)\" title=\"([^\"]+)\"
 		order = url,name
-		prop = prepend_url=http://www.youtube.com,prepend_thumb=http:,
+		escript=youtube-dl.bat
+		prop = prepend_url=http://www.youtube.com,prepend_thumb=http:,no_format,url_unescape
 	}
 }
 
 channel YouTube {
 	img = http://www.engr.uky.edu/solarcar/sites/default/files/YouTube_icon.png
+	fallback_video=.mp4
 	login {
 		url=https://www.google.com/youtube/accounts/ClientLogin
 		user=Email

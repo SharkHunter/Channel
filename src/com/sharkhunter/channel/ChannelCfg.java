@@ -54,6 +54,7 @@ public class ChannelCfg {
 	private int proxyDNSMode;
 	private boolean longSaveName;
 	private boolean oldSub;
+	private boolean mp2force;
 	
 	public ChannelCfg(Channels top) {
 		chPath=null;
@@ -77,6 +78,7 @@ public class ChannelCfg {
 		proxyDNSMode=PROXY_DNS_NONE;
 		longSaveName=false;
 		oldSub=false;
+		mp2force=true;
 	}
 	
 	///////////////////////////////////
@@ -226,8 +228,7 @@ public class ChannelCfg {
 	}
 	
 	public boolean netDiscStyle() {
-		//return netDisc;
-		return false;
+		return netDisc;
 	}
 	
 	public boolean rawSave() {
@@ -256,6 +257,10 @@ public class ChannelCfg {
 	
 	public String getCurlPath() {
 		return (String) PMS.getConfiguration().getCustomProperty("curl.path");
+	}
+	
+	public boolean mp2Force() {
+		return mp2force;
 	}
 	
 	////////////////////////////////////////
@@ -301,6 +306,7 @@ public class ChannelCfg {
 		String pdns=(String)PMS.getConfiguration().getCustomProperty("channels.proxy_dns");
 		String lsn=(String)PMS.getConfiguration().getCustomProperty("channels.long_savename");
 		String os=(String)PMS.getConfiguration().getCustomProperty("channels.old_sub");
+		String mp2=(String)PMS.getConfiguration().getCustomProperty("channels.mpeg2_force");
 		
 		if(rtmpMode!=null) {
 			if(rtmpMode.trim().equalsIgnoreCase("1"))
@@ -384,6 +390,8 @@ public class ChannelCfg {
 			longSaveName=true;
 		if(!ChannelUtil.empty(os)&&os.equalsIgnoreCase("true"))
 			oldSub=true;
+		if(!ChannelUtil.empty(mp2)&&mp2.equalsIgnoreCase("true"))
+			mp2force=true;
 	}
 
 	private void configPath(String key,String val) {
@@ -420,6 +428,7 @@ public class ChannelCfg {
 			PMS.getConfiguration().setCustomProperty("channels.favorite",String.valueOf(favorite));
 			PMS.getConfiguration().setCustomProperty("channels.long_savename",String.valueOf(longSaveName));
 			PMS.getConfiguration().setCustomProperty("channels.oldSub",String.valueOf(oldSub));
+			PMS.getConfiguration().setCustomProperty("channels.mpeg2_force",String.valueOf(mp2force));
 			if(!ChannelUtil.empty(navixUploadList)) 
 				PMS.getConfiguration().setCustomProperty("channels.navix_upload",
 						ChannelUtil.append(navixUploadList,",",navixUploadList2));
@@ -593,7 +602,6 @@ public class ChannelCfg {
 		String[] varData=vars.split(",");
 		for(int i=0;i<varData.length;i++) {
 			String[] var=varData[i].split("@",4);
-			Channels.debug("var "+var.length);
 			if(var.length<3)
 				continue;
 			if(!var[0].equals(chName))

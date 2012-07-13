@@ -36,6 +36,12 @@ public class ChannelPMSVar extends VirtualFolder {
 	}
 	
 	public void discoverChildren() {
+		if(var.type()==ChannelVar.VAR_TYPE_BOOL) {
+			boolean curr=var.value().equals("true");
+			String newVal=(curr?"false":"true");
+			addAction(newVal,curr);
+			return;
+		}
 		String[] vals=var.values();
 		for(int i=0;i<vals.length;i++) 
 			addAction(vals[i],vals[i].equals(var.value()));

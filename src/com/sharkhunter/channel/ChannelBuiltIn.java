@@ -16,6 +16,11 @@ public class ChannelBuiltIn {
 			return delay(value,par);
 		if(act.equals("subDelay"))
 			return subDelay(player,value,list);
+		if(act.equals("forceMp2")) {
+			if(value.equals("true"))
+				list.add("forceMp2");
+			return true;
+		}
 		return false;
 	}
 	
@@ -37,6 +42,8 @@ public class ChannelBuiltIn {
 	}
 	
 	private static boolean delay(String value,OutputParams par) {
+		if(par==null)
+			return false;
 		int time=getInt(value,-1);
 		if(time>0) {
 			par.waitbeforestart=time;

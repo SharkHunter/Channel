@@ -25,7 +25,9 @@ public class ChannelVar {
 	
 	public final static int VAR_TYPE_STD=0;
 	public final static int VAR_TYPE_INC=1;
+	public final static int VAR_TYPE_BOOL=2;
 	private final static String[] INC_VALUES={"","+1","-1","+5","-5","+10","-10"};
+	private final static String[] BOOL_VALUES={""};
 	
 	private final static String VAR_DELIM="@#"; 
 
@@ -64,6 +66,9 @@ public class ChannelVar {
 					type=VAR_TYPE_INC;
 				if(keyval[1].equalsIgnoreCase("std"))
 					type=VAR_TYPE_STD;
+				if(keyval[1].equalsIgnoreCase("bool"))
+					type=VAR_TYPE_BOOL;
+				
 			}
 		}
 		if(type==VAR_TYPE_INC) { 
@@ -84,6 +89,19 @@ public class ChannelVar {
 			else
 				currVal=defaultVal;
 			values[0]="Clear current : "+currVal;
+		}
+		if(type==VAR_TYPE_BOOL) {
+			if(ChannelUtil.empty(defaultVal)) {
+				if(!currVal.equalsIgnoreCase("false")||
+				   !currVal.equalsIgnoreCase("true"))
+					defaultVal="true";
+				else
+					defaultVal=currVal;
+			}
+			if(!currVal.equalsIgnoreCase("false")||
+			   !currVal.equalsIgnoreCase("true"))
+				currVal=defaultVal;
+			values=BOOL_VALUES;
 		}
 	}
 	
@@ -113,6 +131,7 @@ public class ChannelVar {
 	}
 	
 	public void setValue(String v) {
+		Channels.debug("set var "+name+"(type "+type+")="+v);
 		if(type==VAR_TYPE_INC) {
 			if(v.startsWith("Clear current")) // clear it
 				currVal=defaultVal;
@@ -157,6 +176,8 @@ public class ChannelVar {
 	}
 	
 	public String niceValue(String val) {
+		if(type==VAR_TYPE_BOOL)
+			val=displayName();
 		String s=ChannelUtil.append(prefix, " ", val);
 		return ChannelUtil.append(s, " ", suffix);
 	}	

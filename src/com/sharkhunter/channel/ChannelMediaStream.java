@@ -27,7 +27,9 @@ import net.pms.dlna.DLNAMediaSubtitle;
 import net.pms.dlna.DLNAResource;
 import net.pms.dlna.Range;
 import net.pms.encoders.Player;
+import net.pms.encoders.PlayerFactory;
 import net.pms.formats.Format;
+import net.pms.formats.SubtitleType;
 import net.pms.formats.WEB;
 import net.pms.io.BufferedOutputFile;
 import net.pms.io.OutputParams;
@@ -190,27 +192,27 @@ public class ChannelMediaStream extends DLNAResource {
     
     
     private void updateStreamDetails(boolean loop) {
-    	Format old_ext=ext;
+    	Format old_ext=getExt();
     	// update format, use checktype to be future proof
-    	ext=null;
+    	setExt(null);
     	checktype();
-    	if(ext==null) { // no ext found restore what we got and bail out
-    		ext=old_ext;
+    	if(getExt()==null) { // no ext found restore what we got and bail out
+    		setExt(old_ext);
     		return;
     	}	
-    	if(ext.getProfiles()==null) // no profiles, what do we do? give up
+    	if(getExt().getProfiles()==null) // no profiles, what do we do? give up
     		return;
     	// need to update player as well
     	int i=0;
     	Player pl=null;
-        while (pl == null && i < ext.getProfiles().size()) {
-                pl = PMS.get().getPlayer(ext.getProfiles().get(i), ext);
+        while (pl == null && i < getExt().getProfiles().size()) {
+                pl = PlayerFactory.getPlayer(getExt().getProfiles().get(i), getExt());
                 i++;
         }
         String name = getName();
 		
-		for (Class<? extends Player> clazz : ext.getProfiles()) {
-			for (Player p : PMS.get().getPlayers()) {
+		for (Class<? extends Player> clazz : getExt().getProfiles()) {
+			for (Player p : PlayerFactory.getPlayers()) {
 				if (p.getClass().equals(clazz)) {
 					String end = "[" + p.id() + "]";
 					
@@ -238,7 +240,16 @@ public class ChannelMediaStream extends DLNAResource {
 		if (!getExt().isCompatible(getMedia(),getDefaultRenderer())) {
 			isIncompatible = true;
 		}
-		Channels.debug("set player to nullplayer "+isIncompatible+" force "+forceTranscode+" fool "+fool);
+		ArrayList<String> dummyArgs=new ArrayList<String>();
+		streamVars.resolve("null",dummyArgs,null);
+		boolean mp2=false;
+		for(String val : dummyArgs) {
+			if(val.startsWith("mp2Force")) {
+				mp2=true;
+				break;
+			}
+		}
+		Channels.debug("set player to nullplayer "+isIncompatible+" force "+forceTranscode+" fool "+fool+" force mp2 "+mp2);
 		if(!fool)
 			setPlayer(pl);
 		else
@@ -282,11 +293,11 @@ public class ChannelMediaStream extends DLNAResource {
     	}
     	if(media==null) {
     		media=new DLNAMediaInfo();
-    		media.audioCodes=new ArrayList<DLNAMediaAudio>();
+    		media.setAudioTracksList(new ArrayList<DLNAMediaAudio>());
     	}
     	if(noSubs) { // make sure subs are off here
 			media_subtitle=new DLNAMediaSubtitle();
-			media_subtitle.id=-1;
+			media_subtitle.setId(-1);
 		}
     	Channels.debug("call update");
     	updateStreamDetails(true);
@@ -450,19 +461,18 @@ public class ChannelMediaStream extends DLNAResource {
     private boolean legalExt(String ext) {
     	if(ChannelUtil.empty(ext))
     		return false;
-    	ext=ext.substring(1); // remove the dot
     	ArrayList<Format> formats=PMS.get().getExtensions();
     	for(Format f : formats) {
     		String[] supported=f.getId();
     		for(int i=0;i<supported.length;i++)
-    			if(ext.equals(supported[i]))
+    			if(ext.equalsIgnoreCase(supported[i]))
     				return true;
     	}
     	return false;
     }
     
     private String ensureExt(String str) {
-    	if(legalExt(ChannelUtil.extension(str))) {
+    	if(legalExt(ChannelUtil.extension(str,true))) {
     		return str;
     	}
     	if(ChannelUtil.empty(videoFormat))
@@ -528,13 +538,13 @@ public class ChannelMediaStream extends DLNAResource {
 			if(splits[i].contains("subs=")&&!noSubs&&subs) {
 				DLNAMediaSubtitle sub=new DLNAMediaSubtitle();
 				String tmp=splits[i].substring(splits[i].indexOf("subs=")+5);
-				sub.file=new File(ChannelUtil.unescape(tmp));
-				sub.type=DLNAMediaSubtitle.SUBRIP;
-				sub.id=1;
-				sub.lang="und";
+				sub.setExternalFile(new File(ChannelUtil.unescape(tmp)));
+				sub.setType(SubtitleType.SUBRIP);
+				sub.setId(1);
+				sub.setLang("und");				
 				media.container="unknown"; // avoid bug in mencvid
 				media_subtitle=sub;
-				Channels.debug("set sub file "+sub.file.getAbsolutePath());
+				Channels.debug("set sub file "+sub.getExternalFile().getAbsolutePath());
 				continue;
 			}
 		}
@@ -599,7 +609,7 @@ public class ChannelMediaStream extends DLNAResource {
 	}
 	
 	public void setStreamVars(ChannelStreamVars vars) {
-		Channels.debug("cms set stream vars "+vars);
+		Channels.debug("cms set stream vars "+vars+" inst "+vars.instance());
 		streamVars=vars;
 	}
 	

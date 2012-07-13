@@ -24,43 +24,52 @@ public class ChannelNullPlayer extends FFMpegVideo {
 	public ChannelNullPlayer(boolean transcode) {
 		super();
 		configuration=PMS.getConfiguration();
-		this.transcode=transcode;
+		this.transcode=transcode||Channels.cfg().mp2Force();
 	}
 	
 	public String name() {
 		return "Channel Null Player";
 	}
 	
-	private void addMencoder(ArrayList<String> args,String in,boolean subs) {
-		args.add(executable());
+	private void addMencoder(ArrayList<String> args,String in,File subFile) {
+		int nThreads = configuration.getMencoderMaxThreads();
+		String acodec = configuration.isMencoderAc3Fixed() ? "ac3_fixed" : "ac3";
+		args.add(configuration.getMencoderPath());
 		args.add(in);
 		args.add("-quiet");
 		args.add("-prefer-ipv4");
 		args.add("-cookies-file");
 		args.add(Channels.cfg().getCookiePath());
 		args.add("-ovc");
-		if(!transcode&&!subs) 
+		if(!transcode)
 			args.add("copy");
-		else 
+		else
 			args.add("lavc");
 		args.add("-oac");
 		if(!transcode)
-			args.add("copy");
-		else 
+			args.add("pcm");
+		else
 			args.add("lavc");
+		if(transcode) {
+			args.add("-lavcopts");
+			args.add("vcodec=mpeg2video:vbitrate=4096:threads=" + nThreads + ":acodec=" + acodec + ":abitrate=128");
+			args.add("-lavfopts");
+			args.add("format=dvd");
+		}
+		if(subFile!=null) {
+			args.add("-sub");
+			args.add(subFile.getAbsolutePath());
+			args.add("-subcp");
+			args.add(configuration.getMencoderSubCp());
+			args.add("-subpos");
+			int subpos = 1;
+			try {
+				subpos = Integer.parseInt(configuration.getMencoderNoAssSubPos());
+			} catch (NumberFormatException n) {
+			}
+			args.add(String.valueOf(100 - subpos));
+		}
 	}
-	
-	private void addTranscode(ArrayList<String> args) {
-		int nThreads = configuration.getMencoderMaxThreads();
-		String acodec = configuration.isMencoderAc3Fixed() ? "ac3_fixed" : "ac3";
-		args.add("-of");
-		args.add("lavf");
-		args.add("-lavfopts");
-		args.add("format=dvd");
-		args.add("-lavcopts"); 
-		args.add("vcodec=mpeg2video:vbitrate=4096:threads=" + nThreads + ":acodec=" + acodec + ":abitrate=128");
-	}
-	
 	
 	public ProcessWrapper launchTranscode(
 			String fileName,
@@ -70,7 +79,7 @@ public class ChannelNullPlayer extends FFMpegVideo {
 		Channels.debug("ch_null_player launch "+fileName+" "+dlna);
 			params.minBufferSize = params.minFileSize;
 			params.secondread_minsize = 100000;
-			//params.waitbeforestart = 1000;
+			params.waitbeforestart = 1000;
 			//boolean mencoder=false;
 			boolean subs=(params.sid != null && params.sid.getId() != -1);
 
@@ -78,87 +87,78 @@ public class ChannelNullPlayer extends FFMpegVideo {
 			params.input_pipes[0] = pipe;
 			
 			ArrayList<String> args=new ArrayList<String>();
-			String format=ChannelUtil.extension(dlna.getSystemName(),true);
+			ChannelMediaStream cms=(ChannelMediaStream)dlna;
+			String format=ChannelUtil.extension(cms.realFormat(),true);
+			Channels.debug("nullplayer format "+format);
 			
-			// FFmpeg try
-			args.add(executable());
-			if(fileName.startsWith("rtmpdump://channel?")) {
-				fileName=fileName.substring(19);
-				String ops="";
-				String[] tmp=fileName.split("&");
-				String url="";
-				String swfUrl="";
-				for(int i=0;i<tmp.length;i++) {
-					String[] pair=tmp[i].split("=",2);
-					if(pair[0].equals("-r"))
-						url=ChannelUtil.unescape(pair[1]);
-					else if(pair[0].equals("-y"))
-						ops=ops+" playpath="+ChannelUtil.unescape(pair[1]);
-					else if(pair[0].equals("-a"))
-						ops=ops+" app="+ChannelUtil.unescape(pair[1]);
-					else if(pair[0].equals("-v"))
-						ops=ops+" live=1";
-					else if(pair[0].equals("-p"))
-						ops=ops+" pageurl="+ChannelUtil.unescape(pair[1]);
-					else if(pair[0].equals("-s"))
-						swfUrl=" swfUrl="+ChannelUtil.unescape(pair[1]);
-					else if(pair[0].equals("-W")||pair[0].equals("--swfVfy")) {
-						swfUrl=" swfUrl="+ChannelUtil.unescape(pair[1]);
-						ops=ops+" swfVfy=1";
+			if(subs) { // subtitles use menocder
+				addMencoder(args,fileName,params.sid.getExternalFile());
+				args.add("-o");
+				args.add(pipe.getInputPipe());
+				
+			}
+			else {
+				String src=fileName;
+				if(fileName.startsWith("rtmpdump://channel?")) {
+					args.add(configuration.getFfmpegPath());
+					fileName=fileName.substring(19);
+					String ops="";
+					String[] tmp=fileName.split("&");
+					String url="";
+					String swfUrl="";
+					for(int i=0;i<tmp.length;i++) {
+						String[] pair=tmp[i].split("=",2);
+						if(pair[0].equals("-r"))
+							url=ChannelUtil.unescape(pair[1]);
+						else if(pair[0].equals("-y"))
+							ops=ops+" playpath="+ChannelUtil.unescape(pair[1]);
+						else if(pair[0].equals("-a"))
+							ops=ops+" app="+ChannelUtil.unescape(pair[1]);
+						else if(pair[0].equals("-v"))
+							ops=ops+" live=1";
+						else if(pair[0].equals("-p"))
+							ops=ops+" pageurl="+ChannelUtil.unescape(pair[1]);
+						else if(pair[0].equals("-s"))
+							swfUrl=" swfUrl="+ChannelUtil.unescape(pair[1]);
+						else if(pair[0].equals("-W")||pair[0].equals("--swfVfy")) {
+							swfUrl=" swfUrl="+ChannelUtil.unescape(pair[1]);
+							ops=ops+" swfVfy=1";
+						}
 					}
+					src=url+ops+swfUrl;
+					format="flv";
+					args.add("-i");
+					args.add(src);
+					String cookie=ChannelCookie.getCookie(fileName);
+					if(!ChannelUtil.empty(cookie)) {
+						args.add("-headers");
+						args.add("Cookie: "+cookie);
+					}
+					args.add("-threads");
+					args.add(String.valueOf(configuration.getMencoderMaxThreads()));
+					args.add("-y");
+					args.add("-v");
+					args.add("0");
+					if(!transcode) {
+						args.add("-vcodec");
+						args.add("copy");
+						args.add("-acodec");
+						args.add("copy");
+						args.add("-f");
+						args.add(format);
+					}
+					else {
+						args.add("-target");
+						args.add("ntsc-dvd");
+					}		
+					args.add(pipe.getInputPipe());
 				}
-				args.add("-i");
-				args.add(url+ops+swfUrl);
-				format="flv";
-			}
-			else {
-				args.add("-i");
-				args.add(fileName);
-				String cookie=ChannelCookie.getCookie(fileName);
-				if(!ChannelUtil.empty(cookie)) {
-					args.add("-headers");
-					args.add("Cookie: "+cookie);
+				else {
+					addMencoder(args,fileName,null);
+					args.add("-o");
+					args.add(pipe.getInputPipe());
 				}
 			}
-			
-			if(subs) {
-				args.add("-i");
-				args.add(params.sid.getFile().getAbsolutePath());
-				args.add("-scodec");
-				args.add("copy");
-			}
-			
-			// Generic options
-			args.add("-threads");
-			args.add(String.valueOf(configuration.getMencoderMaxThreads()));
-			args.add("-y");
-		/*	args.add("-v");
-			args.add("quiet");*/
-		
-			if(!transcode&&!subs) {
-				args.add("-vcodec");
-				args.add("copy");
-				args.add("-acodec");
-				args.add("copy");
-				args.add("-f");
-				args.add(format);
-			}
-			else {
-			/*	args.add("-vcodec");
-				args.add("mpeg2video");
-				args.add("-vb");
-				args.add("6000k");
-				args.add("-acodec");
-				args.add("ac3");
-				args.add("-ab");
-				args.add("448k");
-				args.add("-f");
-				args.add("dvd");*/
-				args.add("-target");
-				args.add("ntsc-dvd");
-			}
-			
-			args.add(pipe.getInputPipe());
 			
 			String[] cmdArray=new String[args.size()];
 			args.toArray(cmdArray);
@@ -190,64 +190,3 @@ public class ChannelNullPlayer extends FFMpegVideo {
 			return pw;
 		}
 }
-
-/*if(fileName.startsWith("rtmpdump://channel?")) {
-args.add(Channels.cfg().getRtmpPath());
-fileName=fileName.substring(19);
-String[] tmp=fileName.split("&");
-for(int i=0;i<tmp.length;i++) {
-	String[] pair=tmp[i].split("=",2);
-	args.add(pair[0]);
-	args.add(ChannelUtil.unescape(pair[1]));
-}
-args.add("-q");
-args.add("-o");
-if(subs||transcode)
-	args.add("-");
-else
-	args.add(pipe.getInputPipe());
-}
-else {
-// simple download, use mencoder 
-/*args.add(Channels.cfg().getCurlPath());
-args.add("-s");
-args.add("-S");
-args.add("-b");
-args.add(Channels.cfg().getCookiePath());
-args.add("--location-trusted");
-args.add("--output");
-args.add(pipe.getInputPipe());
-args.add(fileName);*/
-/*mencoder=true;
-addMencoder(args,fileName,subs);
-}
-
-/*if(subs) {
-// we need subs!
-DLNAMediaSubtitle sub=params.sid;
-if(!mencoder) {
-	mencoder=true;
-	args.add("|");
-	addMencoder(args,"-",subs);	
-}
-args.add("-sub");
-args.add(sub.getFile().getAbsolutePath());
-args.add("-subcp");
-args.add(configuration.getMencoderSubCp());
-args.add("-subpos");
-args.add("90");
-}
-
-if(transcode) {
-if(!mencoder) {
-	mencoder=true;
-	args.add("|");
-	addMencoder(args,"-",subs);	
-}
-addTranscode(args);
-}
-
-if(mencoder) {
-args.add("-o");
-args.add(pipe.getInputPipe());
-}*/

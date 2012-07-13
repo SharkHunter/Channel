@@ -82,7 +82,7 @@ public class ChannelPMSSaveFolder extends VirtualFolder {
 		boolean save=Channels.save();
 		boolean doSubs=Channels.doSubs()&&subs&&(f==Format.VIDEO);
 		ChannelMediaStream cms;
-		ChannelStreamVars streamVars=new ChannelStreamVars(Channels.defStreamVar());
+		ChannelStreamVars streamVars=new ChannelStreamVars(ch.defStreamVars());
 		streamVars.setInstance(name.hashCode());
 		streamVars.add(this, ch);
 		if(oh!=null) {

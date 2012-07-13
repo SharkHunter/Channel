@@ -1,4 +1,4 @@
-version=0.1
+version=0.11
 
 var {
 	disp_name=Max Bitrate
@@ -10,7 +10,25 @@ var {
 
 var {
 	disp_name=Init Buffer Delay
-	values=6000,8000,10000,12000
+	values=1000,2000,5000,10000
+	default=6000
+	type=inc
 	suffix=milliseconds
 	action=bufferDelay
+}
+
+var {
+	disp_name=Subtitle Delay
+	values=0.5,1,2,5,10
+	default=0
+	suffix=seconds
+	type=inc
+	action=subDelay
+}
+
+var {
+	disp_name=Force MPEG2 Transcode
+	default=false
+	type=bool
+	action=forceMp2
 }

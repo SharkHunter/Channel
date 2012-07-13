@@ -62,15 +62,14 @@ public class ChannelStreamVars {
 		for(String var: vars.keySet()) {
 			ChannelVar v=vars.get(var);
 			v.setChannel(ch);
+			v.setInstance(instance);
 			String[] tmp=ch.trashVar(var);
 			if(tmp!=null) {
 				Channels.debug("add stream var "+v.displayName()+" inst "+tmp[0]+" val "+tmp[1]);
-				if(!ChannelUtil.empty(tmp[0])) // instance found verify that it's correct
-					if(!tmp[0].equals(instance))
-						continue;
-				v.initValue(tmp[1]);
+				if(tmp[0]!=null&&tmp[0].equals(instance)) { // instance found verify that it's correct
+					v.initValue(tmp[1]);
+				}
 			}
-			v.setInstance(instance);
 			res.addChild(new ChannelPMSVar(var,v));
 		}
 	}
@@ -88,5 +87,9 @@ public class ChannelStreamVars {
 	
 	public void setInstance(String inst) {
 		instance=inst;
+	}
+	
+	public String instance() {
+		return instance;
 	}
 }

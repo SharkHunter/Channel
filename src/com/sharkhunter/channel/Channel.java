@@ -45,6 +45,8 @@ public class Channel extends VirtualFolder {
 	private HashMap<String,ChannelVar> vars;
 	private HashMap<String,String[]> trashVars;
 	
+	private ChannelStreamVars streamVars;
+	
 	public Channel(String name) {
 		super(name,null);
 		Ok=false;
@@ -60,12 +62,15 @@ public class Channel extends VirtualFolder {
 		videoFormat=".flv";
 		vars=new HashMap<String,ChannelVar>();
 		trashVars=new HashMap<String,String[]>();
+		streamVars=Channels.defStreamVar();
+		streamVars.setInstance("");
 		Ok=true;
 	}
 	
 	public void parse(ArrayList<String> data,ArrayList<ChannelMacro> macros) {
 		folders.clear();
 		vars.clear();
+		trashVars.clear();
 		getChildren().clear();
 		debug("parse channel "+name+" data "+data.toString());
 		this.macros=macros;
@@ -204,10 +209,16 @@ public class Channel extends VirtualFolder {
 	}
 	
 	public void discoverChildren(DLNAResource res) {
-		for(String var: vars.keySet()) {
-			ChannelVar v=vars.get(var);
-			addChild(new ChannelPMSVar(var,v));
-		}
+		final Channel me=this;
+		addChild(new VirtualFolder("Variables",null) {
+			public void discoverChildren() {
+				for(String var: vars.keySet()) {
+					ChannelVar v=vars.get(var);
+					addChild(new ChannelPMSVar(var,v));
+				}
+				streamVars.add(this, me);
+			}
+		});
 		if(favorite!=null)
 			try {
 				favorite.match(this);
@@ -433,5 +444,9 @@ public class Channel extends VirtualFolder {
 	
 	public String[] trashVar(String var) {
 		return trashVars.get(var);
+	}
+	
+	public ChannelStreamVars defStreamVars() {
+		return streamVars;
 	}
 }
