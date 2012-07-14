@@ -56,6 +56,7 @@ public class CH_plugin implements AdditionalFolderAtRoot, StartStopListener
 			cfg.init();
 			if(initFetchPending) {
 				initFetchPending=false;
+				Channels.mkCookieFile();
 				cfg.fetchChannels();
 			}
 			chRoot.setCfg(cfg);
@@ -126,7 +127,7 @@ public class CH_plugin implements AdditionalFolderAtRoot, StartStopListener
 	}
 	
 	public static void postInstall() {
-	//	initFetchPending=true;
+		initFetchPending=true;
 		PMS.getConfiguration().setCustomProperty("channels.path", "extras\\channels");
 		PMS.getConfiguration().setCustomProperty("pmsencoder.script.directory" ,"extras\\scripts");
 		PMS.getConfiguration().setCustomProperty("cookie.path","extras\\cookies");
