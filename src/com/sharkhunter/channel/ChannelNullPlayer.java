@@ -15,6 +15,7 @@ import net.pms.io.OutputParams;
 import net.pms.io.PipeProcess;
 import net.pms.io.ProcessWrapper;
 import net.pms.io.ProcessWrapperImpl;
+import net.pms.util.CodecUtil;
 
 public class ChannelNullPlayer extends FFMpegVideo {
 
@@ -64,10 +65,24 @@ public class ChannelNullPlayer extends FFMpegVideo {
 			args.add("-subpos");
 			int subpos = 1;
 			try {
-				subpos = Integer.parseInt(configuration.getMencoderNoAssSubPos());
+				subpos = Integer.parseInt(configuration.getMencoderAssMargin());
 			} catch (NumberFormatException n) {
 			}
 			args.add(String.valueOf(100 - subpos));
+			args.add("-subfont-text-scale");
+			args.add(configuration.getMencoderNoAssScale());
+			args.add("-subfont-outline");
+			args.add(configuration.getMencoderNoAssOutline());
+			args.add("-subfont-blur");
+			args.add(configuration.getMencoderNoAssBlur());
+			String font = CodecUtil.getDefaultFontPath();
+			if(!ChannelUtil.empty(configuration.getMencoderFont()))
+				font=configuration.getMencoderFont();
+			if(!ChannelUtil.empty(font)) {
+				args.add("-font");
+				args.add(font);
+			}
+
 		}
 	}
 	
@@ -89,7 +104,7 @@ public class ChannelNullPlayer extends FFMpegVideo {
 			ArrayList<String> args=new ArrayList<String>();
 			ChannelMediaStream cms=(ChannelMediaStream)dlna;
 			String format=ChannelUtil.extension(cms.realFormat(),true);
-			Channels.debug("nullplayer format "+format);
+			
 			
 			if(subs) { // subtitles use menocder
 				addMencoder(args,fileName,params.sid.getExternalFile());
