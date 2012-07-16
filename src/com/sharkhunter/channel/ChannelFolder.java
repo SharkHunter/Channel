@@ -584,7 +584,7 @@ public class ChannelFolder implements ChannelProps, SearchObj{
 			if(parentFolder!=null)
 				format=parentFolder.getFormat();
 			else
-				format=parent.getFormat();
+				format=parent.getMediaFormat();
 		//Channels.debug("format after flipp "+format);
 		ArrayList<ChannelMedia> med=medias;
 		ArrayList<ChannelItem> ite=items;

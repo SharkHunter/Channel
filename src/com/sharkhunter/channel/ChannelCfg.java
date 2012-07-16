@@ -473,7 +473,8 @@ public class ChannelCfg {
 	public void fetchChannels() {
 		try {			
 			validatePMSEncoder();
-			URL u=new URL(chZip);
+			String zip=chZip.replace("channels", "channels_"+Channels.VERSION.replace('.', '_'));
+			URL u=new URL(zip);
 			URLConnection connection=u.openConnection();
 			connection.setRequestProperty("User-Agent",ChannelUtil.defAgentString);
 			connection.setDoInput(true);

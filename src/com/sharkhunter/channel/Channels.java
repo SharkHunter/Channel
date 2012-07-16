@@ -10,7 +10,11 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
 import java.net.MalformedURLException;
+import java.net.URL;
+import java.net.URLClassLoader;
 import java.net.UnknownHostException;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
@@ -32,7 +36,7 @@ import no.geosoft.cc.io.FileMonitor;
 public class Channels extends VirtualFolder implements FileListener {
 
 	// Version string
-	public static final String VERSION="1.87";
+	public static final String VERSION="1.88";
 	
 	// Constants for RTMP string constructions
 	public static final int RTMP_MAGIC_TOKEN=1;
@@ -1004,11 +1008,25 @@ public class Channels extends VirtualFolder implements FileListener {
 	
 	public static void setMovieInfo(boolean b) {
 		if(b) {
+			inst.movieInfo=null;
 			try {
+				String plugin=PMS.getConfiguration().getPluginDirectory();
+				File mi=new File(plugin+File.separator+"movieinfo.jar");
+				if(!mi.exists()) {
+					inst.movieInfo=null;
+					return;
+				}
+				URLClassLoader cl=(URLClassLoader) inst.getClass().getClassLoader();
+				URL u=mi.toURI().toURL();
+				Class clClass = URLClassLoader.class;
+				Class[] parameters = new Class[]{URL.class};
+				Method method = clClass.getDeclaredMethod("addURL", parameters);
+				method.setAccessible(true);
+				method.invoke(cl, new Object[]{u});
 				inst.movieInfo=new ChannelMovieInfo();
 			}
-			catch ( java.lang.NoClassDefFoundError e) {
-				Channels.debug("MovieInfo not loaded ignore integration");
+			catch ( Throwable t) {
+				Channels.debug("MovieInfo inegration failed");
 				inst.movieInfo=null;
 			}
 		}

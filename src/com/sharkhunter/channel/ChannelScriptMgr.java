@@ -39,7 +39,7 @@ public class ChannelScriptMgr {
 		if(script.startsWith("http://")) {
 			int format=-1;
 			if(ch!=null)
-				format=ch.getFormat();
+				format=ch.getMediaFormat();
 			return ChannelNaviXProc.parse(url,script,format,"",ch);
 		}
 		// 3rd external script,assume full path
@@ -47,7 +47,7 @@ public class ChannelScriptMgr {
 			if(no_format)
 				return ChannelUtil.execute(script,url,"");
 			else
-				return ChannelUtil.execute(script,url,ch.getFormat());
+				return ChannelUtil.execute(script,url,ch.getMediaFormat());
 		}
 		// no try in a special place
 		String f=Channels.cfg().scriptFile(script);
@@ -55,7 +55,7 @@ public class ChannelScriptMgr {
 			if(no_format)
 				return ChannelUtil.execute(f,url,"");
 			else 
-				return ChannelUtil.execute(f,url,ch.getFormat());
+				return ChannelUtil.execute(f,url,ch.getMediaFormat());
 		}
 		// down here we're out of options return the orignal url
 		return url;

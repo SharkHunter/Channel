@@ -185,7 +185,7 @@ public class Channel extends VirtualFolder {
 		return ChannelUtil.findMacro(macros, macro);
 	}
 	
-	public int getFormat() {
+	public int getMediaFormat() {
 		return format;
 	}
 	

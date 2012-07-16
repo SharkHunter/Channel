@@ -215,7 +215,7 @@ public class ChannelMedia implements ChannelProps,ChannelScraper {
 			asx=ChannelUtil.ASXTYPE_AUTO;
 		if(type==ChannelMedia.TYPE_ASX)
 			asx=ChannelUtil.ASXTYPE_FORCE;
-		final int resF=(format==-1?(f==-1?parent.getFormat():f):format);
+		final int resF=(format==-1?(f==-1?parent.getMediaFormat():f):format);
 		if((Channels.save()&&sOpt==ChannelMedia.SAVE_OPT_NONE)||
 			(subtitle!=null||!ChannelUtil.empty(subs))) { // Add save version
 			ChannelPMSSaveFolder sf=new ChannelPMSSaveFolder(parent,nName,url,thumb,script,asx,
