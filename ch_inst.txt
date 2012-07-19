@@ -1,5 +1,5 @@
 http://cloud.github.com/downloads/SharkHunter/Channel/tv_plug_188.jar
-http://cloud.github.com/downloads/chocolateboy/pmsencoder/pmsencoder-1.6.0.jar
+http://cloud.github.com/downloads/chocolateboy/pmsencoder/pmsencoder-1.6.1.jar
 http://sharkhunter-shb.googlecode.com/svn/trunk/ps3mediaserver/extras/bin/curl.exe,extras/bin
 http://sharkhunter-shb.googlecode.com/svn/trunk/ps3mediaserver/extras/bin/rtmpdump.exe,extras/bin
 http://sharkhunter-shb.googlecode.com/svn/trunk/ps3mediaserver/extras/bin/youtube-dl.exe,extras/bin
