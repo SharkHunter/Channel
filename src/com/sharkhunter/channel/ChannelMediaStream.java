@@ -288,7 +288,7 @@ public class ChannelMediaStream extends DLNAResource {
     		if(realUrl.startsWith("subs://"))
     			fixStuff(realUrl.substring(7),true);
     		else if(realUrl.startsWith("navix://")) {
-    			fixStuff(realUrl.substring(8),false);
+    			fixStuff(realUrl.substring(8+8),false);
     		}
     	}
     	if(media==null) {
@@ -539,7 +539,7 @@ public class ChannelMediaStream extends DLNAResource {
 				DLNAMediaSubtitle sub=new DLNAMediaSubtitle();
 				String tmp=splits[i].substring(splits[i].indexOf("subs=")+5);
 				sub.setExternalFile(new File(ChannelUtil.unescape(tmp)));
-				sub.setType(SubtitleType.SUBRIP);
+				//sub.setType(SubtitleType.SUBRIP);
 				sub.setId(1);
 				sub.setLang("und");				
 				media.container="unknown"; // avoid bug in mencvid

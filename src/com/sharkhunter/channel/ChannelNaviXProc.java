@@ -627,7 +627,8 @@ public class ChannelNaviXProc {
 			if(phase>0) {
 				String res="phase="+String.valueOf(phase);
 				for(String key : rvars.keySet()) {
-					res=res+"&"+key+"="+rvars.get(key);
+					res=res+"&"+ChannelUtil.escape(key)+"="+
+						ChannelUtil.escape(rvars.get(key));
 				}
 				Channels.debug("rvars "+res);
 				res=res.replaceAll("v\\d+=&","&");

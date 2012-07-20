@@ -41,22 +41,31 @@ public class ChannelNullPlayer extends FFMpegVideo {
 		args.add("-prefer-ipv4");
 		args.add("-cookies-file");
 		args.add(Channels.cfg().getCookiePath());
-		args.add("-ovc");
-		if(!transcode)
-			args.add("copy");
-		else
-			args.add("lavc");
+		
 		args.add("-oac");
 		if(!transcode)
 			args.add("pcm");
 		else
 			args.add("lavc");
+		args.add("-ovc");
+		if(!transcode)
+			args.add("copy");
+		else
+			args.add("lavc");
 		if(transcode) {
-			args.add("-lavcopts");
-			args.add("vcodec=mpeg2video:vbitrate=4096:threads=" + nThreads + ":acodec=" + acodec + ":abitrate=128");
+			args.add("-of");
+			args.add("lavf");
 			args.add("-lavfopts");
 			args.add("format=dvd");
+			args.add("-lavcopts");
+			args.add("vcodec=mpeg2video:vbitrate=4096:threads=" + nThreads + ":acodec=" + acodec + ":abitrate=128");
+			args.add("-vf");
+			args.add("harddup");
+			args.add("-ofps");
+			args.add("25");
 		}
+		args.add("-cache");
+		args.add("16384");
 		if(subFile!=null) {
 			args.add("-sub");
 			args.add(subFile.getAbsolutePath());
@@ -94,7 +103,7 @@ public class ChannelNullPlayer extends FFMpegVideo {
 		Channels.debug("ch_null_player launch "+fileName+" "+dlna);
 			params.minBufferSize = params.minFileSize;
 			params.secondread_minsize = 100000;
-			params.waitbeforestart = 1000;
+			params.waitbeforestart = 6000;
 			//boolean mencoder=false;
 			boolean subs=(params.sid != null && params.sid.getId() != -1);
 
