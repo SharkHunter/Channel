@@ -56,11 +56,10 @@ public class CH_plugin implements AdditionalFolderAtRoot, StartStopListener
 			cfg.init();
 			if(initFetchPending) {
 				initFetchPending=false;
-				Channels.mkCookieFile();
 				cfg.fetchChannels();
 			}
-			chRoot.setCfg(cfg);
 			Channels.debug("starting");
+			chRoot.setCfg(cfg);
 			chRoot.start(getInterval());
 			if(save!=null) {
 				String ts=(String)PMS.getConfiguration().getCustomProperty("channels.save_ts");

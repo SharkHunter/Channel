@@ -135,14 +135,14 @@ public class Channels extends VirtualFolder implements FileListener {
     	if(workFavFile().exists()) {
     		try {
     			favFile().delete();
-				FileUtils.copyFile(workFavFile(), favFile());
-			} catch (IOException e) {
-			}
+    			FileUtils.copyFile(workFavFile(), favFile());
+    		} catch (IOException e) {
+    		}
     	}
     	try {
-			FileUtils.copyFile(favFile(), workFavFile());
-		} catch (IOException e1) {
-		}
+    		FileUtils.copyFile(favFile(), workFavFile());
+    	} catch (IOException e1) {
+    	}
     	// Start filemonitoring
     	if(poll>0)
     		fileMonitor=new FileMonitor(poll);
