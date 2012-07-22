@@ -6,7 +6,7 @@ type=list
 author=SharkHunter
 
 name=MovieInfo
-url=https://github.com/downloads/SharkHunter/MovieInfo/mi_inst.txt
+url=https://raw.github.com/SharkHunter/MovieInfo/master/mi_inst.txt
 desc=Get info from IMDB etc. about movies
 type=list
 author=A lot of people
