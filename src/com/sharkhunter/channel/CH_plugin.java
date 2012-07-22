@@ -134,6 +134,7 @@ public class CH_plugin implements AdditionalFolderAtRoot, StartStopListener
 		PMS.getConfiguration().setCustomProperty("python.path","extras\\Python27\\python.exe");
 		PMS.getConfiguration().setCustomProperty("rtmpdump.path","extras\\bin\\rtmpdump.exe");
 		PMS.getConfiguration().setCustomProperty("youtube-dl.path","extras\\bin\\youtube-dl.exe");
+		PMS.getConfiguration().setCustomProperty("channels.ch_zip","189");
 		try {
 			PMS.getConfiguration().save();
 		} catch (ConfigurationException e) {

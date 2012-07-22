@@ -55,6 +55,7 @@ public class ChannelCfg {
 	private boolean longSaveName;
 	private boolean oldSub;
 	private boolean mp2force;
+	private String chZipUrl;
 	
 	public ChannelCfg(Channels top) {
 		chPath=null;
@@ -79,6 +80,7 @@ public class ChannelCfg {
 		longSaveName=false;
 		oldSub=false;
 		mp2force=true;
+		chZipUrl=null;
 	}
 	
 	///////////////////////////////////
@@ -289,6 +291,7 @@ public class ChannelCfg {
 		ytPath=(String) PMS.getConfiguration().getCustomProperty("youtube-dl.path");
 		cookiePath=(String) PMS.getConfiguration().getCustomProperty("cookie.path");
 		credPath=(String) PMS.getConfiguration().getCustomProperty("cred.path");
+		chZipUrl=(String) PMS.getConfiguration().getCustomProperty("channels.ch_zip");
 		
 		// Other
 		String dbg=(String)PMS.getConfiguration().getCustomProperty("channels.debug");
@@ -473,7 +476,10 @@ public class ChannelCfg {
 	public void fetchChannels() {
 		try {			
 			validatePMSEncoder();
-			String zip=chZip.replace("channels", "channels_"+Channels.VERSION.replace('.', '_'));
+			String r=Channels.VERSION.replaceAll("\\.","");
+			if(!ChannelUtil.empty(chZipUrl))
+				r=chZipUrl;
+			String zip=chZip.replace("channels", "channels_"+r);
 			URL u=new URL(zip);
 			URLConnection connection=u.openConnection();
 			connection.setRequestProperty("User-Agent",ChannelUtil.defAgentString);
