@@ -21,11 +21,13 @@ public class ChannelNullPlayer extends FFMpegVideo {
 
 	private boolean transcode;
 	private PmsConfiguration configuration;
+	private boolean wmv; 	
 	
 	public ChannelNullPlayer(boolean transcode) {
 		super();
 		configuration=PMS.getConfiguration();
 		this.transcode=transcode||Channels.cfg().mp2Force();
+		wmv=false;
 	}
 	
 	public String name() {
@@ -34,7 +36,15 @@ public class ChannelNullPlayer extends FFMpegVideo {
 	
 	private void addMencoder(ArrayList<String> args,String in,File subFile) {
 		int nThreads = configuration.getMencoderMaxThreads();
-		String acodec = configuration.isMencoderAc3Fixed() ? "ac3_fixed" : "ac3";
+		String acodec = (configuration.isMencoderAc3Fixed() ? "ac3_fixed" : "ac3")+":abitrate=128" ;
+		String vcodec = "mpeg2video";
+		String format="dvd";
+		if(wmv) {
+			vcodec="wmv2";
+			acodec="wmav2:abitrate=448";
+			format="asf";
+			nThreads=1;
+		}
 		args.add(configuration.getMencoderPath());
 		args.add(in);
 		args.add("-quiet");
@@ -56,9 +66,9 @@ public class ChannelNullPlayer extends FFMpegVideo {
 			args.add("-of");
 			args.add("lavf");
 			args.add("-lavfopts");
-			args.add("format=dvd");
+			args.add("format="+format);
 			args.add("-lavcopts");
-			args.add("vcodec=mpeg2video:vbitrate=4096:threads=" + nThreads + ":acodec=" + acodec + ":abitrate=128");
+			args.add("vcodec="+vcodec+":vbitrate=4096:threads=" + nThreads + ":acodec=" + acodec);
 			args.add("-vf");
 			args.add("harddup");
 			args.add("-ofps");
@@ -106,6 +116,10 @@ public class ChannelNullPlayer extends FFMpegVideo {
 			params.waitbeforestart = 6000;
 			//boolean mencoder=false;
 			boolean subs=(params.sid != null && params.sid.getId() != -1);
+			if (params.mediaRenderer.isTranscodeToWMV()) {
+				wmv=true;
+				transcode=true;
+			}
 
 			PipeProcess pipe = new PipeProcess("channels" + System.currentTimeMillis());
 			params.input_pipes[0] = pipe;

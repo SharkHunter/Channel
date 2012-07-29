@@ -6,17 +6,6 @@ import java.text.SimpleDateFormat;
 
 public class ChannelCookie {
 	
-	private static String trimUrl(String u) {
-		String u1=u.replace("http://", "").replace("https://", "");
-		int p=u1.indexOf("/");
-		if(p!=-1)
-			u1=u1.substring(0,p);
-		p=u1.indexOf('.');
-		if((p!=-1)&&(u1.startsWith("www"))) // skip wwwxxx.
-			u1=u1.substring(p+1);
-		return u1;
-	}
-	
 	private static long parseTTD(String expStr) {
 		SimpleDateFormat sdfDate = new SimpleDateFormat("dd-MMM-yyyy HH:mm:ss");
 		java.util.Date d;
@@ -29,7 +18,7 @@ public class ChannelCookie {
 	}
 	
 	public static String getCookie(String url) {
-		ChannelAuth a=Channels.getCookie(trimUrl(url));
+		ChannelAuth a=Channels.getCookie(ChannelUtil.trimURL(url));
 		if(a==null)
 			return null;
 		return a.authStr;
@@ -71,8 +60,8 @@ public class ChannelCookie {
 	 		a.ttd=ttd;
 	 		if(skipUpdate)
 	 			return a.authStr;
-	 		Channels.debug("adding (stat) cookie "+cookie+" to url "+trimUrl(url));
-	 		update|=fixCookie(trimUrl(url), cookie);	
+	 		Channels.debug("adding (stat) cookie "+cookie+" to url "+ChannelUtil.trimURL(url));
+	 		update|=fixCookie(ChannelUtil.trimURL(url), cookie);	
 		}
 		if(update)
 			Channels.mkCookieFile();

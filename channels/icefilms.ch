@@ -1,4 +1,4 @@
-version=0.51
+version=0.55
 
 ###############################
 ## IceFilms new method of
@@ -140,7 +140,7 @@ scriptdef 180Script {
 }
 
 #############################
-## 180Upload script
+## vidhog script
 #############################
 
 scriptdef vhScript {
@@ -167,6 +167,40 @@ scriptdef vhScript {
 }
 
 #############################
+## ShareBee script
+#############################
+
+scriptdef SBScript {
+	regex='sharebees.com/(.*)
+	match s_url
+	id=v1
+	regex='fname" value="([^"]+)"
+	scrape
+	fname=v1
+	op='&op=download1
+	s_postdata='id=
+	concat s_postdata id
+	concat s_postdata '&fname=
+	concat s_postdata fname
+	concat s_postdata '&method_free=Free+Download
+	tmp=s_postdata
+	concat s_postdata op
+	s_method='post
+	#<a href="http://173.193.242.242/files/2/x3xa8wxs4nf1du/Altair_The_Walking_Dead.S02E12.HDTV.XviD-FQM.avi">
+	regex='name="rand" value="([^"]+)
+	scrape
+	rand=v1
+	s_postdata=tmp
+	concat s_postdata '&op=download2&down_direct=1&btn_download=Create+Download+Link&rand=
+	concat s_postdata rand
+	regex='>(http://[^<]+)</a>
+	scrape
+	url=v1
+	play
+}
+
+
+#############################
 ## The actual scrpaer
 #############################
 
@@ -186,6 +220,15 @@ macrodef 180Tvmacro {
 		script=180Script
 		prop=name_index=2+1
 		subtitle=swesub,s4u
+	}
+}
+
+macrodef SbTvmacro {
+	media {
+		# ShareBees
+		script=SBScript
+		prop=name_index=2+1
+		subtitle=swesub,s4u,ut.se
 	}
 }
 
@@ -248,19 +291,19 @@ macrodef tvMacro {
 					macro=rsTvmacro
 				}
 				folder {
+					matcher=go\(([0-9]+)\)'>(Source #[0-9]+|PART [0-9]+)[^<]+<span title="[^S]+(ShareBees)
+					order=url,name,name
+					prop=name_separator=###0
+					type=empty
+					macro=SbTvmacro
+				}
+				folder {
 					matcher=go\(([0-9]+)\)'>(Source #[0-9]+|PART [0-9]+)[^<]+<span title='[^1]+(180upload)
 					order=url,name,name
 					prop=name_separator=###0
 					type=empty
 					macro=180Tvmacro
 				}
-				#folder {
-			#		matcher=go\(([0-9]+)\)'>(Source #[0-9]+|PART [0-9]+)[^<]+<span title="Hosted by[^V]+(VidHog)
-			#		order=url,name,name
-			#		prop=name_separator=###0
-		#			type=empty
-		#			macro=vhTvmacro
-		#		}
 			}
 		}
 	}

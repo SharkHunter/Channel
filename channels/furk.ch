@@ -1,4 +1,4 @@
-version=0.37
+version=0.38
 
 scriptdef furkSubs {
 	release='1
@@ -109,7 +109,7 @@ macrodef furkFolder {
 	folder {
          matcher=a href=\"(/df/[^\"]+)\">([^<]+)<
          order=url,name
-         url=http://www.furk.net/
+         url=https://www.furk.net/
 		 macro=furkMacro
          media {
             # <a class="playlist-item" href="http://ie9hajrspg5sg9mgqs4s1tf9nb9j0t3ds40r71g.gcdn.biz/d/R/KNoWaBGevj73PXNXuxaZiISdFFw__hnNo159OhQLI5epxWrSyuW_X1oi88NmdnIZ/01_Enter_Sandman.mp3" class="first" title="Metallica - Metallica (1991)/Metallica - Metallica/01 Enter Sandman.mp3">Metallica - Metallica (1991)/Metallica - Metallica/01 Enter Sandman.mp3</a> 
@@ -128,7 +128,7 @@ channel Furk {
       passwd=pwd
       user=login
       type=cookie      
-      params=url=&gigya_uid=
+      #params=url=&gigya_uid=
 	  associate=www.furk.net
    }
    folder {

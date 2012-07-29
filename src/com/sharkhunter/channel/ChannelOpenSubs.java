@@ -35,7 +35,7 @@ public class ChannelOpenSubs extends ChannelSubs {
 			if(f.exists())
 				return f.getAbsolutePath();
 			//Channels.debug("fetchin from open subs "+css.url);
-			return OpenSubtitle.fetchSubs(css.url,fName);
+			return OpenSubtitle.fetchSubs(css.url,f.getAbsolutePath());
 		} catch (FileNotFoundException e) {
 		} catch (IOException e) {
 		}
@@ -65,6 +65,7 @@ public class ChannelOpenSubs extends ChannelSubs {
 				css.name=tmp[1];	
 				css.lang=tmp[0];
 			}
+			css.name=css.name.trim();
 			css.owner=this;
 			css.url=(String) data.get(key);
 			res.put(css.name, css);			

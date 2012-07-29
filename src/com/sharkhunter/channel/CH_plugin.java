@@ -13,19 +13,18 @@ import javax.swing.JComponent;
 
 import org.apache.commons.configuration.ConfigurationException;
 
+import com.sun.jna.Platform;
+
 import net.pms.PMS;
-import net.pms.configuration.RendererConfiguration;
 import net.pms.dlna.DLNAMediaInfo;
 import net.pms.dlna.DLNAResource;
 import net.pms.encoders.Player;
 import net.pms.external.AdditionalFolderAtRoot;
-//import net.pms.external.ExternalPlaylist;
 import net.pms.external.FinalizeTranscoderArgsListener;
 import net.pms.external.StartStopListener;
 import net.pms.io.OutputParams;
 
-public class CH_plugin implements AdditionalFolderAtRoot, StartStopListener
-						, FinalizeTranscoderArgsListener {
+public class CH_plugin implements AdditionalFolderAtRoot, StartStopListener, FinalizeTranscoderArgsListener {
 
 	private static final long DEFAULT_POLL_INTERVAL=20000;
 	private static boolean initFetchPending=false;
@@ -125,16 +124,30 @@ public class CH_plugin implements AdditionalFolderAtRoot, StartStopListener
 			((ChannelMediaStream)arg1).nowPlaying();
 	}
 	
+	private static String linuxPath(String program) {
+		ProcessBuilder pb=new ProcessBuilder("which",program);
+		return ChannelUtil.execute(pb);
+	}
+	
 	public static void postInstall() {
 		initFetchPending=true;
 		PMS.getConfiguration().setCustomProperty("channels.path", "extras\\channels");
 		PMS.getConfiguration().setCustomProperty("pmsencoder.script.directory" ,"extras\\scripts");
 		PMS.getConfiguration().setCustomProperty("cookie.path","extras\\cookies");
-		PMS.getConfiguration().setCustomProperty("perl.path","extras\\perl\\bin\\perl.exe");
-		PMS.getConfiguration().setCustomProperty("python.path","extras\\Python27\\python.exe");
-		PMS.getConfiguration().setCustomProperty("rtmpdump.path","extras\\bin\\rtmpdump.exe");
-		PMS.getConfiguration().setCustomProperty("youtube-dl.path","extras\\bin\\youtube-dl.exe");
-		PMS.getConfiguration().setCustomProperty("channels.ch_zip","189");
+		if(Platform.isWindows()) {
+			PMS.getConfiguration().setCustomProperty("perl.path","extras\\perl\\bin\\perl.exe");
+			PMS.getConfiguration().setCustomProperty("python.path","extras\\Python27\\python.exe");
+			PMS.getConfiguration().setCustomProperty("youtube-dl.path","extras\\bin\\youtube-dl.exe");
+			PMS.getConfiguration().setCustomProperty("rtmpdump.path","extras\\bin\\rtmpdump.exe");
+			PMS.getConfiguration().setCustomProperty("curl.path","extras\\bin\\curl.exe");
+		}
+		else if(Platform.isLinux()) {
+			PMS.getConfiguration().setCustomProperty("perl.path",linuxPath("perl"));
+			PMS.getConfiguration().setCustomProperty("python.path",linuxPath("python"));
+			PMS.getConfiguration().setCustomProperty("rtmpdump.path",linuxPath("rtmpdump"));
+			PMS.getConfiguration().setCustomProperty("curl.path",linuxPath("curl"));
+		}
+		PMS.getConfiguration().setCustomProperty("channels.ch_zip",Channels.ZIP_VER);
 		try {
 			PMS.getConfiguration().save();
 		} catch (ConfigurationException e) {

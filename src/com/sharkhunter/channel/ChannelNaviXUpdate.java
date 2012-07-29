@@ -55,12 +55,15 @@ public class ChannelNaviXUpdate {
 			return;
 		URL u=new URL(loginUrl);
 		String query="action=takelogin&ajax=1&username="+cr.user+"&password="+cr.pwd;
-		String page=ChannelUtil.postPage(u.openConnection(), query);
+		URLConnection c=u.openConnection();
+		String page=ChannelUtil.postPage(c, query);
 		if(ChannelUtil.empty(page)) 
 			throw new Exception("Empty NaviX login page");
 		String[] lines=page.split("\n");
 		if(!lines[0].contains("ok"))
 			throw new Exception("NaviX login failed "+page);
+		ChannelAuth a=new ChannelAuth();
+		ChannelCookie.parseCookie(c, a, baseUrl);
 		naviCookie="l_access="+lines[1].trim();
 	}
 	
@@ -76,6 +79,7 @@ public class ChannelNaviXUpdate {
 		URL u=new URL(myUrl);
 		URLConnection c=u.openConnection();
 		String page=ChannelUtil.fetchPage(c);
+		Channels.debug("page "+page);
 		if(ChannelUtil.empty(page))
 			return;
 		String[] lines=page.split("\n");

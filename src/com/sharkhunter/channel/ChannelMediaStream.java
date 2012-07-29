@@ -29,7 +29,7 @@ import net.pms.dlna.Range;
 import net.pms.encoders.Player;
 import net.pms.encoders.PlayerFactory;
 import net.pms.formats.Format;
-import net.pms.formats.SubtitleType;
+import net.pms.formats.v2.SubtitleType;
 import net.pms.formats.WEB;
 import net.pms.io.BufferedOutputFile;
 import net.pms.io.OutputParams;
@@ -240,20 +240,22 @@ public class ChannelMediaStream extends DLNAResource {
 		if (!getExt().isCompatible(getMedia(),getDefaultRenderer())) {
 			isIncompatible = true;
 		}
-		ArrayList<String> dummyArgs=new ArrayList<String>();
-		streamVars.resolve("null",dummyArgs,null);
 		boolean mp2=false;
-		for(String val : dummyArgs) {
-			if(val.startsWith("mp2Force")) {
-				mp2=true;
-				break;
+		if(streamVars!=null) {
+			ArrayList<String> dummyArgs=new ArrayList<String>();
+			streamVars.resolve("null",dummyArgs,null);
+			for(String val : dummyArgs) {
+				if(val.startsWith("mp2Force")) {
+					mp2=true;
+					break;
+				}
 			}
 		}
 		Channels.debug("set player to nullplayer "+isIncompatible+" force "+forceTranscode+" fool "+fool+" force mp2 "+mp2);
 		if(!fool)
 			setPlayer(pl);
 		else
-			setPlayer(new ChannelNullPlayer(isIncompatible||forceTranscode));
+			setPlayer(new ChannelNullPlayer(isIncompatible||forceTranscode||mp2));
     }
     
     public DLNAMediaSubtitle getSubs() {

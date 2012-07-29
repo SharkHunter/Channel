@@ -41,7 +41,7 @@ public class ChannelUtil {
 	
 	// Misc constants
 	
-	public static final String defAgentString="Mozilla/5.0 (Windows; U; Windows NT 6.1; sv-SE; rv:1.9.2.3) Gecko/20100409 Firefox/3.6.3";
+	public static final String defAgentString="Mozilla/5.0 (Windows; U; Windows NT 6.1; sv-SE; rv:1.9.2.3) Gecko/20100409 Firefox/3.7.3";
 	
 	// ASX types
 	public static final int ASXTYPE_NONE=0;
@@ -1041,5 +1041,16 @@ public class ChannelUtil {
 			return imdb;
 		return (imdb.startsWith("tt")?imdb:"tt"+imdb);*/
 		return imdb;
+	}
+	
+	public static String trimURL(String url) {
+		String u1=url.replace("http://", "").replace("https://", "");
+		int p=u1.indexOf("/");
+		if(p!=-1)
+			u1=u1.substring(0,p);
+		p=u1.indexOf('.');
+		if((p!=-1)&&(u1.startsWith("www"))) // skip wwwxxx.
+			u1=u1.substring(p+1);
+		return u1;
 	}
 }

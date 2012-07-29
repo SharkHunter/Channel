@@ -14,7 +14,9 @@ import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 
 import javax.net.ssl.HttpsURLConnection;
+import javax.net.ssl.SSLSession;
 
+import com.sun.net.ssl.HostnameVerifier;
 import com.sun.syndication.io.impl.Base64;
 
 import net.pms.PMS;
@@ -53,6 +55,7 @@ public class ChannelLogin {
 		ttd=0;
 		pre_fetch=null;
 		preFetched=false;
+		params="";
 		parse(data);
 	}
 	
@@ -109,6 +112,12 @@ public class ChannelLogin {
 		}
 	}
 	
+	private String mkQueryString(String usr,String pass) {
+		String usr_pwd=user+"="+ChannelUtil.escape(usr)+
+		"&"+pwd+"="+ChannelUtil.escape(pass);
+		return ChannelUtil.append(params, "&", usr_pwd);
+	}
+	
 	private ChannelAuth mkResult(ChannelAuth a) {
 		if(a==null)
 			a=new ChannelAuth();
@@ -119,16 +128,16 @@ public class ChannelLogin {
 	}
 	
 	private ChannelAuth stdLogin(String usr,String pass,ChannelAuth a) throws Exception {
-		String query=params+"&"+user+"="+URLEncoder.encode(usr,"UTF-8")+
-		"&"+pwd+"="+URLEncoder.encode(pass,"UTF-8");
+		String query=mkQueryString(usr,pass);
 		//Channels.debug("url "+url+" query "+query);
 		URL u=new URL(url);
 		URLConnection connection;
 		if(url.startsWith("https")) {
 			connection = (HttpsURLConnection) u.openConnection();
 			HttpsURLConnection.setFollowRedirects(true);
+			 HttpsURLConnection.setDefaultHostnameVerifier(new NullHostnameVerifier());
 			((HttpURLConnection) connection).setInstanceFollowRedirects(true);   
-			((HttpURLConnection) connection).setRequestMethod("POST");  
+			((HttpURLConnection) connection).setRequestMethod("POST");
 		}
 		else {
 			connection = (HttpURLConnection) u.openConnection();
@@ -152,26 +161,15 @@ public class ChannelLogin {
 		return null;
 	}
 	
-	private String trimUrl(String u) {
-		String u1=u.replace("http://", "").replace("https://", "");
-		int p=u1.indexOf("/");
-		if(p!=-1)
-			u1=u1.substring(0,p);
-		p=u1.indexOf('.');
-		if((p!=-1)&&(u1.startsWith("www"))) // skip wwwxxx.
-			u1=u1.substring(p+1);
-		return u1;
-	}
-	
 	private ChannelAuth updateCookieDb(String cookie,ChannelAuth a) {
-		String u=trimUrl(url);
+		String u=ChannelUtil.trimURL(url);
 		Channels.debug("update cookie db "+u);
 		ChannelAuth b=mkResult(null);
 		b.authStr=cookie;
 		boolean update=Channels.addCookie(u,b);
 		if(associated!=null)
 			for(int i=0;i<associated.length;i++) {
-				u=trimUrl(associated[i].trim());
+				u=ChannelUtil.trimURL(associated[i].trim());
 				update|=Channels.addCookie(u, b);
 			}
 		if(update)
@@ -224,7 +222,7 @@ public class ChannelLogin {
 	}
 	
 	private ChannelAuth cookieLogin(String usr,String pass,ChannelAuth a) throws Exception {
-		ChannelAuth a1=Channels.getCookie(trimUrl(url));
+		ChannelAuth a1=Channels.getCookie(ChannelUtil.trimURL(url));
 		if(a1!=null) { // found some in hash
 			if(a1.ttd>System.currentTimeMillis()) {
 				loggedOn=true;
@@ -241,8 +239,7 @@ public class ChannelLogin {
 		String query="";
 		String method="GET";
 		if(!ChannelUtil.empty(usr)) {
-			query=params+"&"+user+"="+URLEncoder.encode(usr,"UTF-8")+
-				  "&"+pwd+"="+URLEncoder.encode(pass,"UTF-8");
+			query=mkQueryString(usr,pass);
 			method="POST";
 		}
 		//Channels.debug("okidoki "+query);
@@ -253,10 +250,11 @@ public class ChannelLogin {
 		if(u.toString().startsWith("https")) {
 			HttpsURLConnection connection = (HttpsURLConnection) u.openConnection(p);
 			 HttpsURLConnection.setFollowRedirects(true);
+			 HttpsURLConnection.setDefaultHostnameVerifier(new NullHostnameVerifier());
 			((HttpsURLConnection) connection).setInstanceFollowRedirects(true);   
 			((HttpsURLConnection) connection).setRequestMethod(method);
 			String page=ChannelUtil.postPage(connection, query);
-			Channels.debug("login res page "+page);
+			//Channels.debug("login res page "+page);
 			if(ChannelUtil.empty(page))
 				return null;
 			return getCookie(connection,a);
@@ -267,6 +265,7 @@ public class ChannelLogin {
 			connection.setInstanceFollowRedirects(true);   
 			connection.setRequestMethod(method);
 			String page=ChannelUtil.postPage(connection, query);
+			//Channels.debug("login page "+page);
 			if(ChannelUtil.empty(page))
 				return null;
 			return getCookie(connection,a);
@@ -333,6 +332,12 @@ public class ChannelLogin {
 	public void reset() {
 		tokenStr="";
 		loggedOn=false;
+	}
+	
+	private static class NullHostnameVerifier implements javax.net.ssl.HostnameVerifier {
+	    public boolean verify(String hostname, SSLSession session) {
+	        return true;
+	    }
 	}
 }
 

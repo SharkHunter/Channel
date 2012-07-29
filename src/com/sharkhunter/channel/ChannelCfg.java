@@ -477,6 +477,8 @@ public class ChannelCfg {
 		try {			
 			validatePMSEncoder();
 			String r=Channels.VERSION.replaceAll("\\.","");
+			if(!ChannelUtil.empty(Channels.ZIP_VER))
+				r=Channels.ZIP_VER;
 			if(!ChannelUtil.empty(chZipUrl))
 				r=chZipUrl;
 			String zip=chZip.replace("channels", "channels_"+r);
