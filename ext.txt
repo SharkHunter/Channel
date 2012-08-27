@@ -11,3 +11,7 @@ desc=Get info from IMDB etc. about movies
 type=list
 author=A lot of people
 
+name=GMusic
+url=http://cloud.github.com/downloads/SharkHunter/GMusic/gm_plugin_011.jar
+desc=GoogleMusic plugin
+author=SharkHunter
