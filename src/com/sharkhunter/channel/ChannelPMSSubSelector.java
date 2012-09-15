@@ -30,6 +30,8 @@ public class ChannelPMSSubSelector extends VirtualFolder {
 	
 	private ChannelStreamVars streamVars;
 	
+	private static final String PNS="PLAY (no subs match)";
+	
 	public ChannelPMSSubSelector(Channel ch,String name,String nextUrl,
 				 String thumb,String proc,int type,int asx,
 				 ChannelScraper scraper,String dispName,
@@ -85,7 +87,7 @@ public class ChannelPMSSubSelector extends VirtualFolder {
 		choices.remove("__match_name__");
 		// Add a special PLAY at the top and bottom to make it esaier
 		// to play even if nothing is good enough...
-		ChannelMediaStream cms=new ChannelMediaStream(ch,"PLAY (no subs match)",url,null,proc,type,asx,scraper,dispName,saveName);
+		ChannelMediaStream cms=new ChannelMediaStream(ch,PNS,url,null,proc,type,asx,scraper,dispName,saveName);
 		cms.setImdb(imdb);
 		cms.setStash(stash);
 		cms.setStreamVars(streamVars);
@@ -109,7 +111,7 @@ public class ChannelPMSSubSelector extends VirtualFolder {
 				addChild(cms);
 			}
 		}
-		cms=new ChannelMediaStream(ch,"PLAY (no subs match)",url,null,proc,type,asx,scraper,dispName,saveName);
+		cms=new ChannelMediaStream(ch,PNS,url,null,proc,type,asx,scraper,dispName,saveName);
 		cms.setImdb(imdb);
 		cms.setStash(stash);
 		cms.setStreamVars(streamVars);

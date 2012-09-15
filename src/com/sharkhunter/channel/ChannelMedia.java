@@ -41,6 +41,7 @@ public class ChannelMedia implements ChannelProps,ChannelScraper {
 	private String proxy;
 	private HashMap<String,String> hdrs;
 	private String videoFormat;
+	private ChannelMatcher formatMatcher;
 	
 	public ChannelMedia(ArrayList<String> data,Channel parent) {
 		Ok=false;
@@ -56,6 +57,7 @@ public class ChannelMedia implements ChannelProps,ChannelScraper {
 		hdrs=new HashMap<String,String>();	
 		hdrs.putAll(parent.getHdrs());
 		videoFormat=null;
+		formatMatcher=null;
 		parse(data);
 		Ok=true;
 	}
@@ -88,6 +90,13 @@ public class ChannelMedia implements ChannelProps,ChannelScraper {
 				else
 					matcher.setOrder(keyval[1]);
 				matcher.setChannel(parent);
+			}
+			if(keyval[0].equalsIgnoreCase("format_matcher")) {
+				if(formatMatcher==null)
+					formatMatcher=new ChannelMatcher(keyval[1],"format",this);
+				else
+					formatMatcher.setMatcher(keyval[1]);
+				formatMatcher.setChannel(parent);
 			}
 			if(keyval[0].equalsIgnoreCase("script")) {
 				//parent.debug("assign script "+keyval[1]);
@@ -152,6 +161,10 @@ public class ChannelMedia implements ChannelProps,ChannelScraper {
 	
 	public ChannelMatcher getMatcher() {
 		return matcher;
+	}
+	
+	public ChannelMatcher getFormatMatcher() {
+		return formatMatcher;
 	}
 	
 	public boolean onlyFirst() {

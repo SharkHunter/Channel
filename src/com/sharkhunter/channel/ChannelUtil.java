@@ -192,8 +192,12 @@ public class ChannelUtil {
 		InputStreamReader inn=new InputStreamReader(in);
 		char[] buf=new char[4096];
 		int len;
-		while((len=inn.read(buf))!=-1)
+		Thread me=Thread.currentThread();
+		while((len=inn.read(buf))!=-1) {
 			out.write(buf, 0, len);
+			if(me.isInterrupted())
+				break;
+		}
 		out.flush();
 		out.close();
 		in.close();
@@ -220,8 +224,12 @@ public class ChannelUtil {
 			FileOutputStream out=new FileOutputStream(f);
 			byte[] buf = new byte[4096];
 			int len;
-			while((len=in.read(buf))!=-1)
+			Thread me=Thread.currentThread();
+			while((len=in.read(buf))!=-1)  {
 				out.write(buf, 0, len);
+				if(me.isInterrupted())
+					break;
+			}
 			out.flush();
 			out.close();
 			in.close();
@@ -1052,5 +1060,15 @@ public class ChannelUtil {
 		if((p!=-1)&&(u1.startsWith("www"))) // skip wwwxxx.
 			u1=u1.substring(p+1);
 		return u1;
+	}
+	
+	public static void killThread(Thread t) {
+		if(t!=null) {
+			t.interrupt();
+			try {
+				t.join();
+			} catch (InterruptedException e) {
+			}
+		}
 	}
 }

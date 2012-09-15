@@ -1,4 +1,4 @@
-version=0.40
+version=0.50
 
 channel SVTPlay {
 	img=http://svtplay.se/img/brand/svt-play.png
@@ -12,6 +12,18 @@ channel SVTPlay {
 		disp_name=Bitrate 2
 		var_name=br2
 		values=850,1400,320
+		suffix=Kbps
+	}
+	var {
+		disp_name=Bitrate 1 - HLS
+		var_name=br3
+		values=2386,1386,937,349
+		suffix=Kbps
+	}
+	var {
+		disp_name=Bitrate 2 - HLS
+		var_name=br4
+		values=937,1386,349
 		suffix=Kbps
 	}
 	folder {
@@ -58,7 +70,17 @@ channel SVTPlay {
 						matcher=\"url\":\"(rtmp[^\"]+)\",\"bitrate\":(@#br1@#|@#br2@#)
 						order=url,dummy
 						prop=only_first
-						put=swfVfy=http://www.svtplay.se/public/swf/video/svtplayer-2012.15.swf
+						put=swfVfy=http://www.svtplay.se/public/swf/video/svtplayer-2012.34.swf
+					}
+					folder {
+						matcher=\"url\":\"(http[^\"]+)\",\"bitrate\":0,\"playerType\":\"ios\"
+						order=url
+						type=empty
+						media {
+							matcher=BANDWIDTH=(@#br3@#|@#br4@#)000,.*?(http[^\n]+)
+							order=dummy,url
+							prop=matcher_dotall,only_first
+						}
 					}
 				}
 			}

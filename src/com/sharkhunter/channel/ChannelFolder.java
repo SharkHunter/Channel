@@ -634,6 +634,7 @@ public class ChannelFolder implements ChannelProps, SearchObj{
 	    		}
 	    		continue;
 	    	}
+	    	// we could match the video format here
 	    	m.startMatch(page);
 	    	parent.debug("media matching using "+m.getRegexp().pattern());
 	    	while(m.match()) {

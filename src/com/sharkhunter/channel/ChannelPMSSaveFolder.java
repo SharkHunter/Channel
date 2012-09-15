@@ -24,6 +24,12 @@ public class ChannelPMSSaveFolder extends VirtualFolder {
 	private String videoFormat;
 	private String embedSub;
 	private HashMap<String,String> stash;
+	
+	private static final String P="PLAY";
+	private static final String SP="PLAY&SAVE";
+	private static final String NS=" - No Subs";
+	private static final String PNS=P+NS;
+	private static final String SNS=SP+NS;
 
 	
 	private static final long AUTO_PLAY_FACTOR=(1000*15);
@@ -46,6 +52,15 @@ public class ChannelPMSSaveFolder extends VirtualFolder {
 		rawSave=false;
 		videoFormat=null;
 		embedSub=null;
+	}
+	
+	public static String washName(String str) {
+		String[] strs={SNS,PNS,SP,P};
+		for(String s : strs) {
+			if(str.startsWith(s))
+				str=str.replaceFirst(s, "");
+		}
+		return str;
 	}
 	
 	public void setImdb(String i) {
@@ -141,7 +156,7 @@ public class ChannelPMSSaveFolder extends VirtualFolder {
 				}
 			});
 			if(!doSubs||Channels.cfg().oldSub()) {
-				cms=new ChannelMediaStream(ch,displayName("SAVE&PLAY"),url,thumb,
+				cms=new ChannelMediaStream(ch,displayName(SP),url,thumb,
 						proc,f,asx,scraper,name,name);
 				cms.setImdb(imdb);
 				cms.setRender(this.defaultRenderer);
@@ -170,7 +185,7 @@ public class ChannelPMSSaveFolder extends VirtualFolder {
 			}
 		}
 		if(!doSubs||Channels.cfg().oldSub()) {
-			cms=new ChannelMediaStream(ch,displayName("PLAY"),url,thumb,
+			cms=new ChannelMediaStream(ch,displayName(P),url,thumb,
 					proc,f,asx,scraper,name,null);
 			cms.setImdb(imdb);
 			cms.setRender(this.defaultRenderer);
@@ -185,19 +200,19 @@ public class ChannelPMSSaveFolder extends VirtualFolder {
 			if(Channels.cfg().oldSub()) {
 				ChannelPMSSubSelector subSel=new ChannelPMSSubSelector(ch,displayName("Select subs - PLAY"),
 						url,thumb,proc,f,asx,
-						scraper,name,name,imdb,stash);
+						scraper,name,null,imdb,stash);
 				subSel.setStreamVars(streamVars);
 				addChild(subSel);
 			}
 			else {
 				ChannelPMSSubSiteSelector subSel=new ChannelPMSSubSiteSelector(ch,displayName("Select subs - PLAY"),
 						url,thumb,proc,f,asx,
-						scraper,name,name,imdb,stash);
+						scraper,name,null,imdb,stash);
 				subSel.setStreamVars(streamVars);
 				addChild(subSel);
 			}
 			if(save) {
-				cms=new ChannelMediaStream(ch,displayName("SAVE&PLAY - No Subs"),url,
+				cms=new ChannelMediaStream(ch,displayName(SNS),url,
 										   thumb,proc,f,asx,scraper,name,name);
 				cms.noSubs();
 				cms.setImdb(imdb);
@@ -208,7 +223,7 @@ public class ChannelPMSSaveFolder extends VirtualFolder {
 				cms.setStash(stash);
 				addChild(cms);
 			}
-			cms=new ChannelMediaStream(ch,displayName("PLAY - No Subs"),url,thumb,
+			cms=new ChannelMediaStream(ch,displayName(PNS),url,thumb,
 								       proc,f,asx,scraper,name,null);
 			cms.noSubs();
 			cms.setImdb(imdb);

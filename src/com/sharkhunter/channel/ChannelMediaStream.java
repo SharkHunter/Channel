@@ -62,6 +62,8 @@ public class ChannelMediaStream extends DLNAResource {
 	private Object embedSub;
 	private ChannelStreamVars streamVars;
 	private HashMap<String,String> stash;
+	private Thread bgThread;
+	private int bgCnt;
 	
 	public ChannelMediaStream(Channel ch,String name,String nextUrl,
 			  String thumb,String proc,int type,int asx,
@@ -102,6 +104,8 @@ public class ChannelMediaStream extends DLNAResource {
 		delay=scraper.delay();
 		embedSub=null;
 		streamVars=null;
+		bgThread=null;
+		bgCnt=0;
 	}
 	
 	public ChannelMediaStream(ChannelMediaStream cms) {
@@ -135,6 +139,12 @@ public class ChannelMediaStream extends DLNAResource {
 		embedSub=cms.embedSub;
 		streamVars=cms.streamVars;
 		stash=cms.stash;
+		bgThread=cms.bgThread;
+		bgCnt=cms.bgCnt;
+	}
+	
+	public String saveName() {
+		return saveName;
 	}
 	
 	public void noSubs() {
@@ -334,6 +344,8 @@ public class ChannelMediaStream extends DLNAResource {
     	if(delayed())
     		return null;
     	InputStream is=super.getInputStream(range,mediarenderer);
+    	if(Channels.cfg().fileBuffer()&&!realUrl.startsWith("rtmpdump://channel?"))
+    		return is;
     	if((saveName!=null)||Channels.cache()) {
     		return startSave(is);
     	}
@@ -359,6 +371,8 @@ public class ChannelMediaStream extends DLNAResource {
 				conn.setRequestProperty("Cookie",cookie);
 			conn.connect();
 			InputStream is=conn.getInputStream();
+			if(Channels.cfg().fileBuffer()&&!realUrl.startsWith("rtmpdump://channel?"))
+	    		return is;
 			if((saveName!=null)||Channels.cache()) {
 				return startSave(is);
 			}
@@ -518,6 +532,13 @@ public class ChannelMediaStream extends DLNAResource {
 	public void donePlaying() {
 		if(parent instanceof ChannelPMSSaveFolder)
 			((ChannelPMSSaveFolder)parent).childDone();
+		if(bgThread!=null) 
+			if(--bgCnt!=0) // more people using this thread don't kill the dl
+				return;
+		// killThread can handle bgThread==null, so it's safe to call it
+		// for all threads
+		ChannelUtil.killThread(bgThread);
+		bgThread=null;
 	}
 	
 	public void nowPlaying() {
@@ -526,6 +547,19 @@ public class ChannelMediaStream extends DLNAResource {
 	
 	public void setImdb(String i) {
 		imdb=i;
+	}
+	
+	public void bgThread(Thread t) {			
+		bgThread=t;
+		bgCnt=1;
+	}
+	
+	public void moreBg() {
+		bgCnt++;
+	}
+	
+	public boolean isBgDownload() {
+		return (bgThread!=null);
 	}
 	
 	private void fixStuff(String str,boolean subs) {
@@ -541,9 +575,9 @@ public class ChannelMediaStream extends DLNAResource {
 				DLNAMediaSubtitle sub=new DLNAMediaSubtitle();
 				String tmp=splits[i].substring(splits[i].indexOf("subs=")+5);
 				sub.setExternalFile(new File(ChannelUtil.unescape(tmp)));
-				//sub.setType(SubtitleType.SUBRIP);
 				sub.setId(1);
-				sub.setLang("und");				
+				sub.setLang("und");
+				sub.setType(SubtitleType.SUBRIP);
 				media.container="unknown"; // avoid bug in mencvid
 				media_subtitle=sub;
 				Channels.debug("set sub file "+sub.getExternalFile().getAbsolutePath());

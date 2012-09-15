@@ -56,6 +56,7 @@ public class ChannelCfg {
 	private boolean oldSub;
 	private boolean mp2force;
 	private String chZipUrl;
+	private boolean fileBuffer;
 	
 	public ChannelCfg(Channels top) {
 		chPath=null;
@@ -79,8 +80,9 @@ public class ChannelCfg {
 		proxyDNSMode=PROXY_DNS_NONE;
 		longSaveName=false;
 		oldSub=false;
-		mp2force=true;
+		mp2force=false;
 		chZipUrl=null;
+		fileBuffer=false;
 	}
 	
 	///////////////////////////////////
@@ -265,6 +267,10 @@ public class ChannelCfg {
 		return mp2force;
 	}
 	
+	public boolean fileBuffer() {
+		return fileBuffer;
+	}
+	
 	////////////////////////////////////////
 	// Misc. methods
 	////////////////////////////////////////
@@ -310,6 +316,7 @@ public class ChannelCfg {
 		String lsn=(String)PMS.getConfiguration().getCustomProperty("channels.long_savename");
 		String os=(String)PMS.getConfiguration().getCustomProperty("channels.old_sub");
 		String mp2=(String)PMS.getConfiguration().getCustomProperty("channels.mpeg2_force");
+		String fb=(String)PMS.getConfiguration().getCustomProperty("channels.filebuffer");
 		
 		if(rtmpMode!=null) {
 			if(rtmpMode.trim().equalsIgnoreCase("1"))
@@ -395,6 +402,8 @@ public class ChannelCfg {
 			oldSub=true;
 		if(!ChannelUtil.empty(mp2)&&mp2.equalsIgnoreCase("true"))
 			mp2force=true;
+		if(!ChannelUtil.empty(mp2)&&mp2.equalsIgnoreCase("true"))
+			fileBuffer=true;
 	}
 
 	private void configPath(String key,String val) {
@@ -431,7 +440,7 @@ public class ChannelCfg {
 			PMS.getConfiguration().setCustomProperty("channels.favorite",String.valueOf(favorite));
 			PMS.getConfiguration().setCustomProperty("channels.long_savename",String.valueOf(longSaveName));
 			PMS.getConfiguration().setCustomProperty("channels.oldSub",String.valueOf(oldSub));
-			PMS.getConfiguration().setCustomProperty("channels.mpeg2_force",String.valueOf(mp2force));
+		//	PMS.getConfiguration().setCustomProperty("channels.mpeg2_force",String.valueOf(mp2force));
 			if(!ChannelUtil.empty(navixUploadList)) 
 				PMS.getConfiguration().setCustomProperty("channels.navix_upload",
 						ChannelUtil.append(navixUploadList,",",navixUploadList2));

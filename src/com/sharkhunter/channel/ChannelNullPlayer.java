@@ -39,12 +39,6 @@ public class ChannelNullPlayer extends FFMpegVideo {
 		String acodec = (configuration.isMencoderAc3Fixed() ? "ac3_fixed" : "ac3")+":abitrate=128" ;
 		String vcodec = "mpeg2video";
 		String format="dvd";
-		if(wmv) {
-			vcodec="wmv2";
-			acodec="wmav2:abitrate=448";
-			format="asf";
-			nThreads=1;
-		}
 		args.add(configuration.getMencoderPath());
 		args.add(in);
 		args.add("-quiet");
@@ -120,25 +114,61 @@ public class ChannelNullPlayer extends FFMpegVideo {
 				wmv=true;
 				transcode=true;
 			}
-
+			
 			PipeProcess pipe = new PipeProcess("channels" + System.currentTimeMillis());
 			params.input_pipes[0] = pipe;
-			
+				
 			ArrayList<String> args=new ArrayList<String>();
 			ChannelMediaStream cms=(ChannelMediaStream)dlna;
 			String format=ChannelUtil.extension(cms.realFormat(),true);
+			String effFile=fileName;
+			
+			if (Channels.cfg().fileBuffer()) {
+				String fName=Channels.fileName(dlna.getName(),true);
+				if(cms.saveName()!=null)
+					fName=Channels.fileName(cms.saveName(), false);
+		    	fName=ChannelUtil.guessExt(fName,fileName);
+		    	final File m = new File(fName);
+		    	if(!cms.isBgDownload()&&!fileName.startsWith("rtmpdump://channel?")) {
+		    		if (m.exists() && !m.delete()) {
+		    			ChannelUtil.sleep(3000);
+		    		}
+		    		ChannelUtil.cacheFile(m,"media");
+		    		final String fileName1=fileName;
+		    		Runnable r=new Runnable() {
+		    			public void run() {
+		    				ChannelUtil.downloadBin(fileName1, m);
+		    			}
+		    		};
+		    		Thread t=new Thread(r);
+		    		cms.bgThread(t);
+		    		t.start();
+		    	}
+		    	else {
+		    		cms.moreBg();
+		    	}
+		    	// delay until file is large enough
+		    	while(m.length()<params.minBufferSize)
+		    		ChannelUtil.sleep(200);
+		    	effFile=m.getAbsolutePath();
+			}
 			
 			
-			if(subs) { // subtitles use menocder
-				addMencoder(args,fileName,params.sid.getExternalFile());
+			/*if(subs) { // subtitles use menocder
+				addMencoder(args,effFile,params.sid.getExternalFile());
 				args.add("-o");
-				args.add(pipe.getInputPipe());
+				args.add(params.input_pipes[0].getInputPipe());
 				
 			}
-			else {
+			else {*/
+			if(subs) {
+				addMencoder(args,fileName,params.sid.getExternalFile());
+				args.add("-o");
+				args.add("-");
+			}	
 				String src=fileName;
+				args.add(configuration.getFfmpegPath());
 				if(fileName.startsWith("rtmpdump://channel?")) {
-					args.add(configuration.getFfmpegPath());
 					fileName=fileName.substring(19);
 					String ops="";
 					String[] tmp=fileName.split("&");
@@ -165,43 +195,60 @@ public class ChannelNullPlayer extends FFMpegVideo {
 					}
 					src=url+ops+swfUrl;
 					format="flv";
-					args.add("-i");
-					args.add(src);
-					String cookie=ChannelCookie.getCookie(fileName);
-					if(!ChannelUtil.empty(cookie)) {
-						args.add("-headers");
-						args.add("Cookie: "+cookie);
+				}
+				args.add("-i");
+				args.add(src);
+				String cookie=ChannelCookie.getCookie(fileName);
+				if(!ChannelUtil.empty(cookie)) {
+					args.add("-headers");
+					args.add("Cookie: "+cookie);
+				}
+				args.add("-threads");
+				args.add(String.valueOf(configuration.getMencoderMaxThreads()));
+				args.add("-y");
+				args.add("-v");
+				args.add("0");
+				if(!transcode||wmv) {
+					String acodec = "copy";
+					String vcodec = "copy";
+					if(wmv) {
+						vcodec="wmv2";
+						acodec="wmav2:abitrate=448";
+						format="asf";
 					}
-					args.add("-threads");
-					args.add(String.valueOf(configuration.getMencoderMaxThreads()));
-					args.add("-y");
-					args.add("-v");
-					args.add("0");
-					if(!transcode) {
-						args.add("-vcodec");
+					args.add("-vcodec");
+					if(!wmv)
 						args.add("copy");
-						args.add("-acodec");
-						args.add("copy");
-						args.add("-f");
-						args.add(format);
-					}
 					else {
-						args.add("-target");
-						args.add("ntsc-dvd");
-					}		
-					args.add(pipe.getInputPipe());
+						format="wav";
+						args.add("wmv2");
+					}
+					args.add("-acodec");
+					if(!wmv)
+						args.add("copy");
+					else
+						args.add("wmav2");
+					args.add("-f");
+					args.add(format);
 				}
 				else {
-					addMencoder(args,fileName,null);
-					args.add("-o");
-					args.add(pipe.getInputPipe());
+					args.add("-target");
+					args.add("ntsc-dvd");
 				}
-			}
+				args.add(params.input_pipes[0].getInputPipe());
+				/*}
+				else {
+					addMencoder(args,fileName,null);
+					args.add("-o");	
+					args.add(params.input_pipes[0].getInputPipe());
+				}
+				}*/
 			
 			String[] cmdArray=new String[args.size()];
 			args.toArray(cmdArray);
-
-			ProcessWrapper mkfifo_process = pipe.getPipeProcess();
+			
+			ProcessWrapper mkfifo_process = null;
+			mkfifo_process = params.input_pipes[0].getPipeProcess();
 
 			cmdArray = finalizeTranscoderArgs(
 				this,
@@ -212,14 +259,16 @@ public class ChannelNullPlayer extends FFMpegVideo {
 				cmdArray);
 
 			ProcessWrapperImpl pw = new ProcessWrapperImpl(cmdArray, params);
-			pw.attachProcess(mkfifo_process);
-			mkfifo_process.runInNewThread();
+			if(mkfifo_process!=null) {
+				pw.attachProcess(mkfifo_process);
+				mkfifo_process.runInNewThread();
+			}
 			try {
 				Thread.sleep(50);
 			} catch (InterruptedException e) {
 			}
-			pipe.deleteLater();
-
+			params.input_pipes[0].deleteLater();
+			
 			pw.runInNewThread();
 			try {
 				Thread.sleep(50);
