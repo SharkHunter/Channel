@@ -1,4 +1,4 @@
-version=0.51
+version=0.52
 
 channel SVTPlay {
 	img=http://svtplay.se/img/brand/svt-play.png
@@ -49,7 +49,7 @@ channel SVTPlay {
 						put=swfVfy=http://www.svtplay.se/public/swf/video/svtplayer-2012.34.swf
 					}
 					folder {
-						matcher=\"url\":\"(http[^\"]+)\",\"bitrate\":0,\"playerType\":\"ios\"
+						matcher=\"url\":\"(http[^\"]+)\",\"bitrate\":[^,],\"playerType\":\"ios\"
 						order=url
 						type=empty
 						media {
