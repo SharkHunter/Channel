@@ -344,7 +344,8 @@ public class ChannelMediaStream extends DLNAResource {
     	if(delayed())
     		return null;
     	InputStream is=super.getInputStream(range,mediarenderer);
-    	if(Channels.cfg().fileBuffer()&&!realUrl.startsWith("rtmpdump://channel?"))
+    	if(Channels.cfg().fileBuffer()&&!ChannelUtil.empty(realUrl)&&
+    	   !realUrl.startsWith("rtmpdump://channel?"))
     		return is;
     	if((saveName!=null)||Channels.cache()) {
     		return startSave(is);
