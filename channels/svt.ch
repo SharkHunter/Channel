@@ -52,6 +52,7 @@ channel SVTPlay {
 						matcher=\"url\":\"(http[^\"]+)\",\"bitrate\":[^,],\"playerType\":\"ios\"
 						order=url
 						type=empty
+						prop=no_case
 						media {
 							matcher=BANDWIDTH=(\d+)000,.*?(http[^\n]+)
 							order=name,url
