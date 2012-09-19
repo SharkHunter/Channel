@@ -1,4 +1,4 @@
-version=0.52
+version=0.53
 
 channel SVTPlay {
 	img=http://svtplay.se/img/brand/svt-play.png
@@ -52,7 +52,16 @@ channel SVTPlay {
 						matcher=\"url\":\"(http[^\"]+)\",\"bitrate\":[^,],\"playerType\":\"ios\"
 						order=url
 						type=empty
-						prop=no_case
+						media {
+							matcher=BANDWIDTH=(\d+)000,.*?(http[^\n]+)
+							order=name,url
+							prop=matcher_dotall,append_name=Kbps
+						}
+					}
+					folder {
+						matcher=\"url\":\"(HTTP[^\"]+)\",\"bitrate\":[^,],\"playerType\":\"ios\"
+						order=url
+						type=empty
 						media {
 							matcher=BANDWIDTH=(\d+)000,.*?(http[^\n]+)
 							order=name,url
