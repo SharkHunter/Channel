@@ -33,7 +33,7 @@ public class ChannelScriptMgr {
 		if(sData!=null) { // found local script use it
 			HashMap<String,String> vars=new HashMap<String,String>();
 			vars.put("htmRaw", page);
-			return ChannelNaviXProc.simple(url,sData,vars);
+			return ChannelNaviXProc.simple(url,sData,vars,ch);
 		}
 		// 2nd remote NIPL
 		if(script.startsWith("http://")) {

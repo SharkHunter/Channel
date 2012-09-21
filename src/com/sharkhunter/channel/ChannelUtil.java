@@ -30,7 +30,6 @@ import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
 
 import org.apache.commons.io.FileUtils;
-
 import net.pms.PMS;
 import net.pms.configuration.PmsConfiguration;
 import net.pms.dlna.DLNAResource;
@@ -515,6 +514,7 @@ public class ChannelUtil {
 		String rUrl=vars.get("url");
 		if(empty(rUrl)||Channels.noPlay()) // what do we do?
 			return null;
+		rUrl=rUrl.replace("HTTP://", "http://"); // ffmpeg has problems with ucase HTTP
 		int rtmpMet=Channels.rtmpMethod();
 		String type=vars.get("__type__");			
 		Channels.debug("create media url entry "+rUrl+" format "+format+" type "+type);
@@ -541,6 +541,7 @@ public class ChannelUtil {
 					rUrl="navix://"+rUrl;
 				else
 					rUrl=vars.get("url");
+			rUrl=rUrl.replace("HTTP://", "http://"); // ffmpeg has problems with ucase HTTP
 			Channels.debug("return media url "+rUrl);
 			return rUrl;
 		}
@@ -1070,5 +1071,34 @@ public class ChannelUtil {
 			} catch (InterruptedException e) {
 			}
 		}
+	}
+	
+	public static final String REL_HOST = "host";
+	public static final String REL_PATH = "path";
+	
+	public static String relativeURL(String rUrl,String pUrl,String relType) {
+		if(empty(relType)||
+		   empty(rUrl)||
+		   empty(pUrl)||
+		   rUrl.startsWith("http"))
+			return rUrl;
+		if(relType.equalsIgnoreCase(ChannelUtil.REL_HOST)) {
+			int pos=pUrl.indexOf("//");
+			if(pos==-1)
+				return rUrl;
+			pos=pUrl.indexOf("/", pos+1);
+			if(pos==-1)
+				return rUrl;
+			String host=pUrl.substring(0,pos+1);
+			return concatURL(host,rUrl);
+		}
+		if(relType.equalsIgnoreCase(ChannelUtil.REL_PATH)) {
+			int pos=pUrl.lastIndexOf("/");
+			if(pos==-1)
+				return rUrl;
+			String path=pUrl.substring(0, pos+1);
+			return concatURL(path,rUrl);
+		}
+		return rUrl;
 	}
 }

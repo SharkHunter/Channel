@@ -731,6 +731,11 @@ public class ChannelNaviXProc {
 		return lite(url,lines,ChannelUtil.ASXTYPE_AUTO,initStash,null);
 	}
 	
+	public static HashMap<String,String> lite(String url,ArrayList<String> lines,
+		      HashMap<String,String> initStash,Channel ch) {
+		return lite(url,lines,ChannelUtil.ASXTYPE_AUTO,initStash,ch);
+	}
+	
 	// Lite with array as line arg
 	public static HashMap<String,String> lite(String url,String[] lines) {
 		return lite(url,lines,ChannelUtil.ASXTYPE_AUTO,null);
@@ -775,17 +780,17 @@ public class ChannelNaviXProc {
 		}
 	}
 	
-	//////////////////////////////////
+//////////////////////////////////
 	// simple versions 
 	//////////////////////////////////
 	
 	public static String simple(String str,ArrayList<String> script) {
-		return simple(str,script,null);
+		return simple(str,script,null,null);
 	}
 	
 	public static String simple(String str,String script,HashMap<String,String> initStash) {
 		ArrayList<String> sData=Channels.getScript(script);
-		return simple(str,sData,initStash);
+		return simple(str,sData,initStash,null);
 	}
 	
 	public static String simple(String str,String script) {
@@ -793,10 +798,10 @@ public class ChannelNaviXProc {
 		return simple(str,sData);
 	}
 	
-	public static String simple(String str,ArrayList<String> script,HashMap<String,String> initStash) {
+	public static String simple(String str,ArrayList<String> script,HashMap<String,String> initStash,Channel ch) {
 		if(script==null)
 			return str;
-		HashMap<String,String> res=lite(str,script,initStash);
+		HashMap<String,String> res=lite(str,script,initStash,ch);
 		return res.get("url");
 	}
 }

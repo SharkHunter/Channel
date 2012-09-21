@@ -653,6 +653,7 @@ public class ChannelFolder implements ChannelProps, SearchObj{
 	    		if(filter!=null&&!filter.filter(someName))
 	    			continue;
 	    		String mUrl=m.getMatch("url",true);
+	    		mUrl=ChannelUtil.relativeURL(mUrl,realUrl,m1.relativeURL());
 	    		if(Channels.isIllegal(mUrl, ChannelIllegal.TYPE_URL))
 	    			continue;
 	    		if (discardDuplicates) {
@@ -716,8 +717,8 @@ public class ChannelFolder implements ChannelProps, SearchObj{
 	    			break;
 	    	}
 	    } 
-	    Channels.debug("all media done cnt "+medCnt);
-	    if(medCnt>1) {
+	    Channels.debug("all media done cnt "+res.childrenNumber());
+	    if(res.childrenNumber()>1) {
 	    	if(allPlay!=null)
 	    		res.addChild(allPlay);
 	    	if(allSave!=null)
@@ -853,6 +854,8 @@ public class ChannelFolder implements ChannelProps, SearchObj{
 	    		//parent.debug("cf.name "+cf.name+" ignore "+ignoreMatch);
 	    		if(ChannelUtil.getProperty(cf.prop, "prepend_parenturl"))
 	    			fUrl=ChannelUtil.concatURL(realUrl,fUrl);
+	    		fUrl=ChannelUtil.relativeURL(fUrl,realUrl,
+						 ChannelUtil.getPropertyValue(prop, "relative_url"));
 	    		fUrl=ChannelScriptMgr.runScript(post_script, fUrl, parent,page);
 	    		Channels.debug("xxxx "+fUrl+" disc "+discardDuplicates);
 	    		if (discardDuplicates && !ignoreMatch) {

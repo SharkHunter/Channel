@@ -7,7 +7,6 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import org.apache.commons.lang.StringEscapeUtils;
-
 import net.pms.PMS;
 import net.pms.dlna.DLNAResource;
 import net.pms.dlna.virtual.VirtualVideoAction;
@@ -474,5 +473,9 @@ public class ChannelMedia implements ChannelProps,ChannelScraper {
 	
 	public HashMap<String,Object> subSelect(DLNAResource start,String imdb,String subSite) {
 		return ChannelSubUtil.subSelect(start, imdb, subSite, subtitle, parent);
+	}
+	
+	public String relativeURL() {
+		return ChannelUtil.getPropertyValue(prop, "relative_url");
 	}
 }

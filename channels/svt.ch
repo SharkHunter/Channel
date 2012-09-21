@@ -1,7 +1,26 @@
-version=0.54
+version=0.56
+
+scriptdef svtFilter{
+	url=s_url
+	if @#hls_only@#
+		regex='(rtmp.*://)
+		match s_url
+		if v1
+		  url='
+		endif
+	endif
+	play
+}
 
 channel SVTPlay {
 	img=http://svtplay.se/img/brand/svt-play.png
+	var {
+		disp_name=HLS Only
+		var_name=hls_only
+		default=true
+		type=bool
+		action=null
+	}
 	folder {
 		name=Live
 		url=http://www.svtplay.se/?live=1
@@ -18,8 +37,19 @@ channel SVTPlay {
 				media {
 					matcher=\"url\":\"(rtmp[^\"]+)\",\"bitrate\":([^,]+),
 					order=url,name
-					prop=live,append_name=Kbps
-					put=swfVfy=http://www.svtplay.se/public/swf/video/svtplayer-2012.15.swf
+					prop=live,append_name=Kbps,name_separator=###0,url_mangle=svtFilter
+					put=swfVfy=http://www.svtplay.se/public/swf/video/svtplayer-2012.34.swf
+				}
+				folder {
+					matcher=\"url\":\"(http[^\"]+)\",\"bitrate\":\d+,\"playerType\":\"ios\"
+					order=url
+					type=empty
+					prop=no_case
+					media {
+						matcher=BANDWIDTH=(\d+)\d###lcbr###3###rcbr###+.*?\n([^\n]+)
+						order=name,url
+						prop=matcher_dotall,append_name=Kbps,relative_url=path,name_separator=###0
+					}
 				}
 			}
 		}
@@ -45,18 +75,18 @@ channel SVTPlay {
 					media {
 						matcher=\"url\":\"(rtmp[^\"]+)\",\"bitrate\":([^,]+),
 						order=url,name
-						prop=append_name= Kbps
+						prop=append_name=Kbps,name_separator=###0,url_mangle=svtFilter
 						put=swfVfy=http://www.svtplay.se/public/swf/video/svtplayer-2012.34.swf
 					}
 					folder {
-						matcher=\"url\":\"(http[^\"]+)\",\"bitrate\":[^,]+,\"playerType\":\"ios\"
+						matcher=\"url\":\"(http[^\"]+)\",\"bitrate\":\d+,\"playerType\":\"ios\"
 						order=url
 						type=empty
 						prop=no_case
 						media {
-							matcher=BANDWIDTH=(\d+)000,.*?(http[^\n]+)
+							matcher=BANDWIDTH=(\d+)\d###lcbr###3###rcbr###+.*?\n([^\n]+)
 							order=name,url
-							prop=matcher_dotall,append_name=Kbps
+							prop=matcher_dotall,append_name=Kbps,relative_url=path,name_separator=###0
 						}
 					}
 				}
