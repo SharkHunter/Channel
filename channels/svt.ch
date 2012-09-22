@@ -2,7 +2,7 @@ version=0.56
 
 scriptdef svtFilter{
 	url=s_url
-	if @#hls_only@#
+	if @#hls_only@# == 'true
 		regex='(rtmp.*://)
 		match s_url
 		if v1
@@ -13,7 +13,7 @@ scriptdef svtFilter{
 }
 
 channel SVTPlay {
-	img=http://svtplay.se/img/brand/svt-play.png
+	img=http://www.svtplay.se/public/2012.53/images/svt-play.png
 	var {
 		disp_name=HLS Only
 		var_name=hls_only
@@ -44,7 +44,7 @@ channel SVTPlay {
 					matcher=\"url\":\"(http[^\"]+)\",\"bitrate\":\d+,\"playerType\":\"ios\"
 					order=url
 					type=empty
-					prop=no_case
+					prop=no_case,discard_duplicates
 					media {
 						matcher=BANDWIDTH=(\d+)\d###lcbr###3###rcbr###+.*?\n([^\n]+)
 						order=name,url
