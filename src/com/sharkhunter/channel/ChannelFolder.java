@@ -276,6 +276,10 @@ public class ChannelFolder implements ChannelProps, SearchObj{
 			matcher.processProps(prop);
 	}
 	
+	public void setType(int t) {
+		type=t;
+	}
+	
 	public int getType() {
 		return type;
 	}
@@ -302,6 +306,10 @@ public class ChannelFolder implements ChannelProps, SearchObj{
 	
 	public boolean isActionOnly() {
 		return (type==ChannelFolder.TYPE_ACTION);
+	}
+	
+	public boolean isFavorized(String name) {
+		return (isFavItem()||parent.isFavorized(name));
 	}
 	
 	public String getProp(String p) {
@@ -997,7 +1005,7 @@ public class ChannelFolder implements ChannelProps, SearchObj{
 		}
 	}
 	
-	private String rawEntry() {
+	public String rawEntry() {
 		StringBuilder sb=new StringBuilder();
 		sb.append("folder {\n");
 		if(!ChannelUtil.empty(url)) {

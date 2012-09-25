@@ -36,8 +36,8 @@ import no.geosoft.cc.io.FileMonitor;
 public class Channels extends VirtualFolder implements FileListener {
 
 	// Version string
-	public static final String VERSION="1.93a";
-	public static final String ZIP_VER="192";
+	public static final String VERSION="1.94";
+	public static final String ZIP_VER="194";
 	
 	// Constants for RTMP string constructions
 	public static final int RTMP_MAGIC_TOKEN=1;
@@ -78,6 +78,8 @@ public class Channels extends VirtualFolder implements FileListener {
     private ArrayList<ChannelIllegal> codes;
     private boolean allUnlocked;
     private ChannelSubs openSubs;
+    private VirtualFolder monitor;
+    private ChannelMonitorMgr monMgr;
     
     public Channels(String path,String name,String img) {
     	super(name,img);
@@ -126,9 +128,16 @@ public class Channels extends VirtualFolder implements FileListener {
     	addChild(cache);
     	addChild(searchDb);
     	addChild(new ChannelPMSCode("Unlock All",null,true));
+    	addMonitor();
     	fileMonitor=null;
     	allUnlocked=false;
     	setOpenSubs(true);
+    }
+    
+    private void addMonitor() {
+    	monMgr=new ChannelMonitorMgr();
+    	monitor=new ChannelPlainFolder("New Monitored Media");
+    	addChild(monitor);
     }
     
     public void start(long poll) {
@@ -160,6 +169,8 @@ public class Channels extends VirtualFolder implements FileListener {
     		debug("Error reading search db "+e);
     	}
     	initNaviXUploader();
+    	parseMonitorFile();
+    	monMgr.delayedScan();
     }
     
     private void initNaviXUploader() {
@@ -1211,4 +1222,191 @@ public class Channels extends VirtualFolder implements FileListener {
 		else
 			inst.openSubs=null;
 	}
+	
+	////////////////////////////////////////////////////////////////
+	// Monitor stuff
+	////////////////////////////////////////////////////////////////
+	
+	private class ChannelPlainFolder extends VirtualFolder {
+		public ChannelPlainFolder(String name) {
+			super(name,null);
+		}
+	}
+	
+	private static File monitorFile() {
+		return new File(dataPath()+File.separator+"monitor");
+	}
+	
+	private void parseMonitorFile() {
+		File f=monitorFile();
+		try {
+		BufferedReader in=new BufferedReader(new FileReader(f));
+    	String str;    	
+    	ArrayList<String> entries=null;
+    	String name="";
+    	Channel owner=null;
+    	StringBuilder sb=null;
+    	while ((str = in.readLine()) != null) {
+    		if(ChannelUtil.empty(str))
+    			continue;
+    		str=str.trim();
+    		if(str.equals(ChannelUtil.FAV_BAR.trim())) {
+    			if(entries==null)
+    				entries=new ArrayList<String>();
+    			else {
+    				if(sb==null)
+    					continue;
+    				String[] lines=sb.toString().split("\n");
+    		    	for(int i=0;i<lines.length;i++) {
+    		    		String str1=lines[i].trim();
+    		    		if(str1.startsWith("folder ")) {
+    		    			ArrayList<String> fData=ChannelUtil.gatherBlock(lines, i+1);
+    		    			i+=fData.size();
+    		    			ChannelFolder mf=new ChannelFolder(fData,owner);
+    		    			// need to make first folder empty
+    		    			mf.setType(ChannelFolder.TYPE_EMPTY);
+    		    			Channels.debug("add new monitor "+name);
+    		    			ChannelMonitor m=new ChannelMonitor(mf,entries,name);
+    		    			monMgr.add(m);
+    		    		}
+    		    	}
+    			}
+    			continue;
+    		}
+    		if(ChannelUtil.ignoreLine(str))
+    			continue;
+    		if(str.startsWith("entry=")) {
+    			if(entries==null)
+    				continue;
+    			String entry=str.substring(6);
+    			if(!entries.contains(entry.trim()))
+    				entries.add(entry.trim());
+    			continue;
+    		}
+    		if(str.startsWith("name=")) {
+    			name=str.substring(5);
+    			continue;
+    		}
+    		if(str.startsWith("owner=")) {
+    			owner=find(str.substring(6).trim());
+    			continue;
+    		}
+    		if(str.startsWith("monitor")) {
+    			sb=new StringBuilder();
+    			continue;
+    		}
+    		sb.append(str);
+    		sb.append("\n");
+    	}
+    	in.close();
+		} catch (Exception e) {
+			debug("mon file parse error "+e);
+		}				
+	}
+		
+	public static void monitor(DLNAResource res,ChannelFolder cf,
+							   String data) throws IOException {
+		if(inst.monMgr.monitored(res.getName())) 
+			return;
+		File f=monitorFile();
+		FileWriter out=new FileWriter(f,true);
+		StringBuffer sb=new StringBuffer();
+		sb.append(ChannelUtil.FAV_BAR);
+		ChannelUtil.appendVarLine(sb, "name", res.getName());
+		ArrayList<String> entries=new ArrayList<String>();
+		for(DLNAResource r : res.getChildren()) {
+			if(r instanceof VirtualVideoAction)
+				continue;
+			ChannelUtil.appendVarLine(sb, "entry", r.getName());
+			entries.add(r.getName());
+		}
+		sb.append(data);
+		sb.append("\n");
+		sb.append(ChannelUtil.FAV_BAR);
+		out.write(sb.toString());
+		out.close();
+		String[] lines=data.split("\n");
+    	for(int i=0;i<lines.length;i++) {
+    		String str=lines[i].trim();
+    	    if(str.startsWith("monitor")||
+    	       str.startsWith("owner")) {
+    	    	// skip the start lines
+    	    	continue;
+    	    }
+    	    if(str.startsWith("folder ")) { // 1st folder
+    	    	ArrayList<String> fData=ChannelUtil.gatherBlock(lines, i+1);
+    			i+=fData.size();
+    			ChannelFolder mf=new ChannelFolder(fData,cf.getChannel());
+    			// need to make first folder empty
+    			mf.setType(ChannelFolder.TYPE_EMPTY);
+    			ChannelMonitor m=new ChannelMonitor(mf,entries,res.getName());
+    			inst.monMgr.add(m);
+    			continue;
+    	    }
+    	}
+	}
+	
+	public static void updateMonitor(String monName,String newEntry) {
+		try {
+			if(!inst.monMgr.update(monName, newEntry)) // weird?
+				return;
+			File f=monitorFile();
+			String str = FileUtils.readFileToString(f);
+			String restr="name="+monName;
+			int pos = str.indexOf(restr);
+			Channels.debug("pos "+pos+" name "+restr+" re "+monName+"!!!\n"+str);
+			if(pos > -1) {
+				str=str.replaceFirst(restr, restr+"\nentry="+newEntry.trim()+"\n");
+				FileOutputStream out=new FileOutputStream(f,false);
+				out.write(str.getBytes());
+				out.flush();
+				out.close();
+			}
+		}
+		catch (Exception e) {
+			debug("update mon file error "+e);
+		}
+	}
+	
+	private void allPlayed(DLNAResource res,String name) {
+		for(DLNAResource r : res.getChildren()) {
+			if(r instanceof VirtualVideoAction)
+				continue;
+			updateMonitor(name,r.getName());
+		}
+	}
+	
+	private DLNAResource findMonitorFolder(DLNAResource start,String name) {
+		for(DLNAResource r : start.getChildren()) {
+			if(name.equals(r.getName()))
+				return r;
+		}
+		return null;
+	}
+	
+	private void addNewMonitoredMedia_i(final DLNAResource r,final String folder) {
+		DLNAResource f=findMonitorFolder(monitor,folder);
+		if(f==null) {
+			f=new ChannelPlainFolder(folder);
+			monitor.addChild(f);
+			final DLNAResource f1=f;
+			f.addChild(new VirtualVideoAction("Clear",true) {
+				public boolean enable() {
+					allPlayed(f1,folder.trim());
+					monitor.getChildren().remove(f1);
+					return true;
+				}
+			});
+		}
+		f.addChild(r);	
+	}
+
+	public static void addNewMonitoredMedia(DLNAResource r,String folder) {
+		inst.addNewMonitoredMedia_i(r, folder);
+	}		
+	
+	public static boolean monitoredPlay(DLNAResource res) {
+		return (inst.monitor==res);
+	}
+	
 }

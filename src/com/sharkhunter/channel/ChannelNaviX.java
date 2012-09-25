@@ -335,7 +335,7 @@ public class ChannelNaviX extends VirtualFolder implements ChannelScraper {
 		sb.append("\n");
 		sb.append(data);
 		sb.append("\n}\r\n");
-		ChannelUtil.addToFavFile(sb.toString(),name);
+		ChannelUtil.addToFavFile(sb.toString(),name,parent.getName());
 		try {
 			ChannelNaviXUpdate.updatePlx(name, url);
 		} catch (Exception e) {

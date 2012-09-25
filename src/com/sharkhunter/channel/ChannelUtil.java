@@ -921,23 +921,28 @@ public class ChannelUtil {
 		}
 	}
 	
-	private final static String FAV_BAR="\n############################\n"; 
+	public final static String FAV_BAR="\n############################\n"; 
 	
-	public static void addToFavFile(String data,String name) {
+	public static void addToFavFile(String data,String name,String owner) {
 		File f=Channels.workFavFile();
 		try {
-			boolean newFile=!f.exists();
-			Channels.debug("adding to fav file "+name);
-			FileOutputStream out=new FileOutputStream(f,true);
-			if(newFile) {
-				String msg="## Auto generated favorite file,Edit with care\n\n\n";
-				out.write(FAV_BAR.getBytes(), 0, FAV_BAR.length());
-				out.write(msg.getBytes(), 0, msg.length());
+			String str;
+			if(!f.exists()) {
+				str=FAV_BAR;
+				str=str+"## Auto generated favorite file,Edit with care\n\n\n";
 			}
-			String n="## Name: "+name+"\r\n\n";
-			out.write(FAV_BAR.getBytes(), 0, FAV_BAR.length());
-			out.write(n.getBytes(),0,n.length());
-			out.write(data.getBytes(), 0, data.length());
+			else
+				str = FileUtils.readFileToString(f);	
+			Channels.debug("adding to fav file "+name);
+			String n="## Name: "+name+",Owner: "+owner;
+			int pos = str.indexOf(n);
+			if(pos > -1) {
+				Channels.debug("already in fav file");
+				return;
+			}
+			str=str+FAV_BAR+n+"\r\n\n"+data;
+			FileOutputStream out=new FileOutputStream(f,false);
+			out.write(str.getBytes());
 			out.flush();
 			out.close();
 		}
@@ -1100,5 +1105,12 @@ public class ChannelUtil {
 			return concatURL(path,rUrl);
 		}
 		return rUrl;
+	}
+	
+	public static void appendVarLine(StringBuffer sb,String var,String val) {
+		sb.append(var);
+		sb.append("=");
+		sb.append(val);
+		sb.append("\n");
 	}
 }

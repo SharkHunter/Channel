@@ -533,6 +533,36 @@ public class ChannelMediaStream extends DLNAResource {
 	public void donePlaying() {
 		if(parent instanceof ChannelPMSSaveFolder)
 			((ChannelPMSSaveFolder)parent).childDone();
+		DLNAResource tmp=this.getParent();
+		ArrayList<DLNAResource> ancestors=new ArrayList<DLNAResource>();
+		while(tmp!=null) {
+			if(tmp instanceof Channels) // no need to continue here
+				break;
+			if(Channels.monitoredPlay(tmp)) {
+				if(ancestors.size()==0) { // odd case1
+					tmp.getChildren().remove(this);
+					//Channels.updateMonitor(this,name,name);
+					break;
+				}
+				DLNAResource oldest=ancestors.get(ancestors.size()-1);
+				DLNAResource entry=this;
+				if(ancestors.size()-2>0) {
+					// remove everything from the second folder down
+					entry=ancestors.get(ancestors.size()-2);
+				}
+				oldest.getChildren().remove(entry);
+				if(oldest.getChildren().size()==0) {
+					// tmp is monitor folder
+					// and there is nothing left remove this
+					tmp.getChildren().remove(oldest);
+				}
+				// update monitor data and file
+				Channels.updateMonitor(oldest.getName(),entry.getName());
+				break;
+			}
+			ancestors.add(tmp);
+			tmp=tmp.getParent();
+		}
 		if(bgThread!=null) 
 			if(--bgCnt!=0) // more people using this thread don't kill the dl
 				return;

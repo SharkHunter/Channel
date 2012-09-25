@@ -177,6 +177,14 @@ public class Channel extends VirtualFolder {
 		}
 	}
 	
+	public boolean isFavorized(String name) {
+		for(ChannelFolder f : favorite.subfolders()) {
+			if(name.equals(f.getName()))
+				return true;
+		}
+		return false;
+	}
+	
 	public String nxtSearchId() {
 		return String.valueOf(searchId++);
 	}

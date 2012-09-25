@@ -2,7 +2,7 @@ version=0.56
 
 scriptdef svtFilter{
 	url=s_url
-	if @#hls_only@# == 'true
+	if @#hls_only@# !='true
 		regex='(rtmp.*://)
 		match s_url
 		if v1

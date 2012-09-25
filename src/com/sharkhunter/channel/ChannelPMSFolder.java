@@ -1,5 +1,6 @@
 package com.sharkhunter.channel;
 
+import java.io.IOException;
 import java.io.InputStream;
 import java.util.List;
 
@@ -53,7 +54,10 @@ public class ChannelPMSFolder extends VirtualFolder implements ChannelFilter{
 				if(!cf.ignoreFav()) {
 					// Add bookmark action
 					final ChannelPMSFolder cb=this;
-					addChild(new VirtualVideoAction("Add to favorite",true) { //$NON-NLS-1$
+					String n="Add to favorite";
+					if(monitor())
+						n=ChannelUtil.append(n, "/", "monitor");
+					addChild(new VirtualVideoAction(n,true) { //$NON-NLS-1$
 						public boolean enable() {
 							cb.bookmark();
 							return true;
@@ -63,7 +67,10 @@ public class ChannelPMSFolder extends VirtualFolder implements ChannelFilter{
 				else if(cf.isFavItem()) {
 					// Add 'remove bookmark' action
 					final ChannelPMSFolder cb=this;
-					addChild(new VirtualVideoAction("Remove from favorite",true) { //$NON-NLS-1$
+					String n="Remove from favorite";
+					if(monitor())
+						n=ChannelUtil.append(n, "/", "unmonitor");
+					addChild(new VirtualVideoAction(n,true) { //$NON-NLS-1$
 						public boolean enable() {
 							cb.unbookmark();
 							return true;
@@ -114,13 +121,25 @@ public class ChannelPMSFolder extends VirtualFolder implements ChannelFilter{
 			}
 		}
 		
+		private boolean monitor() {
+			return cf.getProperty("monitor");
+		}
+		
 		public void bookmark() {
 			if(cf.ignoreFav()||favorized) 
 				return;
 			favorized=true;
+			if(cf.isFavorized(name))
+				return;
 			String data=cf.mkFav(url,name,thumbnailIcon,imdb);
 			if(!ChannelUtil.empty(data))
-				ChannelUtil.addToFavFile(data,name);
+				ChannelUtil.addToFavFile(data,name,cf.getChannel().getName());
+			if(monitor()) {
+				try {
+					Channels.monitor(this,cf,data.replace("favorite {", "monitor {"));
+				} catch (IOException e) {
+				}
+			}
 		}
 		
 		public void unbookmark() {
