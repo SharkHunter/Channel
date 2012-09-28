@@ -540,8 +540,7 @@ public class ChannelMediaStream extends DLNAResource {
 				break;
 			if(Channels.monitoredPlay(tmp)) {
 				if(ancestors.size()==0) { // odd case1
-					tmp.getChildren().remove(this);
-					//Channels.updateMonitor(this,name,name);
+					tmp.getChildren().remove(this);					
 					break;
 				}
 				DLNAResource oldest=ancestors.get(ancestors.size()-1);

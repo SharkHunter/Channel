@@ -36,7 +36,7 @@ import no.geosoft.cc.io.FileMonitor;
 public class Channels extends VirtualFolder implements FileListener {
 
 	// Version string
-	public static final String VERSION="1.94";
+	public static final String VERSION="1.95";
 	public static final String ZIP_VER="194";
 	
 	// Constants for RTMP string constructions
@@ -1354,7 +1354,6 @@ public class Channels extends VirtualFolder implements FileListener {
 			String str = FileUtils.readFileToString(f);
 			String restr="name="+monName;
 			int pos = str.indexOf(restr);
-			Channels.debug("pos "+pos+" name "+restr+" re "+monName+"!!!\n"+str);
 			if(pos > -1) {
 				str=str.replaceFirst(restr, restr+"\nentry="+newEntry.trim()+"\n");
 				FileOutputStream out=new FileOutputStream(f,false);
@@ -1376,7 +1375,7 @@ public class Channels extends VirtualFolder implements FileListener {
 		}
 	}
 	
-	private DLNAResource findMonitorFolder(DLNAResource start,String name) {
+	private static DLNAResource findMonitorFolder(DLNAResource start,String name) {
 		for(DLNAResource r : start.getChildren()) {
 			if(name.equals(r.getName()))
 				return r;
@@ -1403,7 +1402,13 @@ public class Channels extends VirtualFolder implements FileListener {
 
 	public static void addNewMonitoredMedia(DLNAResource r,String folder) {
 		inst.addNewMonitoredMedia_i(r, folder);
-	}		
+	}
+	
+	public static void clearNewMediaFolder(String folder) {
+		DLNAResource f=findMonitorFolder(inst.monitor,folder);
+		if(f!=null)
+			inst.monitor.getChildren().remove(f);
+	}
 	
 	public static boolean monitoredPlay(DLNAResource res) {
 		return (inst.monitor==res);

@@ -58,7 +58,6 @@ public class ChannelMonitorMgr {
 	
 	public boolean update(String name,String newEntry) {
 		ChannelMonitor m=getMonitor(name);
-		Channels.debug("update monitor for "+name+" new "+newEntry+" m "+m);
 		if(m!=null)
 			return m.addEntry(newEntry);
 		return false;
@@ -69,6 +68,8 @@ public class ChannelMonitorMgr {
 	}
 	
 	public void delayedScan(final int delay) {
+		if(!Channels.cfg().crawl())
+			return;
 		Runnable r=new Runnable() {
     		public void run() {
     			ChannelUtil.sleep(delay);

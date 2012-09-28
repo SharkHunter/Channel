@@ -57,6 +57,10 @@ public class ChannelCfg {
 	private boolean mp2force;
 	private String chZipUrl;
 	private boolean fileBuffer;
+	private int crawlFL;
+	private int crawlHL;
+	private String crawlFormat;
+	private boolean crawl;
 	
 	public ChannelCfg(Channels top) {
 		chPath=null;
@@ -83,6 +87,10 @@ public class ChannelCfg {
 		mp2force=false;
 		chZipUrl=null;
 		fileBuffer=false;
+		crawlFL=ChannelCrawl.CRAWL_FIRST;
+		crawlHL=ChannelCrawl.CRAWL_HIGH;
+		crawlFormat=".mp4";
+		crawl=false;
 	}
 	
 	///////////////////////////////////
@@ -153,6 +161,10 @@ public class ChannelCfg {
 	
 	public void setLongSvaeName(boolean b) {
 		longSaveName=b;
+	}
+	
+	public void setCrawl(boolean b) {
+		crawl=b;
 	}
 	
 	////////////////////////////////////////
@@ -271,6 +283,23 @@ public class ChannelCfg {
 		return fileBuffer;
 	}
 	
+	public int getCrawlHLMode() {
+		return crawlHL;
+	}
+	
+	public int getCrawlFLMode() {
+		return crawlFL;
+	}
+	
+	public String getCrawlFormat() {
+		return crawlFormat;
+	}
+	
+	public boolean crawl() {
+		return crawl;
+	}
+	
+	
 	////////////////////////////////////////
 	// Misc. methods
 	////////////////////////////////////////
@@ -317,6 +346,12 @@ public class ChannelCfg {
 		String os=(String)PMS.getConfiguration().getCustomProperty("channels.old_sub");
 		String mp2=(String)PMS.getConfiguration().getCustomProperty("channels.mpeg2_force");
 		String fb=(String)PMS.getConfiguration().getCustomProperty("channels.filebuffer");
+		String hl=(String)PMS.getConfiguration().getCustomProperty("channels.crawl_hl");
+		String fl=(String)PMS.getConfiguration().getCustomProperty("channels.crawl_fl");
+		String cf=(String)PMS.getConfiguration().getCustomProperty("channels.crawl_format");
+		String cra=(String)PMS.getConfiguration().getCustomProperty("channels.crawl");
+		if(!ChannelUtil.empty(cf))
+			crawlFormat=cf;
 		
 		if(rtmpMode!=null) {
 			if(rtmpMode.trim().equalsIgnoreCase("1"))
@@ -404,6 +439,24 @@ public class ChannelCfg {
 			mp2force=true;
 		if(!ChannelUtil.empty(mp2)&&mp2.equalsIgnoreCase("true"))
 			fileBuffer=true;
+		if(!ChannelUtil.empty(cra)&&cra.equalsIgnoreCase("true"))
+			crawl=true;
+		if(!ChannelUtil.empty(fl)) {
+			if(fl.equalsIgnoreCase("first"))
+				crawlFL=ChannelCrawl.CRAWL_FIRST;
+			if(fl.equalsIgnoreCase("all"))
+				crawlFL=ChannelCrawl.CRAWL_ALL;
+			if(fl.equalsIgnoreCase("last"))
+				crawlFL=ChannelCrawl.CRAWL_LAST;
+		}
+		if(!ChannelUtil.empty(hl)) {
+			if(hl.equalsIgnoreCase("high"))
+				crawlHL=ChannelCrawl.CRAWL_HIGH;
+			if(hl.equalsIgnoreCase("medium"))
+				crawlHL=ChannelCrawl.CRAWL_MED;
+			if(hl.equalsIgnoreCase("low"))
+				crawlHL=ChannelCrawl.CRAWL_LOW;
+		}
 	}
 
 	private void configPath(String key,String val) {

@@ -1113,4 +1113,99 @@ public class ChannelUtil {
 		sb.append(val);
 		sb.append("\n");
 	}
+	
+	
+	public static Thread newBackgroundDownload(final String name,String url) {
+		if(ChannelUtil.rtmpStream(url)) {
+			try {
+				//		URL u=new URL(url); 
+				// rtmp stream special fix
+				final ProcessBuilder pb=buildPid(name,url);
+				if(pb==null)
+					return null;
+				Channels.debug("start rtmp process ");
+				Runnable r = new Runnable() {
+					public void run() {
+						ChannelUtil.execute(pb);
+					}
+				};
+				return new Thread(r);
+			}
+			catch (Exception e) {
+				return null;
+			}
+		}
+		
+		String subFile="";
+		if(url.startsWith("http")||
+		   url.startsWith("navix")||
+		   url.startsWith("subs")) {
+			if(url.startsWith("navix")||
+			   url.startsWith("subs")) {
+				int pos=url.indexOf('?');
+				if(pos==-1)
+					return null;
+				String[] data=url.substring(pos+1).split("&");
+				for(int i=0;i<data.length;i++) {
+					String[] kv=data[i].split("=");
+					if(kv[0].equals("url"))
+						url=ChannelUtil.unescape(kv[1]);
+					if(kv[0].equals("subs"))
+						subFile=unescape(kv[1]);
+				}
+			}
+			if(empty(url))
+				return null;
+			final String rUrl=url;
+			final String sFile=subFile;
+			Runnable r = new Runnable() {
+				public void run() {
+					File f=new File(name);
+					if(!empty(sFile)) {
+						File s=new File(sFile);
+						byte[] buf=new byte[4096];
+						try {
+							FileInputStream in = new FileInputStream(s);
+							FileOutputStream out = new FileOutputStream(
+									new File(f.getParent()+File.separator+s.getName()));
+							while ((in.read(buf)) != -1)
+								out.write(buf);
+
+							in.close();
+							out.close();
+						}
+						catch (Exception e) {
+							// ignore this
+							Channels.debug("Error moving subtitle file "+sFile);
+						}
+					}					
+					// download the actaul movie, subtitles are done
+					Channels.debug("rUrl "+rUrl);
+					if(rUrl.contains(".m3u8")) {
+						// we need to use ffmpeg here
+						String ext=extension(name);
+						if(empty(ext))
+							f=new File(name+".mp4");
+						ArrayList<String> args=new ArrayList<String>();
+						args.add(PMS.getConfiguration().getFfmpegPath());
+						args.add("-i");
+						args.add(rUrl);
+						args.add("-threads");
+						args.add(""+PMS.getConfiguration().getNumberOfCpuCores());
+						args.add("-v");
+						args.add("0");
+						args.add("-y");
+						args.add(f.getAbsolutePath());
+						ProcessBuilder pb=new ProcessBuilder(args);
+						execute(pb);
+					}
+					else
+						downloadBin(rUrl,f);
+				}
+			};
+			return new Thread(r);
+		}
+		return null;
+	}
+	
 }
