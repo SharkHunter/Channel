@@ -1135,7 +1135,6 @@ public class ChannelUtil {
 				return null;
 			}
 		}
-		
 		String subFile="";
 		if(url.startsWith("http")||
 		   url.startsWith("navix")||
@@ -1187,7 +1186,10 @@ public class ChannelUtil {
 						if(empty(ext))
 							f=new File(name+".mp4");
 						ArrayList<String> args=new ArrayList<String>();
-						args.add(PMS.getConfiguration().getFfmpegPath());
+						String ffmpeg=PMS.getConfiguration().getFfmpegAlternativePath();
+						if(empty(ffmpeg))
+							ffmpeg=PMS.getConfiguration().getFfmpegPath();
+						args.add(ffmpeg);
 						args.add("-i");
 						args.add(rUrl);
 						args.add("-threads");

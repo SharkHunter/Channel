@@ -3,7 +3,6 @@ package com.sharkhunter.channel;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
-import java.util.TreeMap;
 
 import net.pms.dlna.DLNAResource;
 import net.pms.dlna.virtual.VirtualVideoAction;
@@ -20,8 +19,48 @@ public class ChannelCrawl implements Comparator {
 	public final static int CRAWL_LAST = 4;
 	public final static int CRAWL_ALL = 5;
 	
+	public final static int CRAWL_UNKNOWN = -1;
+	
+	private final static int MAX_LOOP = 20;
+	
 	private boolean allMode;
 	private String name;
+	
+	///////////////////////////////////////////////////
+	// Static parse functions
+	//////////////////////////////////////////////////
+	
+	private static int parseFLA(String str) {
+		if(str.equalsIgnoreCase("first"))
+			return ChannelCrawl.CRAWL_FIRST;
+		if(str.equalsIgnoreCase("all"))
+			return ChannelCrawl.CRAWL_ALL;
+		if(str.equalsIgnoreCase("last"))
+			return ChannelCrawl.CRAWL_LAST;
+		return ChannelCrawl.CRAWL_FIRST;
+	}
+	
+	private static int parseHML(String str) {
+		if(str.equalsIgnoreCase("high"))
+			return ChannelCrawl.CRAWL_HIGH;
+		if(str.equalsIgnoreCase("medium"))
+			return ChannelCrawl.CRAWL_MED;
+		if(str.equalsIgnoreCase("low"))
+			return ChannelCrawl.CRAWL_LOW;
+		return CRAWL_HIGH;
+	}
+	
+	public static int parseCrawlMode(int mainMode,String str) {
+		if(mainMode==CRAWL_FLA)
+			return parseFLA(str);
+		if(mainMode==CRAWL_HML)
+			return parseHML(str);
+		return CRAWL_UNKNOWN;
+	}
+	
+	////////////////////////////////////////////////////////////////
+	// Rest of class
+	////////////////////////////////////////////////////////////////
 	
 	public ChannelCrawl() {
 		allMode=false;
@@ -110,7 +149,7 @@ public class ChannelCrawl implements Comparator {
 			res1.discoverChildren();
 			res=(ArrayList<DLNAResource>) res1.getChildren();
 		}
-		if(Channels.save()) {
+		if(res1 instanceof ChannelPMSSaveFolder) {
 			// Compensate for the save folder, We know the last one 
 			// in the save folder is the PLAY option so we use that one
 			res1=crawlOneLevel((ArrayList<DLNAResource>) res1.getChildren(),CRAWL_LAST);
@@ -120,6 +159,56 @@ public class ChannelCrawl implements Comparator {
 	
 	public DLNAResource crawl(DLNAResource start,int[] modes) {
 		return crawl((ArrayList<DLNAResource>) start.getChildren(),modes);
+	}
+	
+	private int[] mkModes(String modeStr) {
+		String[] tmp=modeStr.split("\\+");
+		int[] modes=new int[tmp.length];
+		for(int i=0;i<tmp.length;i++) {
+			if(tmp[i].equalsIgnoreCase("fla"))
+				modes[i]=ChannelCrawl.CRAWL_FLA;
+			else if(tmp[i].equalsIgnoreCase("hml"))
+				modes[i]=ChannelCrawl.CRAWL_HML;
+			else
+				modes[i]=-1;
+		}
+		return modes;
+	}
+	
+	public DLNAResource startCrawl(ArrayList<DLNAResource> start,String modeStr) {
+		Channels.debug("do crawl for "+start);
+		DLNAResource r=crawl(start, mkModes(modeStr));
+		// We are out of modes here
+		// But if we might not be at the end of the line
+		// loop some more
+		for(int i=0;i<MAX_LOOP;i++) {
+			if(r==null) // nothing found?
+				return null;
+			if(r instanceof ChannelMediaStream) { 
+				// terminal crawl case, we're done here
+				return r;
+			}
+			// maybe we are lucky and got ourself a ChannelFolder
+			// if so we can take it's mode string?
+			// otherwise we always use FLA
+			modeStr="FLA";
+			if(r instanceof ChannelPMSFolder) {
+				ChannelPMSFolder pmf=(ChannelPMSFolder)r;
+				ChannelFolder cf=pmf.getFolder();
+				modeStr=cf.getProp("crawl_mode");
+				if(ChannelUtil.empty(modeStr))
+					modeStr="FLA";
+			}
+			r=crawl(r,mkModes(modeStr));
+			// Don't mix this with all
+			allMode=false;
+		}
+		// if we get here return what we got
+		return r;
+	}
+	
+	public DLNAResource startCrawl(DLNAResource start,String modeStr) {
+		return startCrawl((ArrayList<DLNAResource>) start.getChildren(),modeStr);
 	}
 
 	@Override

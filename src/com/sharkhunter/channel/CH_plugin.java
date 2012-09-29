@@ -16,8 +16,10 @@ import org.apache.commons.configuration.ConfigurationException;
 import com.sun.jna.Platform;
 
 import net.pms.PMS;
+import net.pms.configuration.PmsConfiguration;
 import net.pms.dlna.DLNAMediaInfo;
 import net.pms.dlna.DLNAResource;
+import net.pms.dlna.virtual.VirtualFolder;
 import net.pms.encoders.Player;
 import net.pms.external.AdditionalFolderAtRoot;
 import net.pms.external.FinalizeTranscoderArgsListener;
@@ -234,5 +236,78 @@ public class CH_plugin implements AdditionalFolderAtRoot, StartStopListener, Fin
 			name="Unknown";
 		return (new ChannelMediaStream(ch,name,uri,thumb,proc,type,asx,(ChannelScraper)null)); 	
 	}*/
+	
+	public static void main(String[] args) {
+		try {
+			PMS.setConfiguration(new PmsConfiguration());
+		} catch (ConfigurationException e) {
+			e.printStackTrace();
+			System.exit(0);
+		} catch (IOException e) {
+			e.printStackTrace();
+			System.exit(0);
+		}
+		PMS.getConfiguration().setFfmpegAlternativePath("ffmpeg.exe");
+		Channels chRoot=new Channels(".","","");
+		ChannelCfg cfg=new ChannelCfg(chRoot);
+		cfg.setStdAlone(true);
+		cfg.setRtmpPath("rtmpdump.exe");
+		chRoot.setCfg(cfg);
+		chRoot.setSave(".");
+		cfg.setSavePath(".");
+		chRoot.start(0);
+		if(args.length>3)
+			cfg.setCrawlFL(args[3]);
+		if(args.length>4)
+			cfg.setCrawlHL(args[4]);
+		boolean allCrawl=(cfg.getCrawlFLMode()==ChannelCrawl.CRAWL_ALL);
+		ArrayList<Thread> threads=new ArrayList<Thread>();
+		Channel ch=Channels.findChannel(args[0]);
+		if(ch==null) {
+			System.out.println("No channel "+args[0]+" found");
+			System.exit(0);
+		}
+		String action=args[1];
+		ChannelSwitch swi=new ChannelSwitch(action);
+		VirtualFolder dummy=new VirtualFolder(null,null);
+		ChannelFolder cf=ch.getAction(action);
+		ch.action(swi, "", args[2], "", dummy, -1);
+		ChannelCrawl crawler=new ChannelCrawl();
+		String modeStr="FLA";
+		if(cf!=null) {
+			modeStr=cf.getProp("crawl_mode");
+			if(ChannelUtil.empty(modeStr))
+				modeStr="FLA";
+		}
+		DLNAResource r=crawler.startCrawl(dummy,modeStr);
+		if(r==null && !(r instanceof ChannelMediaStream)) { // nothing found give up
+			System.out.println("Nothing found give up");
+			System.exit(0);
+		}
+		ChannelMediaStream cms=(ChannelMediaStream)r;
+		cms.scrape();
+		String url=cms.getSystemName();
+		String outFile;
+		if(args.length>6&&!allCrawl)
+			outFile=args[6];
+		else {
+			outFile=crawler.goodName();
+			if(ChannelUtil.empty(ChannelUtil.extension(outFile)))
+				outFile=outFile+Channels.cfg().getCrawlFormat();
+		}
+		
+		Thread t=ChannelUtil.newBackgroundDownload(outFile,url);
+		t.start();
+		threads.add(t);
+		System.out.println("Downloading "+crawler.goodName()+" to "+outFile);
+		try {
+			t.join();
+		} catch (InterruptedException e) {
+			e.printStackTrace();
+			System.exit(0);
+		}
+		System.out.println("Done");
+		System.exit(0);
+	}
 	
 }

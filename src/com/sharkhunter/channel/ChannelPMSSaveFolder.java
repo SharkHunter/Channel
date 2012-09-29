@@ -3,6 +3,7 @@ package com.sharkhunter.channel;
 import java.io.InputStream;
 import java.util.HashMap;
 
+import net.pms.dlna.DLNAResource;
 import net.pms.dlna.virtual.VirtualFolder;
 import net.pms.dlna.virtual.VirtualVideoAction;
 import net.pms.formats.Format;
@@ -279,5 +280,14 @@ public class ChannelPMSSaveFolder extends VirtualFolder {
 	
 	public void resolve() {
 		setDiscovered(false);
+	}
+	
+	public void addChild(DLNAResource child) {
+		if(Channels.cfg().stdAlone()) {
+			// be brutal
+			getChildren().add(child);
+		}
+		else
+			super.addChild(child);
 	}
 }

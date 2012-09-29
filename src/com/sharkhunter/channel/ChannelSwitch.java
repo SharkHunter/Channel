@@ -16,6 +16,10 @@ public class ChannelSwitch implements ChannelProps {
 	
 	private Channel parent;
 	
+	public ChannelSwitch(String action) {
+		this.action=action;
+	}
+	
 	public ChannelSwitch(ArrayList<String> data,Channel parent) {
 		Ok=false;
 		this.parent=parent;

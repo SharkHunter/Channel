@@ -49,23 +49,10 @@ public class ChannelMonitor {
 		if(res.isEmpty())
 			return;
 		String modeStr=cf.getProp("crawl_mode");
-		String[] tmp=modeStr.split("\\+");
-		int[] modes=new int[tmp.length];
-		Channels.debug("do crawl for "+res);
-		for(int i=0;i<tmp.length;i++) {
-			if(tmp[i].equalsIgnoreCase("fla"))
-				modes[i]=ChannelCrawl.CRAWL_FLA;
-			else if(tmp[i].equalsIgnoreCase("hml"))
-				modes[i]=ChannelCrawl.CRAWL_HML;
-			else
-				modes[i]=-1;
-		}
 		ChannelCrawl crawler=new ChannelCrawl();
-		DLNAResource r=crawler.crawl(res, modes);
+		DLNAResource r=crawler.startCrawl(res, modeStr);
 		boolean all=crawler.allSeen();
-		if(r==null)
-			return;
-		if(!(r instanceof ChannelMediaStream))
+		if(r==null && !(r instanceof ChannelMediaStream)) // nothing found give up
 			return;
 		ChannelMediaStream cms=(ChannelMediaStream)r;
 		cms.scrape();

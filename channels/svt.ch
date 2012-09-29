@@ -1,4 +1,4 @@
-version=0.56
+version=0.57
 
 scriptdef svtFilter{
 	url=s_url
@@ -34,6 +34,7 @@ channel SVTPlay {
 				matcher=data-json-href=\"([^\"]+)\"
 				url=http://www.svtplay.se/
 				prop=append_url=?output=json
+				action_name=crawl
 				media {
 					matcher=\"url\":\"(rtmp[^\"]+)\",\"bitrate\":([^,]+),
 					order=url,name
@@ -62,16 +63,18 @@ channel SVTPlay {
 			 matcher=<li class=\"playListItem\"><a href=\"([^\"]+)\" class=\"playLetterLink\">([^<]+)</a></li>
 			 order=url,name
 			 url=http://www.svtplay.se/
+			 prop=monitor
 			 folder {
 				url=http://www.svtplay.se/
 		  		matcher=<a href=\"([^\"]+)\" class=\"playLink playFloatLeft playBox-Padded"\>.*?<img class=\"playGridThumbnail\" alt=\"([^\"]+)\" src=\"([^\"]+)\"/>
 				order=url,name,thumb
-				prop=matcher_dotall
+				action_name=crawl
+				prop=matcher_dotall,monitor,crawl_mode=FLA+HML
 				folder {
 					type=empty
 					matcher=data-json-href=\"([^\"]+)\"
 					url=http://www.svtplay.se/
-					prop=append_url=?output=json
+					prop=append_url=?output=json,monitor
 					media {
 						matcher=\"url\":\"(rtmp[^\"]+)\",\"bitrate\":([^,]+),
 						order=url,name

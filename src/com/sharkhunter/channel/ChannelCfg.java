@@ -61,6 +61,7 @@ public class ChannelCfg {
 	private int crawlHL;
 	private String crawlFormat;
 	private boolean crawl;
+	private boolean stdAlone;
 	
 	public ChannelCfg(Channels top) {
 		chPath=null;
@@ -91,6 +92,7 @@ public class ChannelCfg {
 		crawlHL=ChannelCrawl.CRAWL_HIGH;
 		crawlFormat=".mp4";
 		crawl=false;
+		stdAlone=false;
 	}
 	
 	///////////////////////////////////
@@ -165,6 +167,28 @@ public class ChannelCfg {
 	
 	public void setCrawl(boolean b) {
 		crawl=b;
+	}
+	
+	public void setCrawlFL(String str) {
+		setCrawlFL(ChannelCrawl.parseCrawlMode(ChannelCrawl.CRAWL_FLA, str));
+	}
+	
+	public void setCrawlFL(int t) {
+		if(t!=ChannelCrawl.CRAWL_UNKNOWN)
+			crawlFL=t;
+	}
+	
+	public void setCrawlHL(String str) {
+		setCrawlHL(ChannelCrawl.parseCrawlMode(ChannelCrawl.CRAWL_HML, str));
+	}
+	
+	public void setCrawlHL(int t) {
+		if(t!=ChannelCrawl.CRAWL_UNKNOWN)
+			crawlHL=t;
+	}
+	
+	public void setStdAlone(boolean b) {
+		stdAlone=b;
 	}
 	
 	////////////////////////////////////////
@@ -299,6 +323,9 @@ public class ChannelCfg {
 		return crawl;
 	}
 	
+	public boolean stdAlone() {
+		return stdAlone;
+	}	
 	
 	////////////////////////////////////////
 	// Misc. methods
@@ -442,20 +469,14 @@ public class ChannelCfg {
 		if(!ChannelUtil.empty(cra)&&cra.equalsIgnoreCase("true"))
 			crawl=true;
 		if(!ChannelUtil.empty(fl)) {
-			if(fl.equalsIgnoreCase("first"))
-				crawlFL=ChannelCrawl.CRAWL_FIRST;
-			if(fl.equalsIgnoreCase("all"))
-				crawlFL=ChannelCrawl.CRAWL_ALL;
-			if(fl.equalsIgnoreCase("last"))
-				crawlFL=ChannelCrawl.CRAWL_LAST;
+			int tmp=ChannelCrawl.parseCrawlMode(ChannelCrawl.CRAWL_HML, fl);
+			if(tmp!=ChannelCrawl.CRAWL_UNKNOWN)
+				crawlFL=tmp;
 		}
 		if(!ChannelUtil.empty(hl)) {
-			if(hl.equalsIgnoreCase("high"))
-				crawlHL=ChannelCrawl.CRAWL_HIGH;
-			if(hl.equalsIgnoreCase("medium"))
-				crawlHL=ChannelCrawl.CRAWL_MED;
-			if(hl.equalsIgnoreCase("low"))
-				crawlHL=ChannelCrawl.CRAWL_LOW;
+			int tmp=ChannelCrawl.parseCrawlMode(ChannelCrawl.CRAWL_HML, hl);
+			if(tmp!=ChannelCrawl.CRAWL_UNKNOWN)
+				crawlHL=tmp;
 		}
 	}
 
@@ -667,6 +688,8 @@ public class ChannelCfg {
 	}
 	
 	public void chVars(String chName,Channel ch) {
+		if(stdAlone)
+			return;
 		String vars=(String)PMS.getConfiguration().getCustomProperty("channels.ch_vars");
 		if(ChannelUtil.empty(vars)) // no vars
 			return;

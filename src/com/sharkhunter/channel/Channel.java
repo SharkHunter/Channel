@@ -396,6 +396,15 @@ public class Channel extends VirtualFolder {
 		}
 	}
 	
+	public ChannelFolder getAction(String action) {
+		for(int i=0;i<actions.size();i++) {
+			ChannelFolder cf=actions.get(i);
+			if(action.equals(cf.actionName()))
+				return cf;
+		}
+		return null;
+	}
+	
 	private void open(DLNAResource res,String[] names,int pos,DLNAResource child) {
 		List<DLNAResource> children=child.getChildren();
 		for(int j=0;j<children.size();j++) {

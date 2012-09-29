@@ -36,7 +36,7 @@ import no.geosoft.cc.io.FileMonitor;
 public class Channels extends VirtualFolder implements FileListener {
 
 	// Version string
-	public static final String VERSION="1.95";
+	public static final String VERSION="1.96";
 	public static final String ZIP_VER="194";
 	
 	// Constants for RTMP string constructions
@@ -580,6 +580,8 @@ public class Channels extends VirtualFolder implements FileListener {
 	}
 	
 	private void startOffHour() {
+		if(Channels.cfg().stdAlone())
+			return;
 		String cfg=(String) PMS.getConfiguration().getCustomProperty("channels.offhour");
 		if(ChannelUtil.empty(cfg)) // no config, nothing to do
 			return;
@@ -832,6 +834,8 @@ public class Channels extends VirtualFolder implements FileListener {
 	
 	public static void mkCookieFile() {
 		String file=cfg().getCookiePath();
+		if(ChannelUtil.empty(file))
+			return;
 		File f=new File(file);
 		// The logic here:
 		// Create a new HashMap (=map) as a sandbox
@@ -1154,6 +1158,8 @@ public class Channels extends VirtualFolder implements FileListener {
 	}
 	
 	public static String getCode() {
+		if(cfg().stdAlone())
+			return "";
 		return (String) PMS.getConfiguration().getCustomProperty("channels.code");
 	}
 	

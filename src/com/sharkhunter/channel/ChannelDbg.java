@@ -28,6 +28,8 @@ public class ChannelDbg {
 	
 	private void ensureDbgPack() throws ConfigurationException {
 		PmsConfiguration conf=PMS.getConfiguration();
+		if(conf==null)
+			return;
 		String str = (String) conf.getCustomProperty("dbgpack");
 		if (str == null) {
 			str=f.getPath();
