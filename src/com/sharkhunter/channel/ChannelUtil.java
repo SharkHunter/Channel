@@ -33,6 +33,7 @@ import org.apache.commons.io.FileUtils;
 import net.pms.PMS;
 import net.pms.configuration.PmsConfiguration;
 import net.pms.dlna.DLNAResource;
+import net.pms.dlna.virtual.VirtualVideoAction;
 import net.pms.formats.Format;
 import net.pms.io.OutputParams;
 
@@ -46,6 +47,7 @@ public class ChannelUtil {
 	public static final int ASXTYPE_NONE=0;
 	public static final int ASXTYPE_AUTO=1;
 	public static final int ASXTYPE_FORCE=2;
+
 	
 	public static String postPage(URLConnection connection,String query) {
 		return postPage(connection,query,"",null);
@@ -62,6 +64,8 @@ public class ChannelUtil {
 
 		connection.setRequestProperty ("Content-Type", "application/x-www-form-urlencoded");
 		connection.setRequestProperty("User-Agent",defAgentString);
+		if(query==null)
+			query="";
 		connection.setRequestProperty("Content-Length", "" + query.length());  
 		
 		try {
@@ -1208,6 +1212,10 @@ public class ChannelUtil {
 			return new Thread(r);
 		}
 		return null;
+	}
+	
+	public static boolean filterInternals(DLNAResource r) {
+		return ((r instanceof VirtualVideoAction)||(r instanceof ChannelPMSAllPlay));
 	}
 	
 }

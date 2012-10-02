@@ -1,6 +1,8 @@
 package com.sharkhunter.channel;
 
+import net.pms.dlna.DLNAResource;
 import net.pms.dlna.virtual.VirtualFolder;
+import net.pms.dlna.virtual.VirtualVideoAction;
 
 import org.apache.commons.lang.StringEscapeUtils;
 
@@ -42,6 +44,18 @@ public class ChannelPMSSwitch extends VirtualFolder implements ChannelFilter{
 		int f=format;
 		if(f==-1)
 			f=cs.getFormat();
+		if(ChannelUtil.getProperty(cs.getProps(),"monitor")) {
+				// Add bookmark action
+				String n="Add to favorite/monitor";
+				final ChannelSwitch cs1=cs;
+				final DLNAResource res=this;
+				addChild(new VirtualVideoAction(n,true) { //$NON-NLS-1$
+					public boolean enable() {
+						cs1.monitor(res);
+						return true;
+					}
+				});
+		}
 		dstCh.action(cs, null, url, thumbnailIcon, this,f);
 	}
 
@@ -50,7 +64,4 @@ public class ChannelPMSSwitch extends VirtualFolder implements ChannelFilter{
 	public boolean filter(String str) {
 		return true;
 	}
-	
-	
-
 }

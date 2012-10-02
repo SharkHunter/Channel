@@ -36,8 +36,8 @@ import no.geosoft.cc.io.FileMonitor;
 public class Channels extends VirtualFolder implements FileListener {
 
 	// Version string
-	public static final String VERSION="1.96";
-	public static final String ZIP_VER="194";
+	public static final String VERSION="2.00";
+	public static final String ZIP_VER="200";
 	
 	// Constants for RTMP string constructions
 	public static final int RTMP_MAGIC_TOKEN=1;
@@ -128,19 +128,22 @@ public class Channels extends VirtualFolder implements FileListener {
     	addChild(cache);
     	addChild(searchDb);
     	addChild(new ChannelPMSCode("Unlock All",null,true));
-    	addMonitor();
     	fileMonitor=null;
     	allUnlocked=false;
     	setOpenSubs(true);
     }
     
     private void addMonitor() {
+    	if(!cfg.monitor())
+    		return;
     	monMgr=new ChannelMonitorMgr();
     	monitor=new ChannelPlainFolder("New Monitored Media");
     	addChild(monitor);
+    	clearMonitor();
     }
     
     public void start(long poll) {
+    	addMonitor();
     	// Move any work favorites first
     	if(workFavFile().exists()) {
     		try {
@@ -170,7 +173,8 @@ public class Channels extends VirtualFolder implements FileListener {
     	}
     	initNaviXUploader();
     	parseMonitorFile();
-    	monMgr.delayedScan();
+    	if(cfg.monitor())
+    		monMgr.delayedScan();
     }
     
     private void initNaviXUploader() {
@@ -1245,83 +1249,127 @@ public class Channels extends VirtualFolder implements FileListener {
 	
 	private void parseMonitorFile() {
 		File f=monitorFile();
+		if(!cfg.monitor()||!f.exists())
+			return;
 		try {
-		BufferedReader in=new BufferedReader(new FileReader(f));
-    	String str;    	
-    	ArrayList<String> entries=null;
-    	String name="";
-    	Channel owner=null;
-    	StringBuilder sb=null;
-    	while ((str = in.readLine()) != null) {
-    		if(ChannelUtil.empty(str))
-    			continue;
-    		str=str.trim();
-    		if(str.equals(ChannelUtil.FAV_BAR.trim())) {
-    			if(entries==null)
-    				entries=new ArrayList<String>();
-    			else {
-    				if(sb==null)
-    					continue;
-    				String[] lines=sb.toString().split("\n");
-    		    	for(int i=0;i<lines.length;i++) {
-    		    		String str1=lines[i].trim();
-    		    		if(str1.startsWith("folder ")) {
-    		    			ArrayList<String> fData=ChannelUtil.gatherBlock(lines, i+1);
-    		    			i+=fData.size();
-    		    			ChannelFolder mf=new ChannelFolder(fData,owner);
-    		    			// need to make first folder empty
-    		    			mf.setType(ChannelFolder.TYPE_EMPTY);
-    		    			Channels.debug("add new monitor "+name);
-    		    			ChannelMonitor m=new ChannelMonitor(mf,entries,name);
-    		    			monMgr.add(m);
-    		    		}
-    		    	}
-    			}
-    			continue;
-    		}
-    		if(ChannelUtil.ignoreLine(str))
-    			continue;
-    		if(str.startsWith("entry=")) {
-    			if(entries==null)
-    				continue;
-    			String entry=str.substring(6);
-    			if(!entries.contains(entry.trim()))
-    				entries.add(entry.trim());
-    			continue;
-    		}
-    		if(str.startsWith("name=")) {
-    			name=str.substring(5);
-    			continue;
-    		}
-    		if(str.startsWith("owner=")) {
-    			owner=find(str.substring(6).trim());
-    			continue;
-    		}
-    		if(str.startsWith("monitor")) {
-    			sb=new StringBuilder();
-    			continue;
-    		}
-    		sb.append(str);
-    		sb.append("\n");
-    	}
-    	in.close();
+			BufferedReader in=new BufferedReader(new FileReader(f));
+			String str;    	
+			ArrayList<String> entries=null;
+			String name="";
+			Channel owner=null;
+			StringBuilder sb=null;
+			String templ=null;
+			while ((str = in.readLine()) != null) {
+				if(ChannelUtil.empty(str))
+					continue;
+				str=str.trim();
+				if(str.equals(ChannelUtil.FAV_BAR.trim())) {
+					if(entries==null)
+						entries=new ArrayList<String>();
+					else {
+						if(sb==null)
+							continue;
+						String[] lines=sb.toString().split("\n");
+						for(int i=0;i<lines.length;i++) {
+							String str1=lines[i].trim();
+							if(str1.startsWith("folder ")) {
+								ArrayList<String> fData=ChannelUtil.gatherBlock(lines, i+1);
+								i+=fData.size();
+								ChannelFolder mf=new ChannelFolder(fData,owner);
+								// need to make first folder empty
+								mf.setType(ChannelFolder.TYPE_EMPTY);
+								Channels.debug("add new monitor "+name);
+								ChannelMonitor m=new ChannelMonitor(mf,entries,name);
+								m.setTemplate(templ);
+								monMgr.add(m);
+								// Clear all vars
+								name=null;
+								templ=null;
+								entries=null;
+								owner=null;
+							}
+						}
+					}
+					continue;
+				}
+				if(ChannelUtil.ignoreLine(str))
+					continue;
+				if(str.startsWith("entry=")) {
+					if(entries==null)
+						continue;
+					String entry=str.substring(6);
+					if(!entries.contains(entry.trim()))
+						entries.add(entry.trim());
+					continue;
+				}
+				if(str.startsWith("owner=")) {
+					owner=find(str.substring(6).trim());
+					continue;
+				}
+				if(str.startsWith("templ=")) {
+					templ=str.substring(6).trim();
+					continue;
+				}
+				if(str.startsWith("monitor")) {
+					sb=new StringBuilder();
+					continue;
+				}
+				if(str.startsWith("name=")) {
+					if(ChannelUtil.empty(name)) { // only pick 1st name, just to simplify parsing
+						name=str.substring(5);
+						continue;
+					}
+					// subsequence name belongs to some struct leave it
+					// and it will be added normally
+				}
+				sb.append(str);
+				sb.append("\n");
+			}
+			in.close();
 		} catch (Exception e) {
 			debug("mon file parse error "+e);
 		}				
 	}
+	
+	private static String templWash(String name,String templ) {
+		if(ChannelUtil.empty(templ))
+			return name;
+		HashMap<String,String> vars=new HashMap<String,String>();
+		vars.put("__wash__", "1");
+		return ChannelNaviXProc.simple(name, templ, vars);
+	}
+	
+	public static void monitor(DLNAResource res,ChannelFolder cf,
+			   String data) throws IOException {
+		monitor(res,cf,data,null);
+	}
 		
 	public static void monitor(DLNAResource res,ChannelFolder cf,
-							   String data) throws IOException {
+							   String data,String templ) throws IOException {
+		if(!inst.cfg.monitor())
+			return;
 		if(inst.monMgr.monitored(res.getName())) 
 			return;
 		File f=monitorFile();
+		boolean newFile=!f.exists();
 		FileWriter out=new FileWriter(f,true);
+		String washedName=templWash(res.getName(),templ);
 		StringBuffer sb=new StringBuffer();
+		if(newFile) {
+			sb.append("######\n");
+			sb.append("## NOTE!!!!!\n");
+			sb.append("## This file is auto generated\n");
+			sb.append("## Edit with EXTREME care\n");
+			sb.append("## If you remove things make sure to remove\n");
+			sb.append("## EVERYTHING between the # bars\n\n");
+		}
 		sb.append(ChannelUtil.FAV_BAR);
-		ChannelUtil.appendVarLine(sb, "name", res.getName());
+		ChannelUtil.appendVarLine(sb, "name", washedName);
+		if(!ChannelUtil.empty(templ))
+			ChannelUtil.appendVarLine(sb, "templ", templ);
 		ArrayList<String> entries=new ArrayList<String>();
 		for(DLNAResource r : res.getChildren()) {
-			if(r instanceof VirtualVideoAction)
+			if(ChannelUtil.filterInternals(r))
 				continue;
 			ChannelUtil.appendVarLine(sb, "entry", r.getName());
 			entries.add(r.getName());
@@ -1335,7 +1383,8 @@ public class Channels extends VirtualFolder implements FileListener {
     	for(int i=0;i<lines.length;i++) {
     		String str=lines[i].trim();
     	    if(str.startsWith("monitor")||
-    	       str.startsWith("owner")) {
+    	       str.startsWith("owner")||
+    	       str.startsWith("templ")) {
     	    	// skip the start lines
     	    	continue;
     	    }
@@ -1345,7 +1394,8 @@ public class Channels extends VirtualFolder implements FileListener {
     			ChannelFolder mf=new ChannelFolder(fData,cf.getChannel());
     			// need to make first folder empty
     			mf.setType(ChannelFolder.TYPE_EMPTY);
-    			ChannelMonitor m=new ChannelMonitor(mf,entries,res.getName());
+    			ChannelMonitor m=new ChannelMonitor(mf,entries,washedName);
+    			m.setTemplate(templ);
     			inst.monMgr.add(m);
     			continue;
     	    }
@@ -1418,6 +1468,18 @@ public class Channels extends VirtualFolder implements FileListener {
 	
 	public static boolean monitoredPlay(DLNAResource res) {
 		return (inst.monitor==res);
-	}
+	}	
 	
+	public static void clearMonitor() {
+		inst.monitor.getChildren().clear();
+		inst.monitor.addChild(new VirtualVideoAction("Rescan",true) {
+			@Override
+			public boolean enable() {
+				clearMonitor();
+				inst.monMgr.scanAll();
+				return true;
+			}
+    		
+    	});
+	}
 }

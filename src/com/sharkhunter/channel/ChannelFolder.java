@@ -195,6 +195,7 @@ public class ChannelFolder implements ChannelProps, SearchObj{
 				ArrayList<String> m=ChannelUtil.gatherBlock(data,i+1);
 				i+=m.size();
 				ChannelSwitch sw=new ChannelSwitch(m,parent);
+				sw.setParentFolder(this);
 				if(sw.Ok)
 					switches.add(sw);
 				continue;
@@ -763,7 +764,7 @@ public class ChannelFolder implements ChannelProps, SearchObj{
 	    } 
 	    // 3rd channel switches
 	    for(int i=0;i<swi.size();i++) {
-	    	ChannelSwitch sw=switches.get(i);
+	    	ChannelSwitch sw=swi.get(i);
 	    	Channel ch=Channels.findChannel(sw.getName());
 	    	if(ch==null)
 	    		continue;
@@ -894,8 +895,9 @@ public class ChannelFolder implements ChannelProps, SearchObj{
 	    			cf.match(res,null,fUrl,thumb,someName);
 	    			return;
 	    		}
-	    		if(cf.type==ChannelFolder.TYPE_EMPTY)
+	    		if(cf.type==ChannelFolder.TYPE_EMPTY) {
 	    			cf.match(res,null,fUrl,thumb,someName,imdbId);
+	    		}
 	    		else if(cf.type==ChannelFolder.TYPE_EXEC) {
 	    			final String vvaUrl=fUrl;
 	    			final ChannelFolder fcf=cf;
@@ -1113,6 +1115,11 @@ public class ChannelFolder implements ChannelProps, SearchObj{
 		}
 		for(int i=0;i<items.size();i++) {
 			ChannelItem m=items.get(i);
+			sb.append(m.rawEntry());
+			sb.append("\n");
+		}
+		for(int i=0;i<switches.size();i++) {
+			ChannelSwitch m=switches.get(i);
 			sb.append(m.rawEntry());
 			sb.append("\n");
 		}

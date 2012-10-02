@@ -1,4 +1,43 @@
-version=0.31
+version=0.40
+
+scriptdef tpbMonitor {
+	regex='\.*\[.*?\]
+	replace s_url '
+	regex='\.
+	replace s_url '###0
+	regex='(.*?)[Ss]0*(\d+)[Ee]0*(\d+) 
+	match s_url
+	if nomatch
+		regex='(.*?)0*(\d+)x0*(\d+)
+		match s_url
+	endif
+	if __wash__
+		url=v1
+		concat url 'Season
+		concat url '###0 
+		concat url v2
+	else
+		name=v1
+		season=v2
+		episode=v3
+		x=entry
+		regex='(.*?)[Ss]0*(\d+)[Ee]0*(\d+) 
+		match entry
+		if nomatch
+			regex='(.*?)0*(\d+)x0*(\d+)
+			match entry
+		endif
+		url='
+		if name==v1
+			if season==v2
+			   if episode!=v3
+				   url=entry
+				endif
+			endif
+		endif				   
+	endif
+	play
+}
 
 macrodef tpbSwitch {
 	switch {
@@ -8,7 +47,7 @@ macrodef tpbSwitch {
 			name=Furk
 			action=upload
 			script=furkUploadHash
-			prop=name_unescape
+			prop=name_unescape,monitor,monitor_type=parent,monitor_templ=tpbMonitor,crawl_mode=FLA+FLA
 	}
 }
 

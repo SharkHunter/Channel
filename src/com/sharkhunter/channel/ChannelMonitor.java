@@ -2,6 +2,7 @@ package com.sharkhunter.channel;
 
 import java.net.MalformedURLException;
 import java.util.ArrayList;
+import java.util.HashMap;
 
 import net.pms.dlna.DLNAResource;
 import net.pms.dlna.virtual.VirtualFolder;
@@ -13,12 +14,18 @@ public class ChannelMonitor {
 	private ArrayList<String> oldEntries;
 	private String name;
 	private boolean scanning;
+	private String templ;
 
 	ChannelMonitor(ChannelFolder cf,ArrayList<String> oldEntries,String name) {
 		this.cf=cf;
 		this.oldEntries=oldEntries;
 		this.name=name;
+		templ=null;
 		scanning=false;
+	}
+	
+	public void setTemplate(String t) {
+		templ=t;
 	}
 	
 	public void scan() {
@@ -35,8 +42,15 @@ public class ChannelMonitor {
 		}
 		ArrayList<DLNAResource> crawl=new ArrayList<DLNAResource>();
 		for(DLNAResource r : dummy.getChildren()) {
-			if(oldEntries.contains(r.getName().trim())) 
-				continue;
+			if(ChannelUtil.empty(templ)) {
+				// standard simple matching
+				if(oldEntries.contains(r.getName().trim())) 
+					continue;
+			}
+			else {
+				if(templateMatch(r.getName().trim()))
+					continue;
+			}
 			Channels.addNewMonitoredMedia(r,getName().trim());
 			crawl.add(r);
 		}
@@ -91,4 +105,15 @@ public class ChannelMonitor {
 		}
 		return false;
 	}
+	
+	private boolean templateMatch(String entry) {
+		HashMap<String,String> vars=new HashMap<String,String>();
+		vars.put("entry", entry);
+		for(String old : oldEntries) {
+			if(!ChannelUtil.empty(ChannelNaviXProc.simple(old, templ, vars)))
+				return false;
+		}
+		return true;
+	}
+	
 }

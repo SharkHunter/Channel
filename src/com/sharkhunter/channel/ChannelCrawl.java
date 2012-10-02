@@ -101,7 +101,7 @@ public class ChannelCrawl implements Comparator {
 		
 		while(pos > -1) {
 			DLNAResource tmp=start.get(pos);
-			if(filterInternals(tmp)){
+			if(ChannelUtil.filterInternals(tmp)){
 				int p1=pos+1;
 				if(p1==size)
 					pos=pos-1;
@@ -114,14 +114,10 @@ public class ChannelCrawl implements Comparator {
 		return null;
 	}
 	
-	private boolean filterInternals(DLNAResource r) {
-		return ((r instanceof VirtualVideoAction)||(r instanceof ChannelPMSAllPlay));
-	}
-	
 	private ArrayList<DLNAResource> sortedList(ArrayList<DLNAResource> list) {
 		ArrayList<DLNAResource> res=new ArrayList<DLNAResource>();
 		for(DLNAResource r : list) {
-			if(filterInternals(r)){
+			if(ChannelUtil.filterInternals(r)){
 				continue;
 			}
 			res.add(r);

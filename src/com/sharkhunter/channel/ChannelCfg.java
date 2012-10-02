@@ -62,6 +62,7 @@ public class ChannelCfg {
 	private String crawlFormat;
 	private boolean crawl;
 	private boolean stdAlone;
+	private boolean monitor;
 	
 	public ChannelCfg(Channels top) {
 		chPath=null;
@@ -93,6 +94,7 @@ public class ChannelCfg {
 		crawlFormat=".mp4";
 		crawl=false;
 		stdAlone=false;
+		monitor=true;
 	}
 	
 	///////////////////////////////////
@@ -327,6 +329,10 @@ public class ChannelCfg {
 		return stdAlone;
 	}	
 	
+	public boolean monitor() {
+		return monitor;
+	}
+	
 	////////////////////////////////////////
 	// Misc. methods
 	////////////////////////////////////////
@@ -377,6 +383,8 @@ public class ChannelCfg {
 		String fl=(String)PMS.getConfiguration().getCustomProperty("channels.crawl_fl");
 		String cf=(String)PMS.getConfiguration().getCustomProperty("channels.crawl_format");
 		String cra=(String)PMS.getConfiguration().getCustomProperty("channels.crawl");
+		String mo=(String)PMS.getConfiguration().getCustomProperty("channels.monitor");
+		
 		if(!ChannelUtil.empty(cf))
 			crawlFormat=cf;
 		
@@ -478,6 +486,8 @@ public class ChannelCfg {
 			if(tmp!=ChannelCrawl.CRAWL_UNKNOWN)
 				crawlHL=tmp;
 		}
+		if(!ChannelUtil.empty(mo)&&mo.equalsIgnoreCase("false"))
+			monitor=false;
 	}
 
 	private void configPath(String key,String val) {

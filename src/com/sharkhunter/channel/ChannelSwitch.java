@@ -1,5 +1,6 @@
 package com.sharkhunter.channel;
 
+import java.io.IOException;
 import java.util.ArrayList;
 
 import net.pms.dlna.DLNAResource;
@@ -15,6 +16,7 @@ public class ChannelSwitch implements ChannelProps {
 	private int format;
 	
 	private Channel parent;
+	private ChannelFolder parentFolder;
 	
 	public ChannelSwitch(String action) {
 		this.action=action;
@@ -24,6 +26,7 @@ public class ChannelSwitch implements ChannelProps {
 		Ok=false;
 		this.parent=parent;
 		format=-1;
+		parentFolder=null;
 		parse(data);
 		Ok=true;
 	}
@@ -70,6 +73,10 @@ public class ChannelSwitch implements ChannelProps {
 			format=f;
 	}
 	
+	public void setParentFolder(ChannelFolder cf) {
+		parentFolder=cf;
+	}
+	
 	public String getName() {
 		return name;
 	}
@@ -80,6 +87,14 @@ public class ChannelSwitch implements ChannelProps {
 	
 	public int getFormat() {
 		return format;
+	}
+	
+	public ChannelFolder getParentFolder() {
+		return parentFolder;
+	}
+	
+	public String[] getProps() {
+		return prop;
 	}
 	
 	public String runScript(String url) {
@@ -117,4 +132,62 @@ public class ChannelSwitch implements ChannelProps {
 	public String mangle(String base) {
 		return ChannelUtil.getPropertyValue(prop, base+"_mangle");
 	}
+	
+	public void monitor(DLNAResource res) {
+		String pm=ChannelUtil.getPropertyValue(prop, "monitor_type");
+		if(pm==null||!pm.equalsIgnoreCase("parent")) {
+			// Impossible to monitor this combo?
+			Channels.debug("bad switch monitor");
+			return;
+		}
+		String data=parentFolder.mkFav(null,res.getName(),null,null);
+		Channels.debug("about to monitor "+res.getName()+" "+data);
+		try {
+			Channels.monitor(res,parentFolder,
+					         data.replace("favorite {", "monitor {"),
+					         ChannelUtil.getPropertyValue(prop, "monitor_templ"));
+		} catch (IOException e) {
+		}
+	}
+	
+	public String rawEntry() {
+		StringBuilder sb=new StringBuilder();
+		sb.append("switch {");
+		sb.append("\n");
+		if(!ChannelUtil.empty(name)) {
+			sb.append("name=");
+			sb.append(name);
+			sb.append("\n");
+		}
+		if(matcher!=null) {
+			sb.append("matcher=");
+			sb.append(matcher.regString());
+			sb.append("\n");
+			matcher.orderString(sb);
+			sb.append("\n");
+		}
+		if(prop!=null) {
+			sb.append("prop=");
+			ChannelUtil.list2file(sb,prop);
+			sb.append("\n");
+		}
+		if(script!=null) {
+			sb.append("script=");
+			sb.append(script);
+			sb.append("\n");
+		}
+		if(action!=null) {
+			sb.append("action=");
+			sb.append(action);
+			sb.append("\n");
+		}
+		if(format!=-1) {
+			sb.append("format=");
+			sb.append(ChannelUtil.format2str(format));
+			sb.append("\n");
+		}
+		sb.append("\n}\n");
+		return sb.toString();
+	}
+	
 }

@@ -27,6 +27,7 @@ public class ChannelMonitorMgr {
 			launchTime.add(Calendar.DATE, 1);
 		timer.schedule(new TimerTask() {
 		    public void run() {
+		    	Channels.clearMonitor();
 		    	scanAll();
 		    }}, launchTime.getTime(),PERIOD);
 	}
@@ -68,7 +69,7 @@ public class ChannelMonitorMgr {
 	}
 	
 	public void delayedScan(final int delay) {
-		if(!Channels.cfg().crawl())
+		if(monitors.isEmpty()) // no idea to scan
 			return;
 		Runnable r=new Runnable() {
     		public void run() {
