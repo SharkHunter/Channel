@@ -80,6 +80,8 @@ public class ChannelSearch extends VirtualFolder {
 	}
 	
 	public void addSearch(Channel ch,String id,String str) {
+		if(ChannelUtil.empty(id)) // no id give up early
+			return;
 		if(searchList.isEmpty()) {
 			// need to handle special case of empty list
 			addItem(ch,id,str);

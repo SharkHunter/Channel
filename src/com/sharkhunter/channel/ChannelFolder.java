@@ -969,17 +969,17 @@ public class ChannelFolder implements ChannelProps, SearchObj{
 	@Override
 	public void search(String searchString, DLNAResource searcher) {
 		try {
-			Channels.debug("do search "+searchString);
+			Channels.debug("do search "+searchString+" ignorefav "+ignoreFav());
 			Channels.addSearch(parent, searchId, searchString);
-			String realStr;
 			searchString=ChannelUtil.escape(searchString);
 			searchString=ChannelUtil.append(ChannelUtil.getPropertyValue(prop, "prepend_url"),null,
 							   ChannelUtil.append(searchString, null, ChannelUtil.getPropertyValue(prop, "append_url")));
-		
 			match(searcher,null,searchString,"","");
 		} catch (MalformedURLException e) {
 		}
 	}
+	
+	 
 	
 	public String thumbScript() {
 		return thumb_script;

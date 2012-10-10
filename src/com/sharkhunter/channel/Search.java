@@ -20,6 +20,9 @@ public class Search extends VirtualFolder {
 		searched=false;
 	}
 	
+	public String result() {
+		return sb.toString();
+	}
 	
 	public SearchObj getSearchObj() {
 		return sobj;

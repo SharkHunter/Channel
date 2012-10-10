@@ -1,9 +1,9 @@
-version=0.40
+version=0.41
 
 scriptdef tpbMonitor {
 	regex='\.*\[.*?\]
 	replace s_url '
-	regex='\.
+	regex='[\._]
 	replace s_url '###0
 	regex='(.*?)[Ss]0*(\d+)[Ee]0*(\d+) 
 	match s_url
@@ -16,11 +16,15 @@ scriptdef tpbMonitor {
 		concat url 'Season
 		concat url '###0 
 		concat url v2
+		play
 	else
 		name=v1
 		season=v2
 		episode=v3
-		x=entry
+		regex='\.*\[.*?\]
+		replace entry '
+		regex='[\._]
+		replace entry '###0
 		regex='(.*?)[Ss]0*(\d+)[Ee]0*(\d+) 
 		match entry
 		if nomatch

@@ -8,6 +8,7 @@ import net.pms.PMS;
 public class SearchFolder extends VirtualFolder {
 	private String name;
 	private SearchObj sobj;
+	private String result;
 	
 	public SearchFolder (String name,SearchObj sobj){
 		super(name,null);
@@ -34,10 +35,17 @@ public class SearchFolder extends VirtualFolder {
 	
 	public void discoverChildren(String str) {
 		Channels.debug("search "+str);
+		result=null;
 		if(str==null)
 			discoverChildren();
-		else
+		else {
+			result=str;
 			sobj.search(str, this);
+		}
+	}
+	
+	public String result() {
+		return result;
 	}
 	
 	public boolean isSearched() {

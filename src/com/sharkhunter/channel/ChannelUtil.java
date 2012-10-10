@@ -645,8 +645,11 @@ public class ChannelUtil {
 	public static String backTrack(DLNAResource start,int stop) {
 		if(start==null)
 			return null;
-		if(Channels.save()) // compensate for save
-			start=start.getParent();
+		if(Channels.save()) { // compensate for save
+			if(start.getParent()!=null)
+				start=start.getParent();
+		}
+		if(start==null) 
 		if(stop==0)
 			return start.getName();
 		int i=0;
@@ -1216,6 +1219,18 @@ public class ChannelUtil {
 	
 	public static boolean filterInternals(DLNAResource r) {
 		return ((r instanceof VirtualVideoAction)||(r instanceof ChannelPMSAllPlay));
+	}
+	
+	public static String searchInPath(DLNAResource res) {
+		while(res!=null) {
+			if((res instanceof Search)) {
+				return ((Search)res).result();
+			}
+			if(res instanceof SearchFolder)
+				return ((SearchFolder)res).result();
+			res=res.getParent();
+		}
+		return "";
 	}
 	
 }

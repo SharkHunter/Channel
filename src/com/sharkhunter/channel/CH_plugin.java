@@ -23,10 +23,13 @@ import net.pms.dlna.virtual.VirtualFolder;
 import net.pms.encoders.Player;
 import net.pms.external.AdditionalFolderAtRoot;
 import net.pms.external.FinalizeTranscoderArgsListener;
+import net.pms.external.LastPlayedParent;
 import net.pms.external.StartStopListener;
 import net.pms.io.OutputParams;
 
-public class CH_plugin implements AdditionalFolderAtRoot, StartStopListener, FinalizeTranscoderArgsListener {
+public class CH_plugin implements AdditionalFolderAtRoot, StartStopListener, 
+								  FinalizeTranscoderArgsListener,
+								  LastPlayedParent {
 
 	private static final long DEFAULT_POLL_INTERVAL=20000;
 	private static boolean initFetchPending=false;
@@ -308,6 +311,22 @@ public class CH_plugin implements AdditionalFolderAtRoot, StartStopListener, Fin
 		}
 		System.out.println("Done");
 		System.exit(0);
+	}
+
+	@Override
+	public DLNAResource create(String arg0) {
+		String[] tmp=arg0.split(">");
+		Channel ch = chRoot.findChannel(tmp[1]);
+		if(ch==null) // channel is gone?
+			return null;
+		Channels.debug("create lp cms "+tmp[2]+" ru "+tmp[0]+" channel "+ch);
+		int format=-1;
+		if(tmp.length>3)
+			format=ChannelUtil.getFormat(tmp[3]);
+		String thumb="";
+		if(tmp.length>4)
+			thumb=tmp[4];
+		return new ChannelMediaStream(tmp[2],tmp[0],ch,format,thumb);
 	}
 	
 }

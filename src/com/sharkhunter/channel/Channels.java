@@ -36,7 +36,7 @@ import no.geosoft.cc.io.FileMonitor;
 public class Channels extends VirtualFolder implements FileListener {
 
 	// Version string
-	public static final String VERSION="2.00";
+	public static final String VERSION="2.02a";
 	public static final String ZIP_VER="200";
 	
 	// Constants for RTMP string constructions
@@ -1259,6 +1259,7 @@ public class Channels extends VirtualFolder implements FileListener {
 			Channel owner=null;
 			StringBuilder sb=null;
 			String templ=null;
+			String search=null;
 			while ((str = in.readLine()) != null) {
 				if(ChannelUtil.empty(str))
 					continue;
@@ -1281,12 +1282,14 @@ public class Channels extends VirtualFolder implements FileListener {
 								Channels.debug("add new monitor "+name);
 								ChannelMonitor m=new ChannelMonitor(mf,entries,name);
 								m.setTemplate(templ);
+								m.setSearch(search);
 								monMgr.add(m);
 								// Clear all vars
 								name=null;
 								templ=null;
 								entries=null;
 								owner=null;
+								search=null;
 							}
 						}
 					}
@@ -1308,6 +1311,10 @@ public class Channels extends VirtualFolder implements FileListener {
 				}
 				if(str.startsWith("templ=")) {
 					templ=str.substring(6).trim();
+					continue;
+				}
+				if(str.startsWith("search=")) {
+					search=str.substring(7);
 					continue;
 				}
 				if(str.startsWith("monitor")) {
@@ -1339,6 +1346,18 @@ public class Channels extends VirtualFolder implements FileListener {
 		return ChannelNaviXProc.simple(name, templ, vars);
 	}
 	
+	
+	private static String monNameWash(String name,String templ,String searched,
+									  String nameProp) {
+		if(!ChannelUtil.empty(nameProp)&&
+		   nameProp.equalsIgnoreCase("search")&&
+		   !ChannelUtil.empty(searched)) {
+				return searched;
+		}
+		return templWash(name,templ);
+	}
+	
+	
 	public static void monitor(DLNAResource res,ChannelFolder cf,
 			   String data) throws IOException {
 		monitor(res,cf,data,null);
@@ -1352,8 +1371,10 @@ public class Channels extends VirtualFolder implements FileListener {
 			return;
 		File f=monitorFile();
 		boolean newFile=!f.exists();
+		String searched=ChannelUtil.searchInPath(res);
 		FileWriter out=new FileWriter(f,true);
-		String washedName=templWash(res.getName(),templ);
+		String nameProp=cf.getProp("monitor_name");
+		String washedName=monNameWash(res.getName(),templ,searched,nameProp);
 		StringBuffer sb=new StringBuffer();
 		if(newFile) {
 			sb.append("######\n");
@@ -1367,6 +1388,8 @@ public class Channels extends VirtualFolder implements FileListener {
 		ChannelUtil.appendVarLine(sb, "name", washedName);
 		if(!ChannelUtil.empty(templ))
 			ChannelUtil.appendVarLine(sb, "templ", templ);
+		if(!ChannelUtil.empty(searched))
+			ChannelUtil.appendVarLine(sb, "search", searched);
 		ArrayList<String> entries=new ArrayList<String>();
 		for(DLNAResource r : res.getChildren()) {
 			if(ChannelUtil.filterInternals(r))
@@ -1396,6 +1419,7 @@ public class Channels extends VirtualFolder implements FileListener {
     			mf.setType(ChannelFolder.TYPE_EMPTY);
     			ChannelMonitor m=new ChannelMonitor(mf,entries,washedName);
     			m.setTemplate(templ);
+    			m.setSearch(searched);
     			inst.monMgr.add(m);
     			continue;
     	    }
@@ -1479,7 +1503,6 @@ public class Channels extends VirtualFolder implements FileListener {
 				inst.monMgr.scanAll();
 				return true;
 			}
-    		
     	});
 	}
 }

@@ -3,6 +3,7 @@ package com.sharkhunter.channel;
 import java.io.BufferedInputStream;
 import java.io.BufferedOutputStream;
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -141,6 +142,37 @@ public class ChannelMediaStream extends DLNAResource {
 		stash=cms.stash;
 		bgThread=cms.bgThread;
 		bgCnt=cms.bgCnt;
+	}
+	
+	public ChannelMediaStream(String name,String realUrl,Channel parent,int format,
+			String thumb) {
+		super(format);
+		url=realUrl;
+		this.name=name;
+		this.thumb=thumb;
+		this.processor=null;
+		this.format=format;
+		this.ch=parent;
+		this.realUrl=realUrl;
+		ASX=ChannelUtil.ASXTYPE_AUTO;
+		this.scraper=null;
+		this.saveName=null;
+		this.dispName=null;
+		saver=null;
+		scraped=false;
+		startTime=0;
+		noSubs=false;
+		imdb=null;
+		render=null;
+		rawSave=false;
+		fool=Channels.cfg().netDiscStyle();
+		videoFormat=null;
+		scrapeTime=0;
+		delay=0;
+		embedSub=null;
+		streamVars=null;
+		bgThread=null;
+		bgCnt=0;
 	}
 	
 	public String saveName() {
@@ -604,7 +636,10 @@ public class ChannelMediaStream extends DLNAResource {
 			if(splits[i].contains("subs=")&&!noSubs&&subs) {
 				DLNAMediaSubtitle sub=new DLNAMediaSubtitle();
 				String tmp=splits[i].substring(splits[i].indexOf("subs=")+5);
-				sub.setExternalFile(new File(ChannelUtil.unescape(tmp)));
+				try {
+					sub.setExternalFile(new File(ChannelUtil.unescape(tmp)));
+				} catch (FileNotFoundException e) {
+				}
 				sub.setId(1);
 				sub.setLang("und");
 				sub.setType(SubtitleType.SUBRIP);
@@ -639,7 +674,7 @@ public class ChannelMediaStream extends DLNAResource {
 		if(scraper!=null)
 			return scraper.backtrackedName(this);
 		else
-			return ChannelUtil.backTrack(this, 0);
+			return name;
 	}
 	
 	public String playlistURI() {
@@ -683,6 +718,9 @@ public class ChannelMediaStream extends DLNAResource {
 		return super.toString()+" url "+url+" proc "+processor+" "+" real "+realUrl;
 	}
 	
+	public String write() {
+		return realUrl+">"+ch.getName()+">"+playlistName()+">"+ChannelUtil.format2str(format)+">"+thumb;
+	}
 	
 	
 }

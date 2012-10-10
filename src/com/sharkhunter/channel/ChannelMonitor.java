@@ -15,17 +15,23 @@ public class ChannelMonitor {
 	private String name;
 	private boolean scanning;
 	private String templ;
+	private String search;
 
 	ChannelMonitor(ChannelFolder cf,ArrayList<String> oldEntries,String name) {
 		this.cf=cf;
 		this.oldEntries=oldEntries;
 		this.name=name;
 		templ=null;
+		search=null;
 		scanning=false;
 	}
 	
 	public void setTemplate(String t) {
 		templ=t;
+	}
+	
+	public void setSearch(String s) {
+		search=s;
 	}
 	
 	public void scan() {
@@ -35,7 +41,10 @@ public class ChannelMonitor {
 		Channels.debug("scanning "+name);
 		VirtualFolder dummy=new VirtualFolder(null,null);
 		try {
-			cf.match(dummy);
+			if(!ChannelUtil.empty(search))
+				cf.search(search, dummy);
+			else
+				cf.match(dummy);
 		} catch (MalformedURLException e) {
 			scanning=false;
 			return;
@@ -48,7 +57,7 @@ public class ChannelMonitor {
 					continue;
 			}
 			else {
-				if(templateMatch(r.getName().trim()))
+				if(!oldEntries.isEmpty()&&templateMatch(r.getName().trim()))
 					continue;
 			}
 			Channels.addNewMonitoredMedia(r,getName().trim());

@@ -20,9 +20,6 @@ import java.util.zip.GZIPInputStream;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
 
-import de.innosystec.unrar.Archive;
-import de.innosystec.unrar.rarfile.FileHeader;
-
 import net.pms.PMS;
 import net.pms.dlna.DLNAResource;
 import net.pms.formats.Format;
@@ -134,11 +131,11 @@ public class ChannelSubs implements ChannelProps {
 		boolean rename=!ChannelUtil.getProperty(prop, "rar_norename");
 		boolean first=true;
 		int id=1;
-		Archive rarFile = null;
+		com.github.junrar.Archive rarFile = null;
 		String firstName=null;
 		try {
-			rarFile = new Archive(f);
-			FileHeader fh =rarFile.nextFileHeader();
+			rarFile = new com.github.junrar.Archive(f);
+			com.github.junrar.rarfile.FileHeader fh =rarFile.nextFileHeader();
 			while(fh!=null) {
 				if(!fh.getFileNameString().contains(".srt")) {
 					fh =rarFile.nextFileHeader();
