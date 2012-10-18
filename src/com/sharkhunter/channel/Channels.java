@@ -36,8 +36,8 @@ import no.geosoft.cc.io.FileMonitor;
 public class Channels extends VirtualFolder implements FileListener {
 
 	// Version string
-	public static final String VERSION="2.03";
-	public static final String ZIP_VER="203";
+	public static final String VERSION="2.04";
+	public static final String ZIP_VER="204";
 	
 	// Constants for RTMP string constructions
 	public static final int RTMP_MAGIC_TOKEN=1;

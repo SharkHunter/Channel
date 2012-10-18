@@ -118,8 +118,9 @@ public class ChannelMonitor {
 	private boolean templateMatch(String entry) {
 		HashMap<String,String> vars=new HashMap<String,String>();
 		vars.put("entry", entry);
+		vars.put("nodebug", "1");
 		for(String old : oldEntries) {
-			if(!ChannelUtil.empty(ChannelNaviXProc.simple(old, templ, vars)))
+			if(!ChannelUtil.empty(ChannelNaviXProc.simple(old, templ, vars))) 
 				return false;
 		}
 		return true;

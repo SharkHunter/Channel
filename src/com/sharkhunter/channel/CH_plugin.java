@@ -28,8 +28,7 @@ import net.pms.external.StartStopListener;
 import net.pms.io.OutputParams;
 
 public class CH_plugin implements AdditionalFolderAtRoot, StartStopListener, 
-								  FinalizeTranscoderArgsListener,
-								  LastPlayedParent {
+								  FinalizeTranscoderArgsListener {
 
 	private static final long DEFAULT_POLL_INTERVAL=20000;
 	private static boolean initFetchPending=false;
@@ -313,10 +312,9 @@ public class CH_plugin implements AdditionalFolderAtRoot, StartStopListener,
 		System.exit(0);
 	}
 
-	@Override
 	public DLNAResource create(String arg0) {
 		String[] tmp=arg0.split(">");
-		Channel ch = chRoot.findChannel(tmp[1]);
+		Channel ch = Channels.findChannel(tmp[1]);
 		if(ch==null) // channel is gone?
 			return null;
 		Channels.debug("create lp cms "+tmp[2]+" ru "+tmp[0]+" channel "+ch);

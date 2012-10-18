@@ -1,4 +1,4 @@
-version=0.38
+version=0.40
 
 scriptdef furkSubs {
 	release='1
@@ -91,7 +91,7 @@ macrodef furkMacro {
 		url=http://api.furk.net/api/file/unlink?id=
 	}
 	folder {
-#            <a class="button-large button-play" href="http://icd0q6s14tvhto8tuv82gg9ttb9j0t3ds40r71g.gcdn.biz/pls/JM56JAwhydBTrZo2Kw7FQCJxxfFEEjR9J2gZKiT7myqYD6g42PI7bMWCx49sSKKOyZC5kFkwQVDcckU3yP4SryQcf6eNKqam_CRwEXATzEA/Harry%20Potter%20and%20the%20Deathly%20Hallows%20Part%202%202011%20TS%20UnKnOwN.xspf">Play</a><br /> 
+		#<a class="button-large button-play" href="http://icd0q6s14tvhto8tuv82gg9ttb9j0t3ds40r71g.gcdn.biz/pls/JM56JAwhydBTrZo2Kw7FQCJxxfFEEjR9J2gZKiT7myqYD6g42PI7bMWCx49sSKKOyZC5kFkwQVDcckU3yP4SryQcf6eNKqam_CRwEXATzEA/Harry%20Potter%20and%20the%20Deathly%20Hallows%20Part%202%202011%20TS%20UnKnOwN.xspf">Play</a><br /> 
 		matcher=a class=\"button-large button-play\" href=\"([^\"]+)\">(Play)<
 		order=url
 		type=empty
@@ -99,7 +99,6 @@ macrodef furkMacro {
 			matcher=<title>([^<]+)</title>\s+<location>([^<]+)</location>
 			order=name,url
 			subtitle=swesub,s4u,ut.se
-			#,subscene
 			prop=name_index=0
 		}
 	}

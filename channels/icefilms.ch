@@ -1,4 +1,4 @@
-version=0.55
+version=0.56
 
 ###############################
 ## IceFilms new method of
@@ -124,12 +124,23 @@ scriptdef 180Script {
 	regex='180upload.com/(.*)
 	match s_url
 	id=v1
+	regex='fname" value="([^"]+)"
+	scrape
+	fname=v1
+	op='&op=download1
+	s_postdata='id=
+	concat s_postdata id
+	concat s_postdata '&fname=
+	concat s_postdata fname
+	concat s_postdata '&method_free=Free+Download
+	tmp=s_postdata
+	concat s_postdata op
+	s_method='post
 	regex='name="rand" value="([^"]+)"
 	scrape
 	rand=v1
-	s_postdata='op=download2&id=
-	concat s_postdata id
-	concat s_postdata '&rand=
+	s_postdata=tmp
+	concat s_postdata '&op=download2&down_direct=1&btn_download=Free+Download&rand=
 	concat s_postdata rand
 	s_method='post
 	#<a href="http://173.193.242.242/files/2/x3xa8wxs4nf1du/Altair_The_Walking_Dead.S02E12.HDTV.XviD-FQM.avi">

@@ -24,6 +24,11 @@ public class ChannelNaviXProc {
 	public static HashMap<String,String> nookies=new HashMap<String,String>();
 	private static long lastExpire=0;
 	
+	private static void debug(String msg) {
+		if(ChannelUtil.empty(vars.get("nodebug")))
+			Channels.debug(msg);
+	}
+	
 	private static String escapeChars(String str) {
 		StringBuilder sb=new StringBuilder();
 	//	str=str.replaceAll("\\(", "\\\\\\(");
@@ -140,14 +145,14 @@ public class ChannelNaviXProc {
 		boolean if_skip=false;
 		boolean if_true=false;
 		int maxV=0;
-		Channels.debug("parse v2 ");
+		debug("parse v2 ");
 		vars.put("s_url", url);
 		for(int i=start;i<lines.length;i++) {
 			String line=lines[i];
 			if(ChannelUtil.ignoreLine(line))
 				continue;
 			line=line.trim();
-			Channels.debug("navix proc line "+line);
+			debug("navix proc line "+line);
 			if(if_true)
 				if(line.startsWith("else")||line.startsWith("elseif")) {
 					if_skip=true;
@@ -177,11 +182,10 @@ public class ChannelNaviXProc {
 				Proxy p=ChannelUtil.proxy(a);
 				if(action!=null&&action.equalsIgnoreCase("geturl")) { 
 					// YUCK!! this sucks, we need to get the location out of the redirect...
-					Channels.debug("geturl called "+sUrl);
+					debug("geturl called "+sUrl);
 					HttpURLConnection h=(HttpURLConnection)new URL(sUrl).openConnection(p);
 					h.setInstanceFollowRedirects(false);
 					h.connect();
-					Channels.debug("connect return");
 					String hName="";
 					vars.put("geturl", h.getURL().toString());
 					Channels.debug("put "+h.getURL().toString());
@@ -220,7 +224,7 @@ public class ChannelNaviXProc {
 					throw new Exception("empty scrape page");
 				}
 				vars.put("geturl", u.getURL().toString());
-				Channels.debug("scrape page "+sPage);
+				debug("scrape page "+sPage);
 				vars.put("htmRaw", sPage);
 				// get headers and cookies
 				String hName="";
@@ -261,7 +265,7 @@ public class ChannelNaviXProc {
 			
 			if(line.startsWith("if ")) { // if block
 				String cond=line.substring(3);
-				Channels.debug("if "+cond+" pattern "+ifparse.pattern());
+				debug("if "+cond+" pattern "+ifparse.pattern());	
 				Matcher im=ifparse.matcher(cond);
 				String var;
 				String op=null;
@@ -271,7 +275,7 @@ public class ChannelNaviXProc {
 				}	
 				else {
 					var=getVar(im.group(1));
-					Channels.debug("gc "+im.groupCount()+" "+var);
+					debug("gc "+im.groupCount()+" "+var);
 					if(im.groupCount()>1)
 						op=im.group(2);
 					if(im.groupCount()>2) {
@@ -279,7 +283,7 @@ public class ChannelNaviXProc {
 						comp=fixVar(s.trim(),getVar(s.trim()));
 					}
 				}
-				Channels.debug("if var "+var+" op "+op+" comp "+comp);
+				debug("if var "+var+" op "+op+" comp "+comp);
 				if(op==null) { // no operator
 					if(var!=null) {
 						if_true=true;
@@ -346,7 +350,7 @@ public class ChannelNaviXProc {
 				String res=ChannelUtil.append(getVar(ops[0].trim()),"",
 											  fixVar(ops[1],getVar(ops[1])));
 				putVar(ops[0].trim(), res);
-				Channels.debug("concat "+ops[0]+" res "+res);
+				debug("concat "+ops[0]+" res "+res);
 				continue;
 			}
 			
@@ -358,13 +362,13 @@ public class ChannelNaviXProc {
 				maxV=0;
 				vars.remove("nomatch");
 				if(!m.find()) {
-					Channels.debug("no match "+re.pattern());
+					debug("no match "+re.pattern());
 					vars.put("nomatch","1");
 				}
 				else {
-					Channels.debug("match "+m.groupCount());
+					debug("match "+m.groupCount());
 					for(int j=1;j<=m.groupCount();j++)	{
-						Channels.debug("match v"+j+" = "+m.group(j));
+						debug("match v"+j+" = "+m.group(j));
 						vars.put("v"+String.valueOf(j), m.group(j));
 					}
 					maxV=m.groupCount();
@@ -402,7 +406,7 @@ public class ChannelNaviXProc {
 				if(key.startsWith("report_val ")) {
 					key=key.substring(11);
 					rvars.put(key, fixVar(val,vars.get(val)));
-					Channels.debug("rvar ass "+key+"="+fixVar(val,vars.get(val)));
+					debug("rvar ass "+key+"="+fixVar(val,vars.get(val)));
 				}
 				else {
 					String realVal=fixVar(val,vars.get(val));
@@ -424,7 +428,7 @@ public class ChannelNaviXProc {
 						}
 					}
 					vars.put(key, realVal);
-					Channels.debug("var ass "+key+"="+realVal);
+					debug("var ass "+key+"="+realVal);
 				}
 				continue;
 			}
@@ -438,7 +442,7 @@ public class ChannelNaviXProc {
 				String res=ChannelUtil.append(fixVar(ops[1],getVar(ops[1])),"",
 											  getVar(ops[0].trim()));
 				putVar(ops[0].trim(), res);
-				Channels.debug("prepend "+ops[0]+" res "+res);
+				debug("prepend "+ops[0]+" res "+res);
 				continue;
 			}
 			
@@ -452,9 +456,9 @@ public class ChannelNaviXProc {
 				String arg=vars.get("url");
 				if(ChannelUtil.empty(arg))
 					arg=url;
-				Channels.debug("call script "+nScript+" arg "+arg);
+				debug("call script "+nScript+" arg "+arg);
 				String r=ChannelScriptMgr.runScript(nScript, arg, null);
-				Channels.debug("script returned "+r);
+				debug("script returned "+r);
 				// extract the url
 				String[] splits=r.split("&");
 				putVar("v1",r); // fallback data

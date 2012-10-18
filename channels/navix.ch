@@ -56,7 +56,7 @@ channel NaviX {
    folder {
       name=Navi-X Media Portal
       url=http://www.navixtreme.com/playlist/50242/navi-xtreme_nxportal_home.plx
-      prop=continue_name=(.*>>>.*|.*Next [Pp]age.*),continue_limit=6,auto_asx
+      #prop=continue_name=(.*>>>.*|.*Next [Pp]age.*),continue_limit=6,auto_asx
       type=navix
       subtitle=swesub,s4u,ut.se,allSubs
    }
