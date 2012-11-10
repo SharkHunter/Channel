@@ -39,7 +39,7 @@ public class ChannelMonitor {
 			return;
 		scanning=true;
 		Channels.debug("scanning "+name);
-		VirtualFolder dummy=new VirtualFolder(null,null);
+		VirtualFolder dummy=new VirtualFolder("",null);
 		try {
 			if(!ChannelUtil.empty(search))
 				cf.search(search, dummy);
@@ -119,11 +119,14 @@ public class ChannelMonitor {
 		HashMap<String,String> vars=new HashMap<String,String>();
 		vars.put("entry", entry);
 		vars.put("nodebug", "1");
+		boolean res=true;
 		for(String old : oldEntries) {
-			if(!ChannelUtil.empty(ChannelNaviXProc.simple(old, templ, vars))) 
-				return false;
+			String match=ChannelNaviXProc.simple(old, templ, vars);
+			if(match.equals("__EXACT_MATCH__"))
+				return true;
+			res&=ChannelUtil.empty(match);
 		}
-		return true;
+		return res;
 	}
 	
 }

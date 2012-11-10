@@ -242,6 +242,7 @@ public class ChannelMediaStream extends DLNAResource {
     		setExt(old_ext);
     		return;
     	}	
+
     	if(getExt().getProfiles()==null) // no profiles, what do we do? give up
     		return;
     	// need to update player as well
@@ -252,7 +253,7 @@ public class ChannelMediaStream extends DLNAResource {
                 i++;
         }
         String name = getName();
-		
+    	
 		for (Class<? extends Player> clazz : getExt().getProfiles()) {
 			for (Player p : PlayerFactory.getPlayers()) {
 				if (p.getClass().equals(clazz)) {
@@ -270,6 +271,7 @@ public class ChannelMediaStream extends DLNAResource {
 				}
 			}
 		}
+
 		// if we didn't find a new player leave the old one
       //  if(pl!=null)
     	boolean forceTranscode = false;
@@ -719,7 +721,10 @@ public class ChannelMediaStream extends DLNAResource {
 	}
 	
 	public String write() {
-		return realUrl+">"+ch.getName()+">"+playlistName()+">"+ChannelUtil.format2str(format)+">"+thumb;
+		//ch,url,processor,format,this,noSubs,imdb,
+		   //embedSub,stash
+		return url+">"+ch.getName()+">"+playlistName()+">"+ChannelUtil.format2str(format)+">"+thumb+
+		">"+processor+">"+realUrl;
 	}
 	
 	

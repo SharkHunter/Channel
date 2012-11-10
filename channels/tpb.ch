@@ -1,4 +1,4 @@
-version=0.41
+version=0.42
 
 scriptdef tpbMonitor {
 	regex='\.*\[.*?\]
@@ -32,13 +32,19 @@ scriptdef tpbMonitor {
 			match entry
 		endif
 		url='
-		if name==v1
-			if season==v2
-			   if episode!=v3
-				   url=entry
-				endif
-			endif
-		endif				   
+		if name!=v1
+			play
+		endif
+		if season!=v2
+			play
+		endif
+		if episode!=v3
+			url=entry
+			play
+		else
+			url='__EXACT_MATCH__
+			play
+		endif
 	endif
 	play
 }

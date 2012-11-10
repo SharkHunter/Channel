@@ -36,8 +36,8 @@ import no.geosoft.cc.io.FileMonitor;
 public class Channels extends VirtualFolder implements FileListener {
 
 	// Version string
-	public static final String VERSION="2.04";
-	public static final String ZIP_VER="204";
+	public static final String VERSION="2.05";
+	public static final String ZIP_VER="205";
 	
 	// Constants for RTMP string constructions
 	public static final int RTMP_MAGIC_TOKEN=1;
@@ -1436,6 +1436,7 @@ public class Channels extends VirtualFolder implements FileListener {
 			int pos = str.indexOf(restr);
 			if(pos > -1) {
 				str=str.replaceFirst(restr, restr+"\nentry="+newEntry.trim()+"\n");
+				str=str.replaceAll("(?m)^[ \t]*\r?\n", "");
 				FileOutputStream out=new FileOutputStream(f,false);
 				out.write(str.getBytes());
 				out.flush();

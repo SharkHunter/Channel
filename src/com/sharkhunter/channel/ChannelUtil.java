@@ -656,6 +656,10 @@ public class ChannelUtil {
 		DLNAResource curr=start;
 		while(i<stop) {
 			curr=curr.getParent();
+			if(curr instanceof ChannelPMSSubSiteSelector) {
+				// compensate
+				continue;
+			}
 			i++;
 			if(curr instanceof Channel) {
 				curr=null;
@@ -1117,7 +1121,7 @@ public class ChannelUtil {
 	public static void appendVarLine(StringBuffer sb,String var,String val) {
 		sb.append(var);
 		sb.append("=");
-		sb.append(val);
+		sb.append(val.trim());
 		sb.append("\n");
 	}
 	

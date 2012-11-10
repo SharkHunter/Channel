@@ -324,6 +324,7 @@ public class CH_plugin implements AdditionalFolderAtRoot, StartStopListener,
 		String thumb="";
 		if(tmp.length>4)
 			thumb=tmp[4];
+		Channels.debug("format is "+format+" thumb "+thumb);
 		return new ChannelMediaStream(tmp[2],tmp[0],ch,format,thumb);
 	}
 	

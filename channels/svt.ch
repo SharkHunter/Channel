@@ -1,4 +1,4 @@
-version=0.58
+version=0.59
 
 scriptdef svtFilter{
 	url=s_url
@@ -66,7 +66,7 @@ channel SVTPlay {
 			 prop=monitor
 			 folder {
 				url=http://www.svtplay.se/
-		  		matcher=<a href=\"([^\"]+)\" class=\"playLink playFloatLeft playBox-Padded"\>.*?<img class=\"playGridThumbnail\" alt=\"([^\"]+)\" src=\"([^\"]+)\"/>
+		  		matcher=<a href=\"([^\"]+)\" class=\"playLink [^\"]+"\>.*?<img class=\"playGridThumbnail\" alt=\"([^\"]+)\" src=\"([^\"]+)\"/>
 				order=url,name,thumb
 				action_name=crawl
 				prop=matcher_dotall,monitor,crawl_mode=FLA+HML
