@@ -36,7 +36,7 @@ import no.geosoft.cc.io.FileMonitor;
 public class Channels extends VirtualFolder implements FileListener {
 
 	// Version string
-	public static final String VERSION="2.05";
+	public static final String VERSION="2.06";
 	public static final String ZIP_VER="205";
 	
 	// Constants for RTMP string constructions
@@ -175,6 +175,29 @@ public class Channels extends VirtualFolder implements FileListener {
     	parseMonitorFile();
     	if(cfg.monitor())
     		monMgr.delayedScan();
+    	try {
+			dumpEmptyCreds();
+		} catch (IOException e) {
+		}
+    }
+    
+    private void dumpEmptyCreds() throws IOException {
+    	File f=new File(cfg.getCredPath());
+    	String str = FileUtils.readFileToString(f);
+    	FileWriter out=new FileWriter(f,true);
+    	for(Channel ch : getChannels()) {
+    		if(!ch.login())
+    			continue;
+    		if(ChannelUtil.empty(ch.user()) && ChannelUtil.empty(ch.pwd())) {
+    			// Empty, add it back to the cred file
+    			String key="channel."+ch.name()+"=\n";
+    			if(str.contains(key))
+    				continue;
+    			out.write(key);
+    		}
+    	}
+    	out.flush();
+    	out.close();
     }
     
     private void initNaviXUploader() {
