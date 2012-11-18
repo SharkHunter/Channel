@@ -22,7 +22,11 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.GregorianCalendar;
 import java.util.HashMap;
+import java.util.Iterator;
+import java.util.List;
 
+import org.apache.commons.configuration.ConfigurationException;
+import org.apache.commons.configuration.PropertiesConfiguration;
 import org.apache.commons.io.FileUtils;
 
 import net.pms.PMS;
@@ -30,13 +34,14 @@ import net.pms.dlna.DLNAResource;
 import net.pms.dlna.PlaylistFolder;
 import net.pms.dlna.virtual.VirtualFolder;
 import net.pms.dlna.virtual.VirtualVideoAction;
+import net.pms.util.FileUtil;
 import no.geosoft.cc.io.FileListener;
 import no.geosoft.cc.io.FileMonitor;
 
 public class Channels extends VirtualFolder implements FileListener {
 
 	// Version string
-	public static final String VERSION="2.06";
+	public static final String VERSION="2.07";
 	public static final String ZIP_VER="205";
 	
 	// Constants for RTMP string constructions
@@ -80,6 +85,7 @@ public class Channels extends VirtualFolder implements FileListener {
     private ChannelSubs openSubs;
     private VirtualFolder monitor;
     private ChannelMonitorMgr monMgr;
+    private PropertiesConfiguration credConf;
     
     public Channels(String path,String name,String img) {
     	super(name,img);
@@ -114,6 +120,8 @@ public class Channels extends VirtualFolder implements FileListener {
     	dbg=new ChannelDbg(new File(path+File.separator+"channel.log"));
     	dbg.start();
     	stash.put("default", new HashMap<String,String>());
+    	credConf = new PropertiesConfiguration();
+    	credConf.setListDelimiter((char) 0);
     	// Add std folders
     	try {
 			ChannelNaviX local=new ChannelNaviX(null,"Local Playlist",null,
@@ -182,22 +190,20 @@ public class Channels extends VirtualFolder implements FileListener {
     }
     
     private void dumpEmptyCreds() throws IOException {
-    	File f=new File(cfg.getCredPath());
-    	String str = FileUtils.readFileToString(f);
-    	FileWriter out=new FileWriter(f,true);
     	for(Channel ch : getChannels()) {
     		if(!ch.login())
     			continue;
-    		if(ChannelUtil.empty(ch.user()) && ChannelUtil.empty(ch.pwd())) {
-    			// Empty, add it back to the cred file
-    			String key="channel."+ch.name()+"=\n";
-    			if(str.contains(key))
-    				continue;
-    			out.write(key);
+    		String key = "channel."+ch.name();
+    		if(credConf.getProperty(key) == null) {
+    			// add this one
+    			credConf.setProperty(key, "");
     		}
     	}
-    	out.flush();
-    	out.close();
+    	try {
+			credConf.save();
+		} catch (ConfigurationException e) {
+			debug("error saving creds");
+		}
     }
     
     private void initNaviXUploader() {
@@ -464,42 +470,53 @@ public class Channels extends VirtualFolder implements FileListener {
     }
     
     private void handleCred(File f)  {
-    	BufferedReader in;
+    	if (!f.isFile()) 	
+    		return;
 		try {
-			in = new BufferedReader(new FileReader(f));
-			String str;
-			while ((str = in.readLine()) != null) {
-				str=str.trim();
-				if(ChannelUtil.ignoreLine(str))
+	    	credConf.load(f);
+	    	credConf.setFile(f);
+			Iterator itr = credConf.getKeys();
+			while(itr.hasNext()) {
+				String key = (String) itr.next();
+				String[] ownerTag = key.split("\\.", 2);
+				if(!ownerTag[0].equalsIgnoreCase("channel"))
 					continue;
-				String[] s=str.split("\\s*=\\s*",2);
-				if(s.length<2)
-					continue;
-				String[] s1=s[0].split("\\.");
-				if(s1.length<2)
-					continue;
-				if(!s1[0].equalsIgnoreCase("channel"))
-					continue;
-				String[] s2=s[1].split(",",2);
-				if(s2.length<2)
-					continue;
-				String chName=s1[1];
-				ChannelCred ch=null;
-				for(int i=0;i<cred.size();i++)
-					if(cred.get(i).channelName.equals(chName)) {
-						ch=cred.get(i);
-						break;
-					}
-				if(ch==null) {
-					ch=new ChannelCred(s2[0],s2[1],chName);
-					cred.add(ch);
+				Object val = credConf.getProperty(key);
+				ArrayList<String> usrPwd = null;
+				if (val instanceof String) {
+					usrPwd = new ArrayList<String>();
+					usrPwd.add((String) val);
 				}
-				ch.user=s2[0];
-				ch.pwd=s2[1];
+				else if (val instanceof List<?>) {
+					usrPwd = (ArrayList<String>) val;
+				}
+				if (usrPwd == null) {
+					continue;
+				}
+				for (String val1 : usrPwd) {
+					String[] s2 = val1.split(",", 2);
+					if(s2.length<2)
+						continue;
+					String chName=ownerTag[1];
+					ChannelCred ch=null;
+					for(int i=0;i<cred.size();i++) {
+						if(cred.get(i).channelName.equals(chName)) {
+							ch=cred.get(i);
+							break;
+						}
+					}
+					if(ch==null) {
+						ch=new ChannelCred(s2[0],s2[1],chName);
+						cred.add(ch);
+					}
+					ch.user=s2[0];
+					ch.pwd=s2[1];
+				}
 			}
 			addCred();
 		}
     	catch (Exception e) {
+    		debug("handle cred exe "+e);
     	} 
     }
     
