@@ -1,37 +1,95 @@
-version=0.1	
+version=0.2	
+macrodef  asxAbspielen {
+             media {
+                 # We pick the asx files which means we got to do a little extra fetching
+                 #a href="http://wstreaming.zdf.de/zdf/300/110113_dde.asx" class="play" target="_blank">Abspielen</a>
+                 matcher=<a href=\"(.*asx)\"[^>]+>Abspielen</a>
+                 order=url
+                 type=asx
+            }
+	    type=empty
+}
+
+macrodef bMatcher {
+           # http://www.zdf.de/ZDFmediathek/kanaluebersicht/aktuellste/330?bc=saz;saz6&flash=off
+           matcher=<b><a href=\"([^\"]+)\"[^>]*>([^<]+)<br.*</a>
+           url=http://www.zdf.de/
+           order=url,name+
+}
+
+macrodef liMatcher {
+           # http://www.zdf.de/ZDFmediathek/kanaluebersicht/aktuellste/330?bc=saz;saz6&flash=off
+           matcher=<li><a href=\"([^\"]+)\"[^>]*>- ([^<]+)</a>
+           url=http://www.zdf.de/
+           order=url,name+
+}
+
+macrodef oneLayer {
+       folder {
+           macro=bMatcher
+           macro=asxAbspielen
+       }
+}
+
+macrodef twoLayer {
+         folder {
+            macro=bMatcher
+            macro=oneLayer
+         }
+}
+
+macrodef threeLayer {
+         folder {
+            macro=bMatcher
+            macro=twoLayer
+         }
+}
+
 channel ZDF {
 	img=http://www.zdf.de/ZDFmediathek/img/logo_mediathek.gif
-	folder {
-		#name=Sendung verpasst
-		#matcher=<a href=\"/ard/servlet/([^\"]+)\">(Sendung verpasst)[^&]*&nbsp
-		#matcher=<li class=\"special\"><a href=\"([^\"]*)\">.*;a
-		url=http://www.zdf.de/ZDFmediathek/hauptnavigation/sendung-verpasst?flash=off
-		type=empty
-		#order=url,name
+        folder {
+                url=http://www.zdf.de/ZDFmediathek/hauptnavigation/sendung-verpasst?flash=off
+                name=Sendung verpasst ?
+                folder {
+                        macro=liMatcher
+                        macro=oneLayer
+                }
+        }
+        folder {
+                url=http://www.zdf.de/ZDFmediathek/hauptnavigation/sendung-a-bis-z?flash=off
+                name=Sendungen A-Z
+                folder {
+                        macro=liMatcher
+			macro=twoLayer
+                }
+        }
+
+        folder {
+                url=http://www.zdf.de/ZDFmediathek/hauptnavigation/nachrichten?flash=off
+                name=Nachrichten
+                macro=oneLayer
 		folder {
-			# Days
-			#<li><a href="/ZDFmediathek/hauptnavigation/sendung-verpasst/day1?flash=off">- Gestern, Mi, 12. Jan. 2011</a>
-			matcher=<li><a href=\"([^\"]+)\"[^>]*>- ([^<]+)</a>
-			url=http://www.zdf.de/
-			order=url,name
-			folder {
-				# Programs
-				#a href="/ZDFmediathek/beitrag/video/1233206/drehscheibe-am-13.-Januar-2011?bc=svp;sv0&amp;flash=off">drehscheibe am 13. Januar 2011<br />&nbsp;
-				matcher=<b><a href=\"([^\"]+)\">([^<]+)<br />
-				url=http://www.zdf.de/
-				order=url,name+
-				type=empty
-				prop=name_separator= ,
-				media {
-					# We pick the asx files which means we got to do a little extra fetching
-					#a href="http://wstreaming.zdf.de/zdf/300/110113_dde.asx" class="play" target="_blank">Abspielen</a>
-					matcher=<a href=\"(.*asx)\"[^>]+>Abspielen</a>
-					order=url
-					type=asx
-				}
-			}
+			name=Ganze Sendungen
+			url=http://www.zdf.de/ZDFmediathek/hauptnavigation/nachrichten/ganze-sendungen?flash=off
+			macro=twoLayer
 		}
-	}
+        }
+        folder {
+                url=http://www.zdf.de/ZDFmediathek/hauptnavigation/rubriken?flash=off
+                name=Rubriken
+		macro=threeLayer
+        }
+
+        folder {
+                url=http://www.zdf.de/ZDFmediathek/hauptnavigation/themen?flash=off
+                name=Themen
+		macro=twoLayer
+        }
+        folder {
+                url=http://www.zdf.de/ZDFmediathek/hauptnavigation/sender?flash=off
+                name=Sender - Aktuellste Sendungen
+		macro=twoLayer
+        }
 }
 
 
