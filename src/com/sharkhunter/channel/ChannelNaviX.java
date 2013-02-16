@@ -141,9 +141,11 @@ public class ChannelNaviX extends VirtualFolder implements ChannelScraper {
 							f,asx,this);
 					cms.setImdb(imdb);
 					cms.setRender(this.defaultRenderer);
-					ChannelStreamVars streamVars=new ChannelStreamVars(Channels.defStreamVar());
-					streamVars.add(this, parent);
-					cms.setStreamVars(streamVars);
+					if(Channels.cfg().useStreamVar()) {
+						ChannelStreamVars streamVars=new ChannelStreamVars(Channels.defStreamVar());
+						streamVars.add(this, parent);
+						cms.setStreamVars(streamVars);
+					}
 					doAdd(res,cms,name,nextUrl);
 				}
 			}

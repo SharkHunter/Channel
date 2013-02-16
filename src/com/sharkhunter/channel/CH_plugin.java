@@ -23,7 +23,7 @@ import net.pms.dlna.virtual.VirtualFolder;
 import net.pms.encoders.Player;
 import net.pms.external.AdditionalFolderAtRoot;
 import net.pms.external.FinalizeTranscoderArgsListener;
-import net.pms.external.LastPlayedParent;
+//import net.pms.external.LastPlayedParent;
 import net.pms.external.StartStopListener;
 import net.pms.io.OutputParams;
 
@@ -212,6 +212,8 @@ public class CH_plugin implements AdditionalFolderAtRoot, StartStopListener,
 	public List<String> finalizeTranscoderArgs(Player player, String name,
 			DLNAResource res, DLNAMediaInfo media, OutputParams params,
 			List<String> cmdList) {
+		if(!Channels.cfg().useStreamVar())
+			return cmdList;
 		if((!(res instanceof ChannelMediaStream)))
 			return cmdList;
 		ChannelMediaStream cms=(ChannelMediaStream)res;

@@ -29,9 +29,11 @@ public class ChannelPMSSaveFolder extends VirtualFolder {
 	private static final String P="PLAY";
 	private static final String SP="PLAY&SAVE";
 	private static final String NS=" - No Subs";
+	private static final String ES=" - Embedded Subs";
 	private static final String PNS=P+NS;
 	private static final String SNS=SP+NS;
-
+	private static final String PES=P+ES;
+	private static final String SES=SP+ES;
 	
 	private static final long AUTO_PLAY_FACTOR=(1000*15);
 	
@@ -56,7 +58,7 @@ public class ChannelPMSSaveFolder extends VirtualFolder {
 	}
 	
 	public static String washName(String str) {
-		String[] strs={SNS,PNS,SP,P};
+		String[] strs={SNS,PNS,SP,P,PES,SES};
 		for(String s : strs) {
 			if(str.startsWith(s))
 				str=str.replaceFirst(s, "");
@@ -98,9 +100,12 @@ public class ChannelPMSSaveFolder extends VirtualFolder {
 		boolean save=Channels.save();
 		boolean doSubs=Channels.doSubs()&&subs&&(f==Format.VIDEO);
 		ChannelMediaStream cms;
-		ChannelStreamVars streamVars=new ChannelStreamVars(ch.defStreamVars());
-		streamVars.setInstance(name.hashCode());
-		streamVars.add(this, ch);
+		ChannelStreamVars streamVars=null;
+		if(Channels.cfg().useStreamVar()) {
+			streamVars=new ChannelStreamVars(ch.defStreamVars());
+			streamVars.setInstance(name.hashCode());
+			streamVars.add(this, ch);
+		}
 		if(oh!=null) {
 			final boolean add=!oh.scheduled(url);
 			addChild(new VirtualVideoAction((add?"ADD to ":"DELETE from ")+
@@ -156,77 +161,55 @@ public class ChannelPMSSaveFolder extends VirtualFolder {
 					return true;
 				}
 			});
-			if(!doSubs||Channels.cfg().oldSub()) {
-				cms=new ChannelMediaStream(ch,displayName(SP),url,thumb,
-						proc,f,asx,scraper,name,name);
-				cms.setImdb(imdb);
-				cms.setRender(this.defaultRenderer);
-				cms.setSaveMode(rawSave);
-				cms.setEmbedSub(embedSub);
-				cms.setFallbackFormat(videoFormat);
-				cms.setStreamVars(streamVars);
-				cms.setStash(stash);
-				addChild(cms);
-			}
 			if(doSubs) {
-				if(Channels.cfg().oldSub()) {
-					ChannelPMSSubSelector subSel=new ChannelPMSSubSelector(ch,displayName("Select subs - SAVE&PLAY"),
-							url,thumb,proc,f,asx,
-							scraper,name,name,imdb,stash);
-					subSel.setStreamVars(streamVars);
-					addChild(subSel);
+				// Subtitelse section
+				if(!ChannelUtil.empty(embedSub)) {
+					// Embedded subs
+					if(save) {
+						cms=new ChannelMediaStream(ch,displayName(SES),url,
+												   thumb,proc,f,asx,scraper,name,name);
+						cms.setEmbedSub(embedSub);
+						cms.setImdb(imdb);
+						cms.setRender(this.defaultRenderer);
+						cms.setSaveMode(rawSave);
+						cms.setFallbackFormat(videoFormat);
+						cms.setStreamVars(streamVars);
+						cms.setStash(stash);
+						addChild(cms);
+					}
+					cms=new ChannelMediaStream(ch,displayName(PES),url,thumb,
+										       proc,f,asx,scraper,name,null);
+					cms.setEmbedSub(embedSub);
+					cms.setImdb(imdb);
+					cms.setRender(this.defaultRenderer);
+					cms.setSaveMode(rawSave);
+					cms.setFallbackFormat(videoFormat);
+					cms.setStreamVars(streamVars);
+					cms.setStash(stash);
+					addChild(cms);
 				}
 				else {
-					ChannelPMSSubSiteSelector subSel=new ChannelPMSSubSiteSelector(ch,displayName("Select subs - SAVE&PLAY"),
+					// select subs
+					if(save) {
+						ChannelPMSSubSiteSelector subSel=new ChannelPMSSubSiteSelector(ch,displayName("Select subs - SAVE&PLAY"),
+								url,thumb,proc,f,asx,
+								scraper,name,name,imdb,stash);
+						subSel.setStreamVars(streamVars);
+						addChild(subSel);
+					}
+					ChannelPMSSubSiteSelector subSel=new ChannelPMSSubSiteSelector(ch,displayName("Select subs - PLAY"),
 							url,thumb,proc,f,asx,
-							scraper,name,name,imdb,stash);
+							scraper,name,null,imdb,stash);
 					subSel.setStreamVars(streamVars);
 					addChild(subSel);
 				}
-			}
+			}				
 		}
-		if(!doSubs||Channels.cfg().oldSub()) {
-			cms=new ChannelMediaStream(ch,displayName(P),url,thumb,
-					proc,f,asx,scraper,name,null);
-			cms.setImdb(imdb);
-			cms.setRender(this.defaultRenderer);
-			cms.setSaveMode(rawSave);
+		// add the no subs variants
+		if(save) {
+			cms=new ChannelMediaStream(ch,displayName(SNS),url,
+					   thumb,proc,f,asx,scraper,name,name);
 			cms.setEmbedSub(embedSub);
-			cms.setFallbackFormat(videoFormat);
-			cms.setStreamVars(streamVars);
-			cms.setStash(stash);
-			addChild(cms);
-		}
-		if(doSubs) {
-			if(Channels.cfg().oldSub()) {
-				ChannelPMSSubSelector subSel=new ChannelPMSSubSelector(ch,displayName("Select subs - PLAY"),
-						url,thumb,proc,f,asx,
-						scraper,name,null,imdb,stash);
-				subSel.setStreamVars(streamVars);
-				addChild(subSel);
-			}
-			else {
-				ChannelPMSSubSiteSelector subSel=new ChannelPMSSubSiteSelector(ch,displayName("Select subs - PLAY"),
-						url,thumb,proc,f,asx,
-						scraper,name,null,imdb,stash);
-				subSel.setStreamVars(streamVars);
-				addChild(subSel);
-			}
-			if(save) {
-				cms=new ChannelMediaStream(ch,displayName(SNS),url,
-										   thumb,proc,f,asx,scraper,name,name);
-				cms.noSubs();
-				cms.setImdb(imdb);
-				cms.setRender(this.defaultRenderer);
-				cms.setSaveMode(rawSave);
-				cms.setFallbackFormat(videoFormat);
-				cms.setStreamVars(streamVars);
-				cms.setStash(stash);
-				addChild(cms);
-			}
-			cms=new ChannelMediaStream(ch,displayName(PNS),url,thumb,
-								       proc,f,asx,scraper,name,null);
-			cms.noSubs();
 			cms.setImdb(imdb);
 			cms.setRender(this.defaultRenderer);
 			cms.setSaveMode(rawSave);
@@ -235,6 +218,16 @@ public class ChannelPMSSaveFolder extends VirtualFolder {
 			cms.setStash(stash);
 			addChild(cms);
 		}
+		cms=new ChannelMediaStream(ch,displayName(PNS),url,thumb,
+				proc,f,asx,scraper,name,null);
+		cms.setEmbedSub(embedSub);
+		cms.setImdb(imdb);
+		cms.setRender(this.defaultRenderer);
+		cms.setSaveMode(rawSave);
+		cms.setFallbackFormat(videoFormat);
+		cms.setStreamVars(streamVars);
+		cms.setStash(stash);
+		addChild(cms);
 	}
 
 	

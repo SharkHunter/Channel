@@ -283,8 +283,9 @@ public class ChannelMedia implements ChannelProps,ChannelScraper {
 			if(ChannelUtil.empty(subFile)) {
 				subFile=subScrape(start,ChannelUtil.ensureImdbtt(imdb));
 			}
-			if(!ChannelUtil.empty(subFile))
+			if(!ChannelUtil.empty(subFile)) {
 				vars.put("subtitle", subFile);
+			}
 			Channels.debug("subFile "+subFile);
 		}	
 		Channels.debug("scrape script name "+scriptName);

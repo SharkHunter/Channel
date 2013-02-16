@@ -1,4 +1,4 @@
-version=0.60
+version=0.70
 
 scriptdef svtFilter{
 	url=s_url
@@ -12,6 +12,20 @@ scriptdef svtFilter{
 	play
 }
 
+macrodef svtHLSMedia {
+	folder {
+		matcher=\"url\":\"(http[^\"]+)\",\"bitrate\":\d+,\"playerType\":\"ios\"
+		order=url
+		type=empty
+		prop=no_case,discard_duplicates
+		media {
+			matcher=BANDWIDTH=(\d+)\d###lcbr###3###rcbr###+.*?\n([^\n]+)
+			order=name,url
+			prop=matcher_dotall,append_name=Kbps,relative_url=path,name_separator=###0
+		}
+	}
+}
+
 channel SVTPlay {
 	img=http://www.svtplay.se/public/2012.53/images/svt-play.png
 	var {
@@ -22,10 +36,22 @@ channel SVTPlay {
 		action=null
 	}
 	folder {
+		url=http://www.svtplay.se/kanaler
+		type=empty
+		folder {
+			#data-jsonhref="/kanaler/svt1" data-channel="svt1" title="SVT1 |
+			matcher=data-thumbnail=\"([^\"]+)\" data-jsonhref=\"(/kanaler/[^\"]+)\" data-channel=\"[^\"]+\" title=\"([^\|]+) \|
+			order=thumb,url,name
+			url=http://www.svtplay.se/
+			prop=append_url=?output=json
+			macro=svtHLSMedia
+		}
+	}
+	folder {
 		name=Live
 		url=http://www.svtplay.se/?live=1
 		folder {
-			matcher=a href=\"(/live[^\"]+)\" class=\"svtXColorWhite [^\"]+\">.*?<img  class=\"svtMediaBlockFig-L playBroadcastThumbnail\" alt=\"([^\"]+)\" src=\"([^\"]+)\"/>
+			matcher=a href=\"(/video[^\"]+)\" class=\"[^\"]+\">.*?<img *class=\"svtMediaBlockFig-L playBroadcastThumbnail\" alt=\"([^\"]+)\" src=\"([^\"]+)\"
 			order=url,name,thumb
 			prop=matcher_dotall
 			url=http://www.svtplay.se/
@@ -41,17 +67,7 @@ channel SVTPlay {
 					prop=live,append_name=Kbps,name_separator=###0,url_mangle=svtFilter
 					put=swfVfy=http://www.svtplay.se/public/swf/video/svtplayer-2012.34.swf
 				}
-				folder {
-					matcher=\"url\":\"(http[^\"]+)\",\"bitrate\":\d+,\"playerType\":\"ios\"
-					order=url
-					type=empty
-					prop=no_case,discard_duplicates
-					media {
-						matcher=BANDWIDTH=(\d+)\d###lcbr###3###rcbr###+.*?\n([^\n]+)
-						order=name,url
-						prop=matcher_dotall,append_name=Kbps,relative_url=path,name_separator=###0
-					}
-				}
+				macro=svtHLSMedia
 			}
 		}
 	}

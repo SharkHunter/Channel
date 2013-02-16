@@ -1,6 +1,10 @@
 package com.sharkhunter.channel;
 
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
 import java.io.InputStream;
+import java.io.OutputStreamWriter;
 import java.net.MalformedURLException;
 import java.net.Proxy;
 import java.net.URLConnection;
@@ -8,11 +12,14 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 
+import org.apache.commons.io.FileUtils;
+
 import net.pms.PMS;
 import net.pms.dlna.DLNAResource;
 import net.pms.dlna.virtual.VirtualFolder;
 import net.pms.dlna.virtual.VirtualVideoAction;
 import net.pms.formats.Format;
+import net.pms.formats.v2.SubtitleType;
 import net.pms.network.HTTPResource;
 
 public class Channel extends VirtualFolder {
@@ -48,6 +55,10 @@ public class Channel extends VirtualFolder {
 	
 	private ChannelStreamVars streamVars;
 	
+	private SubtitleType embedSubType;
+	private ChannelMatcher subConv;
+	private boolean subConvTimeMs;
+	
 	public Channel(String name) {
 		super(name,null);
 		Ok=false;
@@ -65,6 +76,9 @@ public class Channel extends VirtualFolder {
 		trashVars=new HashMap<String,String[]>();
 		streamVars=Channels.defStreamVar();
 		streamVars.setInstance("");
+		embedSubType=SubtitleType.SUBRIP;
+		subConv=null;
+		subConvTimeMs=false;
 		Ok=true;
 	}
 	
@@ -95,6 +109,11 @@ public class Channel extends VirtualFolder {
 				i+=var.size();
 				ChannelVar v=new ChannelVar(var,this);
 				vars.put(v.displayName(), v);
+			}
+			if(line.contains("sub_conv {")) {
+				ArrayList<String> sc=ChannelUtil.gatherBlock(data,i+1);
+				i+=sc.size();
+				parseSubConv(sc);
 			}
 			String[] keyval=line.split("\\s*=\\s*",2);
 			if(keyval.length<2)
@@ -132,6 +151,10 @@ public class Channel extends VirtualFolder {
 				prop=keyval[1].trim().split(",");
 			if(keyval[0].equalsIgnoreCase("fallback_video"))
 				videoFormat=ChannelUtil.ensureDot(keyval[1].trim());
+			if(keyval[0].equalsIgnoreCase("sub_type")) {
+				if(keyval[1].trim().equalsIgnoreCase("sami"))
+					embedSubType=SubtitleType.SAMI;
+			}
 		}
 		mkFavFolder();
 	}
@@ -466,5 +489,89 @@ public class Channel extends VirtualFolder {
 	
 	public ChannelStreamVars defStreamVars() {
 		return streamVars;
+	}
+	
+	public String embSubExt() {
+		return embedSubType.getExtension();
+	}
+	
+	public SubtitleType getEmbSub() {
+		return embedSubType;
+	}
+	
+	public String convSub(String subFile) {
+		try {
+			return convSub_i(subFile);
+		} catch (IOException e) {
+			return subFile;
+		}
+	}
+	
+	private String convSub_i(String subFile) throws IOException {
+		File src=new File(subFile);
+		File dst=new File(Channels.dataPath()+File.separator+src.getName()+".srt");
+		if(dst.exists())
+			return dst.getAbsolutePath();
+		if(getEmbSub()==SubtitleType.SAMI) {
+			// SAMI conveersion is built in
+			ChannelSMIConv.toSRT(src, dst);
+			return dst.getAbsolutePath();
+		}
+		if(subConv==null)
+			return subFile;
+		int index=1;
+		String fe=PMS.getConfiguration().getMencoderSubCp();
+		String data=FileUtils.readFileToString(src,fe);
+		OutputStreamWriter out=new OutputStreamWriter(new FileOutputStream(dst),fe);
+		subConv.startMatch(data);
+		while(subConv.match()) {
+			String start=subConv.getMatch("start");
+			String stop=subConv.getMatch("stop");
+			String text=subConv.getMatch("text");
+			if(ChannelUtil.empty(start)||ChannelUtil.empty(stop)||ChannelUtil.empty(text))
+				continue;
+			ChannelSubUtil.writeSRT(out, index++, start, stop, text, subConvTimeMs);
+		}
+		out.flush();
+		out.close();
+		if(dst.length()>0)
+			return dst.getAbsolutePath();
+		else {
+			src.delete();
+			dst.delete();
+			return "";
+		}
+	}
+	
+	private void parseSubConv(ArrayList<String> data) {
+		for(int i=0;i<data.size();i++) {
+			String line=data.get(i).trim();
+			String[] keyval=line.split("\\s*=\\s*",2);
+			if(keyval.length<2)
+				continue;
+			if(keyval[0].equalsIgnoreCase("matcher")) {
+				if(subConv==null)
+					subConv=new ChannelMatcher(keyval[1],null,null);
+				else
+					subConv.setMatcher(keyval[1]);
+				subConv.setChannel(this);
+			}
+			if(keyval[0].equalsIgnoreCase("order")) {
+				if(subConv==null)
+					subConv=new ChannelMatcher(null,keyval[1],null);
+				else
+					subConv.setOrder(keyval[1]);
+				subConv.setChannel(this);
+			}
+			if(keyval[0].equalsIgnoreCase("prop")) {
+				String[] tmp=keyval[1].trim().split(",");
+				if(subConv==null) {
+					subConv=new ChannelMatcher(null,null,null);
+				}
+				subConvTimeMs=ChannelUtil.getProperty(tmp, "time_ms");
+				subConv.processProps(tmp);
+				subConv.setChannel(this);
+			}
+		}
 	}
 }

@@ -1,5 +1,17 @@
 // videofeed.Web,YouTube=http://gdata.youtube.com/feeds/base/users/freddiew/uploads?alt=rss&v=2&orderby=published
 check {
+	profile ('YouTube cleanup') {
+		pattern {
+			match $URI: '.*?youtube\\.com/videoplayback'
+		}
+		action {
+			log.info("uri in "+$URI)
+			def tmp = ($URI=~ /\(.*\)/).replaceAll("")
+			$URI = tmp
+			log.info("uri out "+$URI)
+			
+		}
+	}
     // extract metadata about the video for other profiles
     profile ('YouTube Metadata') {
         // extract the resource's video_id from the URI of the standard YouTube page

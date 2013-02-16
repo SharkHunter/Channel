@@ -487,7 +487,8 @@ public class ChannelUtil {
 		}
 	}
 	
-	private static String addSubs(String rUrl,String sub) {
+	private static String addSubs(String rUrl,String sub,Channel ch) {
+		sub=ch.convSub(sub);
 		rUrl=append(rUrl,"&subs=",escape(sub));
 		//-spuaa 3 -subcp ISO-8859-10 -subfont C:\Windows\Fonts\Arial.ttf -subfont-text-scale 2 -subfont-outline 1 -subfont-blur 1 -subpos 90 -quiet -quiet -sid 100 -fps 25 -ofps 25 -sub C:\downloads\Kings Speech.srt -lavdopts fast -mc 0 -noskip -af lavcresample=48000 -srate 48000 -o \\.\pipe\mencoder1299956406082
 		PmsConfiguration configuration=PMS.getConfiguration();
@@ -503,6 +504,7 @@ public class ChannelUtil {
         } catch (NumberFormatException n) {
         }
         rUrl=append(rUrl,"&subpos=",String.valueOf(100 - subpos));
+        rUrl=append(rUrl,"&subtype=",ch.embSubExt());
       //  rUrl=append(rUrl,"&subdelay=","20000");
         return rUrl;
 	}
@@ -538,7 +540,7 @@ public class ChannelUtil {
 			if(!empty(sub)) { // we got subtitles
 				rUrl="subs://"+rUrl;
 				// lot of things to append here
-				rUrl=addSubs(rUrl,sub);
+				rUrl=addSubs(rUrl,sub,ch);
 			}
 			else
 				if(!empty(type)&&type.equals("navix"))
@@ -568,7 +570,7 @@ public class ChannelUtil {
 			String sub=vars.get("subtitle");
 			if(!empty(sub)) { // we got subtitles
 				// lot of things to append here
-				rUrl=addSubs(rUrl,sub);
+				rUrl=addSubs(rUrl,sub,ch);
 			}
 			Channels.debug("return media url rtmpdump spec "+rUrl);
 			return rUrl;
@@ -613,7 +615,7 @@ public class ChannelUtil {
 				String sub=vars.get("subtitle");
 				if(!empty(sub)) { // we got subtitles
 					// lot of things to append here
-					rUrl=addSubs(rUrl,sub);
+					rUrl=addSubs(rUrl,sub,ch);
 				}
 				break;
 				

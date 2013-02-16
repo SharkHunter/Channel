@@ -1,4 +1,4 @@
-version=0.20
+version=0.30
 
 channel Kanal5Play {
    img=http://www.kanal5play.se/themes/kanal5/images/logo.png
@@ -8,27 +8,35 @@ channel Kanal5Play {
 	values=450,900,250
 	suffix=Kbps
    }
+   sub_conv {
+		matcher=\"startMillis\":(\d+),\"endMillis\":(\d+),\"text\":\"(.*?)\",
+		order=start,stop,text
+		prop=time_ms,matcher_dotall
+   }
    folder {
 	name=A-Z
 	type=ATZ
 	url=http://www.kanal5play.se/program
 	folder {
-		matcher=a href=\"(/prog[^\"]+)\"[^>]+>([^<]+)</a>
-		order=url,name
+		matcher=a href=\"(/prog[^\"]+)\"[^>]+>.*?<img src=\"([^\"]+)\".*?alt=\"([^\"]+)\"
+		order=url,thumb,name
 		url=http://www.kanal5play.se
+		prop=matcher_dotall
 		folder {
 			# Seasons
-			matcher=class=\"season-header\">([^<]+)</h2>\s*[^>]+>\s*<a href=\"([^\"]+)\" class=\"ajax sbs-button sbs-button-list\">
+			matcher=class=\"season-header\">([^<]+)</h2>\s*[^>]+>.*?<a href=\"([^\"]+)\" class=\"ajax sbs-theme-primary\">
 			order=name,url
 			url=http://www.kanal5play.se
+			prop=matcher_dotall
 			folder {
-				#<h4 class="title"><a href="/program/223047/video/280395" class="ajax">Storslagen final hägrar i 100 höjdare</a></h4>
-				matcher=/video/([^\"]+)\"[^>]+>([^<]+)</a></h4>
-				order=url,name
+				matcher=<a href=\"/program/[^/]+/video/([^\"]+)\"[^>]+>.*?<span [^>]+>([^<]+)</span>([^<]+)</a>.*?</h4>
+				order=url,name,name
 				url=http://www.kanal5play.se/api/getVideo?format=FLASH&videoId=
+				prop=matcher_dotall,name_separator=###0
 				media {
-					matcher=\"bitrate\":@#br@#000,\"source\":\"([^\"]+)\",\"drmProtected\":false}],\"streamBaseUrl\":\"([^\"]+)\"
-					order=playpath,url
+					matcher=\"bitrate\":@#br@#000,\"source\":\"([^\"]+)\",\"drmProtected\":false}.*?\"streamBaseUrl\":\"([^\"]+)\".*?\"id\":(\d+),\"type\"
+					order=playpath,url,subs
+					prop=prepend_subs=http://www.kanal5play.se/api/subtitles/
 					put=swfVfy=http://www.kanal5play.se/flash/StandardPlayer.swf
 				}
 			}

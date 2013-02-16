@@ -65,6 +65,7 @@ public class ChannelMediaStream extends DLNAResource {
 	private HashMap<String,String> stash;
 	private Thread bgThread;
 	private int bgCnt;
+	private String hdr;
 	
 	public ChannelMediaStream(Channel ch,String name,String nextUrl,
 			  String thumb,String proc,int type,int asx,
@@ -107,6 +108,7 @@ public class ChannelMediaStream extends DLNAResource {
 		streamVars=null;
 		bgThread=null;
 		bgCnt=0;
+		hdr="";
 	}
 	
 	public ChannelMediaStream(ChannelMediaStream cms) {
@@ -142,6 +144,7 @@ public class ChannelMediaStream extends DLNAResource {
 		stash=cms.stash;
 		bgThread=cms.bgThread;
 		bgCnt=cms.bgCnt;
+		hdr=cms.hdr;
 	}
 	
 	public ChannelMediaStream(String name,String realUrl,Channel parent,int format,
@@ -173,6 +176,7 @@ public class ChannelMediaStream extends DLNAResource {
 		streamVars=null;
 		bgThread=null;
 		bgCnt=0;
+		hdr="";
 	}
 	
 	public String saveName() {
@@ -274,32 +278,37 @@ public class ChannelMediaStream extends DLNAResource {
 
 		// if we didn't find a new player leave the old one
       //  if(pl!=null)
-    	boolean forceTranscode = false;
-		if (getExt() != null) {
-			forceTranscode = getExt().skip(PMS.getConfiguration().getForceTranscode(), getDefaultRenderer() != null ? getDefaultRenderer().getTranscodedExtensions() : null);
-		}
+		if(Channels.cfg().usePMSEncoder()) {
+			boolean forceTranscode = false;
+			if (getExt() != null) {
+				forceTranscode = getExt().skip(PMS.getConfiguration().getForceTranscode(), getDefaultRenderer() != null ? getDefaultRenderer().getTranscodedExtensions() : null);
+			}
 
-		boolean isIncompatible = false;
+			boolean isIncompatible = false;
 
-		if (!getExt().isCompatible(getMedia(),getDefaultRenderer())) {
-			isIncompatible = true;
-		}
-		boolean mp2=false;
-		if(streamVars!=null) {
-			ArrayList<String> dummyArgs=new ArrayList<String>();
-			streamVars.resolve("null",dummyArgs,null);
-			for(String val : dummyArgs) {
-				if(val.startsWith("mp2Force")) {
-					mp2=true;
-					break;
+			if (!getExt().isCompatible(getMedia(),getDefaultRenderer())) {
+				isIncompatible = true;
+			}
+			boolean mp2=false;
+			if(streamVars!=null) {
+				ArrayList<String> dummyArgs=new ArrayList<String>();
+				streamVars.resolve("null",dummyArgs,null);
+				for(String val : dummyArgs) {
+					if(val.startsWith("mp2Force")) {
+						mp2=true;
+						break;
+					}
 				}
 			}
+			Channels.debug("set player to nullplayer "+isIncompatible+" force "+forceTranscode+" fool "+fool+" force mp2 "+mp2);
+			if(!fool)
+				setPlayer(pl);
+			else
+				setPlayer(new ChannelNullPlayer(isIncompatible||forceTranscode||mp2));
 		}
-		Channels.debug("set player to nullplayer "+isIncompatible+" force "+forceTranscode+" fool "+fool+" force mp2 "+mp2);
-		if(!fool)
+		else {
 			setPlayer(pl);
-		else
-			setPlayer(new ChannelNullPlayer(isIncompatible||forceTranscode||mp2));
+		}
     }
     
     public DLNAMediaSubtitle getSubs() {
@@ -329,12 +338,26 @@ public class ChannelMediaStream extends DLNAResource {
     	scrape();
     	if(ChannelUtil.empty(realUrl))
     		return ;
-    	Channels.debug("real "+realUrl+" nd "+fool+" noSubs "+noSubs);
-    	if(fool) {
+    	Channels.debug("real "+realUrl+" nd "+fool+" noSubs "+noSubs+" "+Channels.cfg().usePMSEncoder());
+    	if(Channels.cfg().usePMSEncoder()) {
+    		if(fool) {
+    			if(realUrl.startsWith("subs://"))
+    				fixStuff(realUrl.substring(7),true);
+    			else if(realUrl.startsWith("navix://")) {
+    				fixStuff(realUrl.substring(8+8),false);
+    			}
+    		}
+    	}
+    	else {
     		if(realUrl.startsWith("subs://"))
-    			fixStuff(realUrl.substring(7),true);
-    		else if(realUrl.startsWith("navix://")) {
+				fixStuff(realUrl.substring(7),true);
+    		else if(realUrl.startsWith("navix://")) 
     			fixStuff(realUrl.substring(8+8),false);
+    		else if(realUrl.startsWith("rtmpdump://")) {
+    			rtmpUrl(realUrl.substring(11+8));
+    		}
+    		else if(realUrl.startsWith("rtmp://")) {
+    			rtmpUrl(realUrl.substring(7));
     		}
     	}
     	if(media==null) {
@@ -345,7 +368,7 @@ public class ChannelMediaStream extends DLNAResource {
 			media_subtitle=new DLNAMediaSubtitle();
 			media_subtitle.setId(-1);
 		}
-    	Channels.debug("call update");
+    	Channels.debug("call update "+realUrl);
     	updateStreamDetails(true);
     	fool=false;
     	ch.prepareCom();
@@ -635,11 +658,55 @@ public class ChannelMediaStream extends DLNAResource {
 				Channels.debug("set sub url "+realUrl);
 				continue;
 			}
+			if(splits[i].contains("agent=")) {
+				String tmp=splits[i].substring(splits[i].indexOf("agent=")+6);
+				hdr=hdr+"-user-agent \""+ChannelUtil.unescape(tmp)+"\" ";
+				continue;
+			}
 			if(splits[i].contains("subs=")&&!noSubs&&subs) {
 				DLNAMediaSubtitle sub=new DLNAMediaSubtitle();
 				String tmp=splits[i].substring(splits[i].indexOf("subs=")+5);
 				try {
 					sub.setExternalFile(new File(ChannelUtil.unescape(tmp)));
+					Channels.debug("set sub file "+sub.getExternalFile().getAbsolutePath());
+				} catch (FileNotFoundException e) {
+					return;
+				} catch (IOException e) {
+					return;
+				}
+				sub.setId(1);
+				sub.setLang("und");
+				sub.setType(SubtitleType.SUBRIP);
+				media.container="unknown"; // avoid bug in mencvid
+				media_subtitle=sub;
+				continue;
+			}
+		}
+	}
+	
+	private void rtmpUrl(String str) {
+		String[] tmp=str.split("&");
+		StringBuffer sb=new StringBuffer();
+		for(int i=0;i<tmp.length;i++) {
+			String[] s=ChannelUtil.unescape(tmp[i]).split("=",2);
+			if(s[0].equals("-r"))  { //special stuff
+				sb.append(s[1]);
+				sb.append(" ");
+				continue;
+			}
+			if(s[0].equals("--swfVfy")) {
+				sb.append("swfVfy=1");
+				sb.append(" swfUrl");
+				sb.append("="+s[1]);
+				sb.append(" ");
+				continue;
+			}
+			if(s[0].equals("subs")) {
+				// subtitle
+				DLNAMediaSubtitle sub=new DLNAMediaSubtitle();
+				try {
+					sub.setExternalFile(new File(ChannelUtil.unescape(s[1])));
+					Channels.debug("set sub file "+sub.getExternalFile().getAbsolutePath());
 				} catch (FileNotFoundException e) {
 				}
 				sub.setId(1);
@@ -647,10 +714,27 @@ public class ChannelMediaStream extends DLNAResource {
 				sub.setType(SubtitleType.SUBRIP);
 				media.container="unknown"; // avoid bug in mencvid
 				media_subtitle=sub;
-				Channels.debug("set sub file "+sub.getExternalFile().getAbsolutePath());
 				continue;
 			}
+			if(s[0].equals("subtype")) {
+				if(getSubs()!=null) {
+					DLNAMediaSubtitle sub=getSubs();
+					SubtitleType t=SubtitleType.valueOfFileExtension(s[1]);
+					sub.setType(t);
+				}
+			}
+			String op=ChannelUtil.rtmpOp(s[0]);
+			if(op.equals(s[0]))
+				continue;
+			sb.append(op);
+			if(s.length>1) {
+				sb.append("="+s[1]);
+			}
+			else
+				sb.append("=true");
+			sb.append(" ");
 		}
+		realUrl=sb.toString();
 	}
 	
 	private long getDynDelay() {
@@ -712,7 +796,6 @@ public class ChannelMediaStream extends DLNAResource {
 	}
 	
 	public void setStreamVars(ChannelStreamVars vars) {
-		Channels.debug("cms set stream vars "+vars+" inst "+vars.instance());
 		streamVars=vars;
 	}
 	
@@ -727,5 +810,7 @@ public class ChannelMediaStream extends DLNAResource {
 		">"+processor+">"+realUrl;
 	}
 	
-	
+	public byte[] getHeaders() {
+		return hdr.trim().getBytes();
+	}
 }

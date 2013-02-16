@@ -1,4 +1,4 @@
-version=0.40
+version=0.41
 
 scriptdef furkSubs {
 	release='1
@@ -126,7 +126,7 @@ channel Furk {
 	  url=http://api.furk.net/api/login/login
       passwd=pwd
       user=login
-      type=cookie      
+      type=cookie
       #params=url=&gigya_uid=
 	  associate=www.furk.net
    }
@@ -136,7 +136,6 @@ channel Furk {
 		#url=https://www.furk.net/users/files/add
 		url=http://api.furk.net/api/dl/add
 		prop=http_method=post
-		hdr=Referer=http://www.furk.net/users/files/add
 		folder {
 			matcher=url_page":"([^"]+)
 			order=url
@@ -153,7 +152,7 @@ channel Furk {
       name=Search
 	  type=search
 	  url=http://api.furk.net/api/search
-	  prop=prepend_url=api_key=wxRsJ4uGJ33Tb2f6nysVTNMwdG3hAbOG;format=json;q=
+	  prop=prepend_url=format=json;q=
 	  folder {
          matcher=url_page\":\"([^\"]+)\".*?name\":\"([^\"]+)\"
          order=url,name

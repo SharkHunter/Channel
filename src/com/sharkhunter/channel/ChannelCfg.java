@@ -63,6 +63,8 @@ public class ChannelCfg {
 	private boolean crawl;
 	private boolean stdAlone;
 	private boolean monitor;
+	private boolean pmsenc;
+	private boolean streamVar;
 	
 	public ChannelCfg(Channels top) {
 		chPath=null;
@@ -95,6 +97,8 @@ public class ChannelCfg {
 		crawl=false;
 		stdAlone=false;
 		monitor=true;
+		pmsenc=false;
+		streamVar=false;
 	}
 	
 	///////////////////////////////////
@@ -333,6 +337,14 @@ public class ChannelCfg {
 		return monitor;
 	}
 	
+	public boolean usePMSEncoder() {
+		return pmsenc;
+	}
+	
+	public boolean useStreamVar() {
+		return streamVar;
+	}
+	
 	////////////////////////////////////////
 	// Misc. methods
 	////////////////////////////////////////
@@ -384,6 +396,8 @@ public class ChannelCfg {
 		String cf=(String)PMS.getConfiguration().getCustomProperty("channels.crawl_format");
 		String cra=(String)PMS.getConfiguration().getCustomProperty("channels.crawl");
 		String mo=(String)PMS.getConfiguration().getCustomProperty("channels.monitor");
+		String penc=(String)PMS.getConfiguration().getCustomProperty("channels.pmsencoder");
+		String sv=(String)PMS.getConfiguration().getCustomProperty("channels.stream_var");
 		
 		if(!ChannelUtil.empty(cf))
 			crawlFormat=cf;
@@ -488,6 +502,10 @@ public class ChannelCfg {
 		}
 		if(!ChannelUtil.empty(mo)&&mo.equalsIgnoreCase("false"))
 			monitor=false;
+		if(!ChannelUtil.empty(penc)&&penc.equalsIgnoreCase("true"))
+			pmsenc=true;
+		if(!ChannelUtil.empty(sv)&&sv.equalsIgnoreCase("true"))
+			streamVar=true;
 	}
 
 	private void configPath(String key,String val) {
@@ -525,6 +543,8 @@ public class ChannelCfg {
 			PMS.getConfiguration().setCustomProperty("channels.long_savename",String.valueOf(longSaveName));
 			PMS.getConfiguration().setCustomProperty("channels.oldSub",String.valueOf(oldSub));
 		//	PMS.getConfiguration().setCustomProperty("channels.mpeg2_force",String.valueOf(mp2force));
+			PMS.getConfiguration().setCustomProperty("channels.pmsencoder", String.valueOf(pmsenc));
+			PMS.getConfiguration().setCustomProperty("channels.stream_var", String.valueOf(streamVar));
 			if(!ChannelUtil.empty(navixUploadList)) 
 				PMS.getConfiguration().setCustomProperty("channels.navix_upload",
 						ChannelUtil.append(navixUploadList,",",navixUploadList2));
@@ -540,7 +560,8 @@ public class ChannelCfg {
 	}
 	
 	private void validatePMSEncoder() throws IOException {
-		setEngines();
+		if(pmsenc)
+			setEngines();
 		if(ChannelUtil.empty(scriptPath)) { 
 			ensureCreated("scripts");
 			scriptPath=new File("scripts").getCanonicalPath().toString();
@@ -563,7 +584,7 @@ public class ChannelCfg {
 	// Fetch files
 	///////////////////////////////////////////
 	
-	private static final String chZip="http://cloud.github.com/downloads/SharkHunter/Channel/channels.zip";
+	private static final String chZip="http://sharkhunter-shb.googlecode.com/files/channels.zip";
 	private static final String extFile="http://cloud.github.com/downloads/SharkHunter/Channel/ext.txt";
 	
 	public void fetchChannels() {

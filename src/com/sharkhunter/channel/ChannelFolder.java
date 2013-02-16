@@ -472,16 +472,21 @@ public class ChannelFolder implements ChannelProps, SearchObj{
 	}
 	
 	public void match(DLNAResource res) throws MalformedURLException {
-		match(res,null,"",null,null,null);
+		match(res,null,"",null,null,null,null);
 	}
 	
 	public void match(DLNAResource res,ChannelFilter filter,String urlEnd,
 			String pThumb,String nName) throws MalformedURLException {
-		match(res,filter,urlEnd,pThumb,nName,null);
+		match(res,filter,urlEnd,pThumb,nName,null,null);
 	}
 	
 	public void match(DLNAResource res,ChannelFilter filter,String urlEnd,
 			String pThumb,String nName,String imdb) throws MalformedURLException {
+		match(res,filter,urlEnd,pThumb,nName,imdb,null);
+	}
+	
+	public void match(DLNAResource res,ChannelFilter filter,String urlEnd,
+			String pThumb,String nName,String imdb,String embSubs) throws MalformedURLException {
 		String page="";
 		boolean cache=ChannelUtil.getProperty(prop, "cache");
 		File cFile=cacheFile();
@@ -607,8 +612,8 @@ public class ChannelFolder implements ChannelProps, SearchObj{
 		}
 		// 1st Media
 		// Channels.debug("matching media "+medias.size());
-		DLNAResource allPlay=null;
-		DLNAResource allSave=null;
+		DLNAResource allPlay=findAllPlay(res,"PLAY");
+		DLNAResource allSave=findAllPlay(res,"SAVE&PLAY");
 		int medCnt=0;
 		HashMap<String,String> uniqueMedia = new HashMap<String,String>();   // from matched name to matched URL
     	boolean discardDuplicates = ChannelUtil.getProperty(prop, "discard_duplicates");
@@ -622,10 +627,10 @@ public class ChannelFolder implements ChannelProps, SearchObj{
 	    		String thumb=ChannelUtil.getThumb(null, pThumb, parent);
 	    		if(allPlay==null&&Channels.cfg().allPlay()) {
 	    			allPlay=new ChannelPMSAllPlay("PLAY",pThumb);
-	    			//res.addChild(allPlay);
+	    			res.addChild(allPlay);
 	    			if(Channels.save()) {
 	    				allSave=new ChannelPMSAllPlay("SAVE&PLAY",pThumb);
-	    				//res.addChild(allSave);
+	    				res.addChild(allSave);
 	    			}
 	    		}
 	    		String ru=(m1.scriptOnly()?realUrl:null);
@@ -647,13 +652,13 @@ public class ChannelFolder implements ChannelProps, SearchObj{
 	    	m.startMatch(page);
 	    	parent.debug("media matching using "+m.getRegexp().pattern());
 	    	while(m.match()) {
-	    		//Channels.debug("allplay "+allPlay+" cfg "+Channels.cfg().allPlay());
+	    		Channels.debug("allplay "+allPlay+" cfg "+Channels.cfg().allPlay());
 	    		if(allPlay==null&&Channels.cfg().allPlay()) {
 	    			allPlay=new ChannelPMSAllPlay("PLAY",pThumb);
-	    			//res.addChild(allPlay);
+	    			res.addChild(allPlay);
 	    			if(Channels.save()) {
 	    				allSave=new ChannelPMSAllPlay("SAVE&PLAY",pThumb);
-	    				//res.addChild(allSave);
+	    				res.addChild(allSave);
 	    			}
 	    		}
 	    		String someName=m.getMatch("name",false);
@@ -700,6 +705,8 @@ public class ChannelFolder implements ChannelProps, SearchObj{
     				map.put("pageurl", pageUrl);
     			if(!ChannelUtil.empty(app))
     				map.put("app", app);
+    			if(ChannelUtil.empty(subs))
+    				subs=embSubs;
     			if(Channels.isCode(someName, ChannelIllegal.TYPE_NAME)||
     			   Channels.isCode(mUrl, ChannelIllegal.TYPE_URL)) {
     				ChannelPMSCode addOn=new ChannelPMSCode(someName,thumb);
@@ -726,13 +733,6 @@ public class ChannelFolder implements ChannelProps, SearchObj{
 	    			break;
 	    	}
 	    } 
-	    Channels.debug("all media done cnt "+res.childrenNumber());
-	    if(res.childrenNumber()>1) {
-	    	if(allPlay!=null)
-	    		res.addChild(allPlay);
-	    	if(allSave!=null)
-	    		res.addChild(allSave);
-	    }
 	    // 2nd items
 		// PMS.debug("items "+items.size());
 	    for(int i=0;i<ite.size();i++) {
@@ -835,6 +835,7 @@ public class ChannelFolder implements ChannelProps, SearchObj{
 	    		String thumb=m.getMatch("thumb",false);
 	    		String group=m.getMatch("group",false);
 	    		String imdbId=m.getMatch("imdb",false);
+	    		String subs=m.getMatch("subs",false);
 	    		if(ChannelUtil.empty(imdbId)) {
 	    			imdbId=imdb;
 	    			if(ChannelUtil.empty(thumb))
@@ -857,6 +858,7 @@ public class ChannelFolder implements ChannelProps, SearchObj{
 	    				someName=nName;
 	    			else
 	    				someName=cf.name;
+	    			someName=m.pend(someName, "name");
 	    		}
 	    		if(Channels.isIllegal(someName, ChannelIllegal.TYPE_NAME))
 	 	    		   continue;
@@ -864,9 +866,9 @@ public class ChannelFolder implements ChannelProps, SearchObj{
 	    		if(ChannelUtil.getProperty(cf.prop, "prepend_parenturl"))
 	    			fUrl=ChannelUtil.concatURL(realUrl,fUrl);
 	    		fUrl=ChannelUtil.relativeURL(fUrl,realUrl,
-						 ChannelUtil.getPropertyValue(prop, "relative_url"));
+						 					 ChannelUtil.getPropertyValue(prop, "relative_url"));
 	    		fUrl=ChannelScriptMgr.runScript(post_script, fUrl, parent,page);
-	    		Channels.debug("xxxx "+fUrl+" disc "+discardDuplicates);
+	    		//Channels.debug("xxxx "+fUrl+" disc "+discardDuplicates);
 	    		if (discardDuplicates && !ignoreMatch) {
 	    			if (uniqueNames.containsKey(someName)) {
 	    				String uniqueURL = uniqueNames.get(someName);
@@ -876,7 +878,7 @@ public class ChannelFolder implements ChannelProps, SearchObj{
 	    			uniqueNames.put(someName, fUrl);
 	    		}
 	    		PeekRes pr=cf.peek(fUrl,prop);
-	    		Channels.debug("peek re "+pr.res);
+	    		//Channels.debug("peek re "+pr.res);
 	    		if(!pr.res)
 	    			continue;
 	    		cf.ignoreFav=ignoreFav; // forward this along the path
@@ -896,7 +898,7 @@ public class ChannelFolder implements ChannelProps, SearchObj{
 	    			return;
 	    		}
 	    		if(cf.type==ChannelFolder.TYPE_EMPTY) {
-	    			cf.match(res,null,fUrl,thumb,someName,imdbId);
+	    			cf.match(res,null,fUrl,thumb,someName,imdbId,subs);
 	    		}
 	    		else if(cf.type==ChannelFolder.TYPE_EXEC) {
 	    			final String vvaUrl=fUrl;
@@ -921,6 +923,24 @@ public class ChannelFolder implements ChannelProps, SearchObj{
 	    		}
 	    		if(cf.onlyFirst())
 	    			break;
+	    	}
+	    	// Only do this if we got more than one media
+	    	// 1st find allPlay and allSave folders
+	    	allPlay=findAllPlay(res,"PLAY");
+	    	allSave=findAllPlay(res,"SAVE&PLAY");
+	    	// Remove them
+	    	if(allPlay!=null) {
+	    		res.getChildren().remove(allPlay);
+	    	}
+	    	if(allSave!=null) {
+	    		res.getChildren().remove(allSave);
+	    	}
+	    	// If we got more than one left...
+	    	if(numberOfMedia(res)>1) {
+	    		if(allPlay!=null)
+	    			res.addChild(allPlay);
+	    		if(allSave!=null)
+	    			res.addChild(allSave);
 	    	}
 	    	if(!groups.isEmpty()) { // we got groups
 	    		Object[] keySet=groups.keySet().toArray();
@@ -1229,5 +1249,26 @@ public class ChannelFolder implements ChannelProps, SearchObj{
 		d.setTimeInMillis(f.lastModified());
 		d.add(Calendar.DATE, t);
 		return c.after(d);
+	}
+	
+	private DLNAResource findAllPlay(DLNAResource res,String name) {
+		for(DLNAResource tmp : res.getChildren()) {
+			if(tmp instanceof ChannelPMSAllPlay) {
+				if(tmp.getName().startsWith(name))
+					return tmp;
+			}				
+		}
+		return null;
+	}
+	
+	private int numberOfMedia(DLNAResource res) {
+		int cnt=0;
+		for(DLNAResource tmp : res.getChildren()) {
+			if(tmp instanceof ChannelMediaStream)
+				cnt++;
+			if(tmp instanceof ChannelPMSSaveFolder)
+				cnt++;
+		}
+		return cnt;
 	}
 }

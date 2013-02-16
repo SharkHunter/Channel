@@ -151,7 +151,6 @@ public class ChannelLogin {
 		parent.debug("matching using expr "+auth.getRegexp().pattern());
 		while(auth.match()) {
 			String token=auth.getMatch("", true);
-			//PMS.debug("token "+token);
 			if(token!=null&&token.length()>0) {
 				loggedOn=true;
 				tokenStr=authStr+token;

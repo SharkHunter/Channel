@@ -1,4 +1,12 @@
-version=0.23
+version=0.30
+
+macrodef via_media {
+	media {
+		matcher=<Url>(rtmp.*)</Url>
+		put=swfVfy=http://flvplayer.viastream.viasat.tv/play/swf/player120328.swf
+	}
+}
+
 macrodef via_ses_epi {
 	matcher=<siteMapNode title=\"(.*)\" id=\"(.*)\" children=\"true\".*>
 	order=name,url
@@ -12,18 +20,28 @@ macrodef via_ses_epi {
 			matcher=<ProductId>([^>]+)</ProductId>[^<]+<Title><!\[CDATA\[([^>]+)\]\]></Title>
 			url=http://viastream.viasat.tv/Products/
 			order=url,name
-			#prop=auto_media
 			type=empty
-			media {
-				matcher=<Url>(rtmp.*)</Url>
-				put=swfVfy=http://flvplayer-viastream-viasat-tv.origin.vss.viasat.tv/play/swf/player110420.swf 
+			folder {
+				matcher=<SamiFile>(.*?)</SamiFile>.*?<Url>.*?<Url>(.*?extraN.*?)</Url>
+				type=empty
+				order=subs,url
+				prop=matcher_dotall,append_name=- Subs,name_separator=###0
+				macro=via_media
 			}
+			folder {
+				matcher=<Url>(.*?extraN.*?)</Url>
+				type=empty
+				order=url
+				macro=via_media
+			}
+			macro=via_media
 		}
 	}
 }
 
 channel TV3 {
 	img=http://tv3.se/sites/all/themes/free_tv/css/custom/tv3_se/images/logo.png
+	sub_type=sami
 	folder {
 		name=A-Z
 		type=ATZ

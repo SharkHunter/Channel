@@ -23,6 +23,7 @@ import java.util.zip.ZipInputStream;
 import net.pms.PMS;
 import net.pms.dlna.DLNAResource;
 import net.pms.formats.Format;
+import net.pms.formats.v2.SubtitleType;
 
 public class ChannelSubs implements ChannelProps {
 	
@@ -303,7 +304,9 @@ public class ChannelSubs implements ChannelProps {
 		String path=Channels.dataPath()+File.separator+name+".srt";
 		ChannelSubs nullSub=new ChannelSubs();
 		return nullSub.downloadSubs(subUrl,path,false,false);
+		
 	}
+	
 	
 	private String downloadSubs(String subUrl,String path, boolean zip,boolean rar) {
 		File f=new File(path);

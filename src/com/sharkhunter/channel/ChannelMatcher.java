@@ -95,7 +95,7 @@ public class ChannelMatcher implements ChannelProps{
 		 if(properties==null)
 			 properties=this;
 		 for(int i=0;i<this.order.length;i++) {
-			 if(field==null||field.length()==0)
+			 if(ChannelUtil.empty(field))
 				 break;
 			 //if(this.order[i].compareToIgnoreCase(field)==0) {
 			 if(this.order[i].startsWith(field)) {
@@ -114,7 +114,7 @@ public class ChannelMatcher implements ChannelProps{
 						 return concatAll(i+1,res,fixSep(properties.separator(field)));
 					 }
 					 res=ChannelUtil.append(res,fixSep(properties.separator(field)),
-	    						  				matcher.group(i+1));
+	    						  					   matcher.group(i+1));
 				 }
 			 }
 		 }
@@ -126,7 +126,9 @@ public class ChannelMatcher implements ChannelProps{
 			 return def;
 	 }
 	 
-	 private String pend(String str,String field) {
+	 public String pend(String str,String field) {
+		 if(ChannelUtil.empty(str))
+			 return str;
 		 str=esc(unesc(str,field),field);
 		 //str=StringEscapeUtils.unescapeHtml(str); // do this always
 		 String r1=ChannelUtil.append(str, fixSep(properties.separator(field)), properties.append(field));
