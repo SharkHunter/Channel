@@ -1,4 +1,4 @@
-version=0.30
+version=0.35
 
 macrodef via_media {
 	media {
@@ -41,7 +41,12 @@ macrodef via_ses_epi {
 
 channel TV3 {
 	img=http://tv3.se/sites/all/themes/free_tv/css/custom/tv3_se/images/logo.png
-	sub_type=sami
+	sub_conv {
+		matcher=<Subtitle .*?TimeIn=\"([^\"]+)\" TimeOut=\"([^\"]+)\"[^>]+>(.*?)</Subtitle>
+		order=start,stop,text_embed
+		prop=matcher_dotall,text_separator=###n
+		emb_matcher_text=<Text [^>]+>(.*?)</Text>
+	}
 	folder {
 		name=A-Z
 		type=ATZ
@@ -57,6 +62,12 @@ channel TV3 {
 
 channel TV6 {
 	img=http://www.tv6.se/sites/all/themes/free_tv/css/custom/tv6_se/images/logo.png
+	sub_conv {
+		matcher=<Subtitle .*?TimeIn=\"([^\"]+)\" TimeOut=\"([^\"]+)\"[^>]+>(.*?)</Subtitle>
+		order=start,stop,text_embed
+		prop=matcher_dotall,text_separator=###n
+		emb_matcher_text=<Text [^>]+>(.*?)</Text>
+	}
 	folder {
 		name=A-Z
 		type=ATZ
@@ -71,6 +82,12 @@ channel TV6 {
 
 channel TV8 {
 	img=http://www.tv8.se/sites/all/themes/free_tv/css/custom/tv8_se/images/logo.png
+	sub_conv {
+		matcher=<Subtitle .*?TimeIn=\"([^\"]+)\" TimeOut=\"([^\"]+)\"[^>]+>(.*?)</Subtitle>
+		order=start,stop,text_embed
+		prop=matcher_dotall,text_separator=###n
+		emb_matcher_text=<Text [^>]+>(.*?)</Text>
+	}
 	folder {
 		name=A-Z
 		type=ATZ

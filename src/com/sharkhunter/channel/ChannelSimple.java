@@ -22,6 +22,14 @@ public class ChannelSimple implements ChannelProps {
 		parse(data);
 	}
 	
+	public ChannelSimple(Channel parent) {
+		this.parent=parent;
+	}
+	
+	public void setProp(String p) {
+		prop=p.trim().split(",");
+	}
+	
 	public void parse(ArrayList<String> data) {		
 		for(int i=0;i<data.size();i++) {
 			String line=data.get(i).trim();

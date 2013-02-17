@@ -1,22 +1,16 @@
 package com.sharkhunter.channel;
 
-import java.io.BufferedInputStream;
 import java.io.BufferedOutputStream;
-import java.io.BufferedReader;
 import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.InputStreamReader;
 import java.net.URL;
 import java.net.URLConnection;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.zip.ZipEntry;
-import java.util.zip.ZipInputStream;
-import java.util.zip.ZipOutputStream;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import org.apache.commons.configuration.ConfigurationException;
 
@@ -390,7 +384,6 @@ public class ChannelCfg {
 		String lsn=(String)PMS.getConfiguration().getCustomProperty("channels.long_savename");
 		String os=(String)PMS.getConfiguration().getCustomProperty("channels.old_sub");
 		String mp2=(String)PMS.getConfiguration().getCustomProperty("channels.mpeg2_force");
-		String fb=(String)PMS.getConfiguration().getCustomProperty("channels.filebuffer");
 		String hl=(String)PMS.getConfiguration().getCustomProperty("channels.crawl_hl");
 		String fl=(String)PMS.getConfiguration().getCustomProperty("channels.crawl_fl");
 		String cf=(String)PMS.getConfiguration().getCustomProperty("channels.crawl_format");
@@ -584,107 +577,52 @@ public class ChannelCfg {
 	// Fetch files
 	///////////////////////////////////////////
 	
-	private static final String chZip="http://sharkhunter-shb.googlecode.com/files/channels.zip";
-	private static final String extFile="http://cloud.github.com/downloads/SharkHunter/Channel/ext.txt";
+	private static final String chList="https://github.com/SharkHunter/Channel/tree/master/channels";
+	private static final String scList="https://github.com/SharkHunter/Channel/tree/master/scripts";
+	private static final String chReg="<td class=\"content\"><a href=\"[^\"]+\" [^>]+>([^<]+)</a></td>";
+	private static final String rawChBase="https://github.com/SharkHunter/Channel/raw/master/channels/";
+	private static final String rawScBase="https://github.com/SharkHunter/Channel/raw/master/scripts/";
 	
+	private void fetchFromGit(String list,String raw,String path) throws Exception {
+		URL u=new URL(list);
+		Pattern re=Pattern.compile(chReg);
+		URLConnection connection=u.openConnection();
+		connection.setRequestProperty("User-Agent",ChannelUtil.defAgentString);
+		connection.setDoInput(true);
+		connection.setDoOutput(true);
+
+		String page=ChannelUtil.fetchPage(connection);
+		Matcher m=re.matcher(page);
+		while(m.find()) {
+			String name=m.group(1);
+			URL u1=new URL(raw+name);
+			InputStream in=u1.openStream();
+			String fName=path+File.separator+name;
+			int count;
+            final int BUFFER = 2048;
+            byte data[] = new byte[BUFFER];
+            FileOutputStream fos1 = new FileOutputStream(fName);
+            BufferedOutputStream dest = new BufferedOutputStream(fos1, BUFFER);
+            while ((count = in.read(data, 0, BUFFER)) != -1) {
+               dest.write(data, 0, count);
+            }
+            dest.flush();
+            dest.close();
+            in.close();
+		}
+      } 
+
 	public void fetchChannels() {
 		try {			
 			validatePMSEncoder();
-			String r=Channels.VERSION.replaceAll("\\.","");
-			if(!ChannelUtil.empty(Channels.ZIP_VER))
-				r=Channels.ZIP_VER;
-			if(!ChannelUtil.empty(chZipUrl))
-				r=chZipUrl;
-			String zip=chZip.replace("channels", "channels_"+r);
-			URL u=new URL(zip);
-			URLConnection connection=u.openConnection();
-			connection.setRequestProperty("User-Agent",ChannelUtil.defAgentString);
-			connection.setDoInput(true);
-			connection.setDoOutput(true);
-			InputStream in=connection.getInputStream();
-			
-			//Channels.debug("extract zip "+scriptPath);
-	         ZipInputStream zis = new ZipInputStream(new BufferedInputStream(in));
-	         ZipEntry entry;
-	         while((entry = zis.getNextEntry()) != null) {
-	          //  Channels.debug("Extracting: " +entry);
-	            int count;
-	            final int BUFFER = 2048;
-	            byte data[] = new byte[BUFFER];
-	            // write the files to the disk
-	            String fName=chPath+File.separator+entry.getName();
-	            if(!entry.getName().contains(".ch")) // script
-	            	if(scriptPath!=null)
-	            		fName=scriptPath+File.separator+entry.getName();
-	            FileOutputStream fos1 = new FileOutputStream(fName);
-	            BufferedOutputStream dest = new BufferedOutputStream(fos1, BUFFER);
-	            while ((count = zis.read(data, 0, BUFFER)) != -1) {
-	               dest.write(data, 0, count);
-	            }
-	            dest.flush();
-	            dest.close();
-	         }
-	         zis.close();
-	         in.close();
-	      } catch(Exception e) {
-	    	  Channels.debug("error fetching channels "+e);
-	      }
-	}
-	
-	private void readFile(String url,String outFile) {
-		try {
-			URL u=new URL(url);
-			URLConnection connection=u.openConnection();
-			connection.setRequestProperty("User-Agent",ChannelUtil.defAgentString);
-			connection.setDoInput(true);
-			connection.setDoOutput(true);
-			InputStream in=connection.getInputStream();
-			File f=new File(outFile);
-			FileOutputStream out=new FileOutputStream(f);
-			byte[] buf = new byte[4096];
-			int len;
-			while((len=in.read(buf))!=-1)
-				out.write(buf, 0, len);
-			out.flush();
-			out.close();
-			in.close();
+			// fetch channels
+			fetchFromGit(chList,rawChBase,chPath);
+			// and then the scripts
+			fetchFromGit(scList,rawScBase,scriptPath);
 		}
-		catch (Exception e) {
-			Channels.debug("error fetching externals(read) "+e);
-		}
-	}
-	
-	private void fetchExternals() {
-		try {
-			URL u=new URL(extFile);
-			URLConnection connection=u.openConnection();
-			connection.setRequestProperty("User-Agent",ChannelUtil.defAgentString);
-			connection.setDoInput(true);
-			connection.setDoOutput(true);
-			InputStream in=connection.getInputStream();
-			BufferedReader br = new BufferedReader(new InputStreamReader(in));
-			String line;
-			while ((line = br.readLine()) != null) {
-				if(ChannelUtil.ignoreLine(line))
-					continue;
-				String[] str=line.split(",");
-				if(str.length<3)
-					continue;
-				String eUrl=str[0];
-				String type=str[1];
-				String cfgVar=str[2];
-				ensureCreated(scriptPath);
-				if(type.equalsIgnoreCase("raw")) {
-					String outFile=scriptPath+File.separator+cfgVar.replace(".path", "");
-					readFile(eUrl,outFile);
-					configPath(cfgVar,outFile);
-				}					
-			}
-			PMS.getConfiguration().save();	
-		}
-		catch (Exception e) {
-			Channels.debug("error fetching externals "+e);
-		}
+		catch(Exception e) {
+			Channels.debug("error fetching channels "+e);
+		}	
 	}
 	
 	///////////////////////////////////////////////////

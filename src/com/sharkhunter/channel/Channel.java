@@ -512,11 +512,6 @@ public class Channel extends VirtualFolder {
 		File dst=new File(Channels.dataPath()+File.separator+src.getName()+".srt");
 		if(dst.exists())
 			return dst.getAbsolutePath();
-		if(getEmbSub()==SubtitleType.SAMI) {
-			// SAMI conveersion is built in
-			ChannelSMIConv.toSRT(src, dst);
-			return dst.getAbsolutePath();
-		}
 		if(subConv==null)
 			return subFile;
 		int index=1;
@@ -556,6 +551,14 @@ public class Channel extends VirtualFolder {
 					subConv.setMatcher(keyval[1]);
 				subConv.setChannel(this);
 			}
+			if(keyval[0].startsWith("emb_matcher_")) {
+				if(subConv==null)
+					subConv=new ChannelMatcher(null,null,null);
+				String name=keyval[0].substring("emb_matcher_".length());
+				ChannelMatcher m1=new ChannelMatcher(keyval[1],name+"+",null);
+				subConv.addEmbed(name, m1);
+				subConv.setChannel(this);
+			}
 			if(keyval[0].equalsIgnoreCase("order")) {
 				if(subConv==null)
 					subConv=new ChannelMatcher(null,keyval[1],null);
@@ -568,6 +571,9 @@ public class Channel extends VirtualFolder {
 				if(subConv==null) {
 					subConv=new ChannelMatcher(null,null,null);
 				}
+				ChannelSimple s=new ChannelSimple(this);
+				s.setProp(keyval[1]);
+				subConv.setProperties(s);
 				subConvTimeMs=ChannelUtil.getProperty(tmp, "time_ms");
 				subConv.processProps(tmp);
 				subConv.setChannel(this);

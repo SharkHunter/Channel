@@ -1,5 +1,6 @@
 package com.sharkhunter.channel;
 
+import java.util.HashMap;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -11,6 +12,7 @@ public class ChannelMatcher implements ChannelProps{
 	 private Matcher matcher;
 	 private Channel parent;
 	 private int flags;
+	 private HashMap<String,ChannelMatcher> embed;
 	 
 	 private static final String lcbr="###lcbr###";
 	 private static final String rcbr="###rcbr###";
@@ -27,6 +29,7 @@ public class ChannelMatcher implements ChannelProps{
 		 regexp=null;
 		 parent=null;
 		 flags=Pattern.MULTILINE;
+		 embed=new HashMap<String,ChannelMatcher>();
 	  }
 	 
 	 public void setChannel(Channel ch) {
@@ -38,6 +41,10 @@ public class ChannelMatcher implements ChannelProps{
 			 flags|=Pattern.DOTALL;
 		 if(ChannelUtil.getProperty(props, "no_case"))
 			 flags|=Pattern.CASE_INSENSITIVE;
+		 for(String key : embed.keySet()) {
+			 ChannelMatcher m=embed.get(key);
+			 m.processProps(props);
+		 }
 	 }
 
 	 public Pattern getRegexp() {
@@ -70,6 +77,11 @@ public class ChannelMatcher implements ChannelProps{
 
 	 public void reStartMatch() {
 		 this.matcher.reset();
+	 }
+	 
+	 public void addEmbed(String name,ChannelMatcher m) {
+		 m.flags=this.flags;
+		 embed.put(name, m);
 	 }
 
 	 public boolean match() {
@@ -113,8 +125,22 @@ public class ChannelMatcher implements ChannelProps{
 						 // add all matches left to one big chunk
 						 return concatAll(i+1,res,fixSep(properties.separator(field)));
 					 }
+					 String matched=matcher.group(i+1);
+					 if(order[i].endsWith("_embed")) {
+						 // embed matching
+						 ChannelMatcher m1=embed.get(field);
+						 if(m1!=null) {
+							 m1.startMatch(matched);
+							 String tmp="";
+							 while(m1.match())
+								 tmp=ChannelUtil.append(tmp,fixSep(properties.separator(field)),
+										 				m1.getMatch(field, true, tmp));
+							 if(!ChannelUtil.empty(tmp))
+								 matched=tmp;
+						 }
+					 }
 					 res=ChannelUtil.append(res,fixSep(properties.separator(field)),
-	    						  					   matcher.group(i+1));
+	    						  					   matched);
 				 }
 			 }
 		 }
