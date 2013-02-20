@@ -520,6 +520,11 @@ public class ChannelUtil {
 		String rUrl=vars.get("url");
 		if(empty(rUrl)||Channels.noPlay()) // what do we do?
 			return null;
+		Channels.debug("bad "+vars.get("bad"));
+		if(!empty(vars.get("bad"))) {
+			// bad link, return error url
+			return "resource://videos/button_cancel-512.mpg";
+		}
 		rUrl=rUrl.replace("HTTP://", "http://"); // ffmpeg has problems with ucase HTTP
 		int rtmpMet=Channels.rtmpMethod();
 		String type=vars.get("__type__");			
@@ -1126,8 +1131,7 @@ public class ChannelUtil {
 		sb.append(val.trim());
 		sb.append("\n");
 	}
-	
-	
+		
 	public static Thread newBackgroundDownload(final String name,String url) {
 		if(ChannelUtil.rtmpStream(url)) {
 			try {
@@ -1237,6 +1241,16 @@ public class ChannelUtil {
 			res=res.getParent();
 		}
 		return "";
+	}
+	
+	public static int convInt(String str,int def) {
+		try {
+			Integer i=Integer.valueOf(str);
+			return i.intValue();
+		}
+		catch (Exception e) {
+		}
+		return def;
 	}
 	
 }

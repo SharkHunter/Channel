@@ -398,6 +398,9 @@ public class ChannelMediaStream extends DLNAResource {
     			return null;
     	Channels.debug("cms getinp/2... scrape "+scraper+" url "+realUrl);
     	scrape_i();
+    	if(realUrl.startsWith("resource://")) {
+    		return getResourceInputStream(realUrl.substring("resource://".length()));
+    	}
     	if(delayed())
     		return null;
     	InputStream is=super.getInputStream(range,mediarenderer);

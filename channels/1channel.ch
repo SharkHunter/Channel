@@ -1,4 +1,4 @@
-version=0.14
+version=0.15
 
 scriptdef ch1Subs {
 	url=s_url
@@ -84,7 +84,7 @@ macrodef movieMacro {
          url=http://www.1channel.ch
          type=empty
          media {
-            script=lockerScript
+            script=lockerScriptScrape
             subtitle=swesub,s4u,allSubs,podnapisiTV
             prop=name_index=1
          }

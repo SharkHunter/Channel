@@ -41,7 +41,7 @@ import no.geosoft.cc.io.FileMonitor;
 public class Channels extends VirtualFolder implements FileListener {
 
 	// Version string
-	public static final String VERSION="2.12";
+	public static final String VERSION="2.14";
 	public static final String ZIP_VER="211";
 	
 	// Constants for RTMP string constructions
@@ -469,7 +469,8 @@ public class Channels extends VirtualFolder implements FileListener {
     		
     }
     
-    private void handleCred(File f)  {
+    @SuppressWarnings("unchecked")
+	private void handleCred(File f)  {
     	if (!f.isFile()) 	
     		return;
 		try {
@@ -549,7 +550,7 @@ public class Channels extends VirtualFolder implements FileListener {
 					proc=data[2];
 				if(data.length>3)
 					name=data[3];
-				ChannelVCR vcr=new ChannelVCR(d,data[1],proc,name);
+				ChannelVCR.start(d,data[1],proc,name);
 			}
     }
     
@@ -568,7 +569,6 @@ public class Channels extends VirtualFolder implements FileListener {
 							fileMonitor.addFile(f);
 					} catch (Exception e) {
 						debug("Error parsing file "+f.toString()+" ("+e.toString()+")");
-						//e.printStackTrace();
 					}	
 				}
 			}
@@ -602,27 +602,12 @@ public class Channels extends VirtualFolder implements FileListener {
 						parseChannels(f);
 			} catch (Exception e) {
 				PMS.minimal("Error parsing file "+f.toString()+" ("+e.toString()+")");
-				//e.printStackTrace();
 			}	
 		}
 	}
 	
-	/*public boolean isRefreshNeeded() {
-		return true;
-	}*/
-	
 	//////////////////////////////////////
 
-	private int convInt(String str,int def) {
-		try {
-			Integer i=Integer.valueOf(str);
-			return i.intValue();
-		}
-		catch (Exception e) {
-		}
-		return def;
-	}
-	
 	private void startOffHour() {
 		if(Channels.cfg().stdAlone())
 			return;
@@ -635,9 +620,9 @@ public class Channels extends VirtualFolder implements FileListener {
 		int dur=ChannelOffHour.DEFAULT_MAX_DURATION;
 		boolean cache=false;
 		if(s.length>1)
-			dur=convInt(s[1],dur);
+			dur=ChannelUtil.convInt(s[1],dur);
 		if(s.length>2)
-			max=convInt(s[2],max);
+			max=ChannelUtil.convInt(s[2],max);
 		if(s.length>3&&s[3].equalsIgnoreCase("cache"))
 			cache=true;
 		oh=new ChannelOffHour(max,dur,s[0],new File(ohDb),cache);
@@ -727,6 +712,10 @@ public class Channels extends VirtualFolder implements FileListener {
 	
 	public static String dataPath() {
 		return getPath()+File.separator+"data";
+	}
+	
+	public static String dataEntry(String str) {
+		return dataPath()+File.separator+str;
 	}
 	
 	////////////////////////////////////////////
@@ -1119,10 +1108,6 @@ public class Channels extends VirtualFolder implements FileListener {
 	public static boolean noFavorite() {
 		return !cfg().favorite();
 	}
-	
-	////////////////////////////////////////////////////////////
-	//
-	////////////////////////////////////////////////////////////
 	
 	public static boolean noPlay() {
 		return cfg().noPlay();

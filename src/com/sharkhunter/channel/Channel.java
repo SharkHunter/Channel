@@ -500,6 +500,8 @@ public class Channel extends VirtualFolder {
 	}
 	
 	public String convSub(String subFile) {
+		if(subConv==null)
+			return subFile;
 		try {
 			return convSub_i(subFile);
 		} catch (IOException e) {
@@ -509,11 +511,9 @@ public class Channel extends VirtualFolder {
 	
 	private String convSub_i(String subFile) throws IOException {
 		File src=new File(subFile);
-		File dst=new File(Channels.dataPath()+File.separator+src.getName()+".srt");
+		File dst=new File(Channels.dataEntry(src.getName()+".srt"));
 		if(dst.exists())
 			return dst.getAbsolutePath();
-		if(subConv==null)
-			return subFile;
 		int index=1;
 		String fe=PMS.getConfiguration().getMencoderSubCp();
 		String data=FileUtils.readFileToString(src,fe);

@@ -2,6 +2,7 @@ package com.sharkhunter.channel;
 
 import java.io.InputStream;
 
+import net.pms.dlna.DLNAResource;
 import net.pms.dlna.virtual.VirtualFolder;
 
 public class ChannelPMSAllPlay extends VirtualFolder {

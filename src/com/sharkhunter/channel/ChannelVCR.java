@@ -6,9 +6,9 @@ import java.util.TimerTask;
 
 public class ChannelVCR {
 	
-	private Timer timer;
 	
-	public ChannelVCR(Date time,final String url,String proc,String name) {
+	public static final void start(Date time,final String url,String proc,String name) {
+		Timer timer;
 		if(ChannelUtil.empty(name)) {
 			name="download";
 			int pos=url.lastIndexOf('/');

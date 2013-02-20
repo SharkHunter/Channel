@@ -1,4 +1,4 @@
-version=0.2
+version=0.21
 
 #############################################################
 ## This file contains some useful scripts used
@@ -184,8 +184,15 @@ concat s_url streamid
 regex='url="([^"]+)
 scrape
 endif
+url=v1
+regex='(expired_link)
+match url
 if v1
-	url=v1
+	bad='1
+	url=s_url
+	play
+endif
+if url
 	play
 endif
 
