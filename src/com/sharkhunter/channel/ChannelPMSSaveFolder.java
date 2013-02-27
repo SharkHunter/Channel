@@ -116,7 +116,7 @@ public class ChannelPMSSaveFolder extends VirtualFolder {
 					String rUrl=url;
 					if(scraper!=null)
 						rUrl=scraper.scrape(ch, url, proc, f, this,false,null,
-											embedSub,stash);
+											embedSub,stash,null);
 					oh.update(rUrl, rName, add);
 					me.childDone();
 					return add;
@@ -132,7 +132,7 @@ public class ChannelPMSSaveFolder extends VirtualFolder {
 						String rUrl=url;
 						if(scraper!=null)
 							rUrl=scraper.scrape(ch, url, proc, f, this,true,null,
-												embedSub,stash);
+												embedSub,stash,null);
 						ChannelNaviXUpdate.updateMedia(ch,rName, rUrl, proc, f,thumb,imdb);
 					} catch (Exception e) {
 					}
@@ -150,7 +150,7 @@ public class ChannelPMSSaveFolder extends VirtualFolder {
 						String rUrl=url;
 						if(scraper!=null)
 							rUrl=scraper.scrape(ch, url, proc, f, this,false,null,
-												embedSub,stash);
+												embedSub,stash,null);
 						if(ChannelUtil.empty(rUrl))
 							return false;
 						Thread t=ChannelUtil.backgroundDownload(rName, rUrl, false);

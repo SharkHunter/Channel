@@ -32,6 +32,7 @@ import java.util.zip.ZipInputStream;
 import org.apache.commons.io.FileUtils;
 import net.pms.PMS;
 import net.pms.configuration.PmsConfiguration;
+import net.pms.configuration.RendererConfiguration;
 import net.pms.dlna.DLNAResource;
 import net.pms.dlna.virtual.VirtualVideoAction;
 import net.pms.formats.Format;
@@ -487,8 +488,12 @@ public class ChannelUtil {
 		}
 	}
 	
-	private static String addSubs(String rUrl,String sub,Channel ch) {
-		sub=ch.convSub(sub);
+	private static String addSubs(String rUrl,String sub,Channel ch,
+								  RendererConfiguration render) {
+		boolean braviaFix = false;
+		if(render != null)
+			braviaFix = render.isBRAVIA() && Channels.cfg().subBravia();
+		sub=ch.convSub(sub,braviaFix);
 		rUrl=append(rUrl,"&subs=",escape(sub));
 		//-spuaa 3 -subcp ISO-8859-10 -subfont C:\Windows\Fonts\Arial.ttf -subfont-text-scale 2 -subfont-outline 1 -subfont-blur 1 -subpos 90 -quiet -quiet -sid 100 -fps 25 -ofps 25 -sub C:\downloads\Kings Speech.srt -lavdopts fast -mc 0 -noskip -af lavcresample=48000 -srate 48000 -o \\.\pipe\mencoder1299956406082
 		PmsConfiguration configuration=PMS.getConfiguration();
@@ -509,22 +514,27 @@ public class ChannelUtil {
         return rUrl;
 	}
 	
-	public static String createMediaUrl(String url,int format,Channel ch) {
+	public static String badResource() {
+		return "resource://"+ChannelResource.redXUrl();
+	}
+	
+	public static String createMediaUrl(String url,int format,Channel ch,
+			RendererConfiguration render) {
 		//Channels.debug("create media url entry(str only) "+url);
 		HashMap<String,String> map=new HashMap<String,String>();
 		map.put("url", url);
-		return createMediaUrl(map,format,ch);
+		return createMediaUrl(map,format,ch,render);
 	}
 	
-	public static String createMediaUrl(HashMap<String,String> vars,int format,Channel ch) {
+	public static String createMediaUrl(HashMap<String,String> vars,int format,
+										Channel ch,RendererConfiguration render) {
+		if(!empty(vars.get("bad"))) {
+			// bad link, return error url
+			return badResource();
+		}
 		String rUrl=vars.get("url");
 		if(empty(rUrl)||Channels.noPlay()) // what do we do?
 			return null;
-		Channels.debug("bad "+vars.get("bad"));
-		if(!empty(vars.get("bad"))) {
-			// bad link, return error url
-			return "resource://videos/button_cancel-512.mpg";
-		}
 		rUrl=rUrl.replace("HTTP://", "http://"); // ffmpeg has problems with ucase HTTP
 		int rtmpMet=Channels.rtmpMethod();
 		String type=vars.get("__type__");			
@@ -545,7 +555,7 @@ public class ChannelUtil {
 			if(!empty(sub)) { // we got subtitles
 				rUrl="subs://"+rUrl;
 				// lot of things to append here
-				rUrl=addSubs(rUrl,sub,ch);
+				rUrl=addSubs(rUrl,sub,ch,render);
 			}
 			else
 				if(!empty(type)&&type.equals("navix"))
@@ -575,7 +585,7 @@ public class ChannelUtil {
 			String sub=vars.get("subtitle");
 			if(!empty(sub)) { // we got subtitles
 				// lot of things to append here
-				rUrl=addSubs(rUrl,sub,ch);
+				rUrl=addSubs(rUrl,sub,ch,render);
 			}
 			Channels.debug("return media url rtmpdump spec "+rUrl);
 			return rUrl;
@@ -620,7 +630,7 @@ public class ChannelUtil {
 				String sub=vars.get("subtitle");
 				if(!empty(sub)) { // we got subtitles
 					// lot of things to append here
-					rUrl=addSubs(rUrl,sub,ch);
+					rUrl=addSubs(rUrl,sub,ch,render);
 				}
 				break;
 				

@@ -289,7 +289,7 @@ public class CH_plugin implements AdditionalFolderAtRoot, StartStopListener,
 			System.exit(0);
 		}
 		ChannelMediaStream cms=(ChannelMediaStream)r;
-		cms.scrape();
+		cms.scrape(null);
 		String url=cms.getSystemName();
 		String outFile;
 		if(args.length>6&&!allCrawl)

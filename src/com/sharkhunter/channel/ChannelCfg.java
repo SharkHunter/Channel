@@ -59,6 +59,9 @@ public class ChannelCfg {
 	private boolean monitor;
 	private boolean pmsenc;
 	private boolean streamVar;
+	private String nullUrl;
+	private String badUrl;
+	private boolean subBravia;
 	
 	public ChannelCfg(Channels top) {
 		chPath=null;
@@ -93,6 +96,9 @@ public class ChannelCfg {
 		monitor=true;
 		pmsenc=false;
 		streamVar=false;
+		nullUrl=null;
+		badUrl=null;
+		subBravia=true;
 	}
 	
 	///////////////////////////////////
@@ -339,6 +345,19 @@ public class ChannelCfg {
 		return streamVar;
 	}
 	
+	public String nullURL() {
+		return nullUrl;
+	}
+	
+	public String badURL() {
+		return badUrl;
+	}
+	
+	public boolean subBravia() {
+		return subBravia;
+	}
+	
+	
 	////////////////////////////////////////
 	// Misc. methods
 	////////////////////////////////////////
@@ -391,6 +410,9 @@ public class ChannelCfg {
 		String mo=(String)PMS.getConfiguration().getCustomProperty("channels.monitor");
 		String penc=(String)PMS.getConfiguration().getCustomProperty("channels.pmsencoder");
 		String sv=(String)PMS.getConfiguration().getCustomProperty("channels.stream_var");
+		String nu=(String)PMS.getConfiguration().getCustomProperty("channels.null_url");
+		String bu=(String)PMS.getConfiguration().getCustomProperty("channels.bad_url");
+		String bs=(String)PMS.getConfiguration().getCustomProperty("channels.barvia_sub");
 		
 		if(!ChannelUtil.empty(cf))
 			crawlFormat=cf;
@@ -499,6 +521,12 @@ public class ChannelCfg {
 			pmsenc=true;
 		if(!ChannelUtil.empty(sv)&&sv.equalsIgnoreCase("true"))
 			streamVar=true;
+		if(!ChannelUtil.empty(nu))
+			nullUrl=nu;
+		if(!ChannelUtil.empty(bu))
+			badUrl=bu;
+		if(!ChannelUtil.empty(bs)&&bs.equalsIgnoreCase("false"))
+			subBravia=false;
 	}
 
 	private void configPath(String key,String val) {

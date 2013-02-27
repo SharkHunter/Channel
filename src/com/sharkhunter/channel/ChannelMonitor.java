@@ -78,7 +78,7 @@ public class ChannelMonitor {
 		if(r==null && !(r instanceof ChannelMediaStream)) // nothing found give up
 			return;
 		ChannelMediaStream cms=(ChannelMediaStream)r;
-		cms.scrape();
+		cms.scrape(null);
 		String url=cms.getSystemName();
 		Channels.debug("crawled to "+url);
 		String outFile=Channels.fileName(crawler.goodName(), false);

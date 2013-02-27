@@ -1,9 +1,13 @@
 package com.sharkhunter.channel;
 
+import java.io.BufferedReader;
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.FileOutputStream;
+import java.io.FileReader;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
 import java.net.MalformedURLException;
 import java.net.Proxy;
@@ -11,6 +15,7 @@ import java.net.URLConnection;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
+import java.util.regex.Pattern;
 
 import org.apache.commons.io.FileUtils;
 
@@ -499,19 +504,23 @@ public class Channel extends VirtualFolder {
 		return embedSubType;
 	}
 	
-	public String convSub(String subFile) {
-		if(subConv==null)
+	public String convSub(String subFile,boolean braviaFix) {
+		if(subConv==null) {
+			if(braviaFix)
+				return braviafySubs(subFile);
 			return subFile;
+		}
 		try {
-			return convSub_i(subFile);
+			return convSub_i(subFile,braviaFix);
 		} catch (IOException e) {
 			return subFile;
 		}
 	}
 	
-	private String convSub_i(String subFile) throws IOException {
+	private String convSub_i(String subFile,boolean braviaFix) throws IOException {
 		File src=new File(subFile);
-		File dst=new File(Channels.dataEntry(src.getName()+".srt"));
+		String oFile=Channels.dataEntry(src.getName()+".srt"+(braviaFix?".bravia":""));
+		File dst=new File(oFile);
 		if(dst.exists())
 			return dst.getAbsolutePath();
 		int index=1;
@@ -525,6 +534,12 @@ public class Channel extends VirtualFolder {
 			String text=subConv.getMatch("text");
 			if(ChannelUtil.empty(start)||ChannelUtil.empty(stop)||ChannelUtil.empty(text))
 				continue;
+			if(braviaFix) {
+				// real odd ball trick
+				// we add a line to the end of each text to pull up the 
+				// text (and only on  BRAVIA)
+				text=ChannelUtil.append(text, "\n", DOTS+"\n");
+			}
 			ChannelSubUtil.writeSRT(out, index++, start, stop, text, subConvTimeMs);
 		}
 		out.flush();
@@ -579,5 +594,34 @@ public class Channel extends VirtualFolder {
 				subConv.setChannel(this);
 			}
 		}
+	}
+	
+	private static final String DOTS = "..."; 
+	
+	private String braviafySubs(String subFile) {
+		try {
+			File outFile=new File(subFile+".bravia");
+			if(outFile.exists())
+				return outFile.getAbsolutePath();
+			String cp=PMS.getConfiguration().getMencoderSubCp();
+			BufferedReader in=new BufferedReader(new InputStreamReader(
+												 new FileInputStream(subFile),cp));	
+			String str;
+			StringBuffer sb=new StringBuffer();
+			while ((str = in.readLine()) != null) {
+				if(ChannelUtil.empty(str)) {
+					sb.append(DOTS+"\n\n");
+					continue;
+				}
+				sb.append(str);
+				sb.append("\n");
+			}
+			in.close();
+			FileUtils.writeStringToFile(outFile, sb.toString(),cp);
+			return outFile.getAbsolutePath();
+		} catch (Exception e) {
+			Channels.debug("braviafy error "+e);
+		}
+    	return subFile;
 	}
 }

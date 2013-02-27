@@ -34,14 +34,13 @@ import net.pms.dlna.DLNAResource;
 import net.pms.dlna.PlaylistFolder;
 import net.pms.dlna.virtual.VirtualFolder;
 import net.pms.dlna.virtual.VirtualVideoAction;
-import net.pms.util.FileUtil;
 import no.geosoft.cc.io.FileListener;
 import no.geosoft.cc.io.FileMonitor;
 
 public class Channels extends VirtualFolder implements FileListener {
 
 	// Version string
-	public static final String VERSION="2.14";
+	public static final String VERSION="2.15";
 	public static final String ZIP_VER="211";
 	
 	// Constants for RTMP string constructions

@@ -14,6 +14,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import net.pms.PMS;
+import net.pms.configuration.RendererConfiguration;
 import net.pms.dlna.DLNAResource;
 
 
@@ -582,19 +583,21 @@ public class ChannelNaviXProc {
 	}
 	
 	public static String parse(String url,String pUrl,int format) {
-		return parse(url,pUrl,format,null,null,null,null);
+		return parse(url,pUrl,format,null,null,null,null,null);
 	}
 	
 	public static String parse(String url,String pUrl,int format,String subFile,Channel ch) {
-		return parse(url,pUrl,format,null,null,subFile,ch);
+		return parse(url,pUrl,format,null,null,subFile,ch,null);
 	}
 	
-	public static String parse(String url,String pUrl,int format,ChannelNaviX caller,DLNAResource start) {
-		return parse(url,pUrl,format,caller,start,null,null);
+	public static String parse(String url,String pUrl,int format,ChannelNaviX caller,
+							   DLNAResource start,RendererConfiguration render) {
+		return parse(url,pUrl,format,caller,start,null,null,render);
 	}
 
 	public static String parse(String url,String pUrl,int format,ChannelNaviX caller,
-							   DLNAResource start,String subFile,Channel ch) {
+							   DLNAResource start,String subFile,Channel ch,
+							   RendererConfiguration render) {
 		vars.clear();
 		rvars.clear();
 		vars.put("subtitle",subFile);
@@ -607,7 +610,7 @@ public class ChannelNaviXProc {
 				vars.put("s_cookie", auth.authStr);
 		}
 		if(pUrl==null) // no processor, just return what we got
-			return ChannelUtil.createMediaUrl(vars,format,ch);
+			return ChannelUtil.createMediaUrl(vars,format,ch,render);
 		URL pu=null;
 		try {
 			pu = new URL(pUrl+"?url="+url);
@@ -701,7 +704,7 @@ public class ChannelNaviXProc {
 		vars.put("url", rUrl);
 		vars.put("__type__", "navix");
 		Channels.debug("type "+vars.get("__type__"));
-		rUrl=ChannelUtil.createMediaUrl(vars,format,ch);
+		rUrl=ChannelUtil.createMediaUrl(vars,format,ch,render);
 		Channels.debug("navix return media url "+rUrl);
 		return rUrl;
 	}

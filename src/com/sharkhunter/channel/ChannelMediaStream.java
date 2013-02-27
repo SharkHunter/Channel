@@ -318,11 +318,11 @@ public class ChannelMediaStream extends DLNAResource {
     	return sub;
     }
     
-    public void scrape() {
+    public void scrape(RendererConfiguration render) {
     	if(!scraped) {
     		if(scraper!=null)
     			realUrl=scraper.scrape(ch,url,processor,format,this,noSubs,imdb,
-    								   embedSub,stash);
+    								   embedSub,stash,render);
     		else
     			realUrl=ChannelUtil.parseASX(url, ASX);
     		scrapeTime=System.currentTimeMillis();
@@ -330,15 +330,20 @@ public class ChannelMediaStream extends DLNAResource {
     	scraped=true;
     }
     
-    private void scrape_i() {
+    private void scrape_i(RendererConfiguration render) {
     	Channels.debug("scrape "+name+" nosubs "+noSubs);
     	fool=Channels.cfg().netDiscStyle();
     	if(scraped)
     		return;
-    	scrape();
+    	scrape(render);
+    	realUrl=ChannelResource.NullURL(realUrl);
     	if(ChannelUtil.empty(realUrl))
-    		return ;
+    		return;
     	Channels.debug("real "+realUrl+" nd "+fool+" noSubs "+noSubs+" "+Channels.cfg().usePMSEncoder());
+    	if(media==null) {
+    		media=new DLNAMediaInfo();
+    		media.setAudioTracksList(new ArrayList<DLNAMediaAudio>());
+    	}
     	if(Channels.cfg().usePMSEncoder()) {
     		if(fool) {
     			if(realUrl.startsWith("subs://"))
@@ -360,10 +365,6 @@ public class ChannelMediaStream extends DLNAResource {
     			rtmpUrl(realUrl.substring(7));
     		}
     	}
-    	if(media==null) {
-    		media=new DLNAMediaInfo();
-    		media.setAudioTracksList(new ArrayList<DLNAMediaAudio>());
-    	}
     	if(noSubs) { // make sure subs are off here
 			media_subtitle=new DLNAMediaSubtitle();
 			media_subtitle.setId(-1);
@@ -379,7 +380,7 @@ public class ChannelMediaStream extends DLNAResource {
     	if(parent instanceof ChannelPMSSaveFolder)
     		if(((ChannelPMSSaveFolder)parent).preventAutoPlay())
     			return null;
-    	scrape_i();
+    	scrape_i(mediarenderer);
     	if(delayed())
     		return null;
     	InputStream is=null;//super.getInputStream(low,high,timeseek,mediarenderer);
@@ -397,7 +398,7 @@ public class ChannelMediaStream extends DLNAResource {
     		if(((ChannelPMSSaveFolder)parent).preventAutoPlay())
     			return null;
     	Channels.debug("cms getinp/2... scrape "+scraper+" url "+realUrl);
-    	scrape_i();
+    	scrape_i(mediarenderer);
     	if(realUrl.startsWith("resource://")) {
     		return getResourceInputStream(realUrl.substring("resource://".length()));
     	}
@@ -415,6 +416,9 @@ public class ChannelMediaStream extends DLNAResource {
     }
     
     private InputStream getStream() {
+    	if(realUrl.startsWith("resource://")) {
+    		return getResourceInputStream(realUrl.substring("resource://".length()));
+    	}
     	try {
 			URL urlobj = new URL(realUrl.replaceAll(" ", "%20"));
 			Channels.debug("Retrieving " + urlobj.toString());
@@ -449,7 +453,7 @@ public class ChannelMediaStream extends DLNAResource {
 
     public InputStream getInputStream() {
     	Channels.debug("cms getinp/0 scrape "+scraper+" url "+realUrl);
-    	scrape_i();
+    	scrape_i(getDefaultRenderer());
     	if(delayed())
     		return null;
     	if(ChannelUtil.empty(realUrl))
@@ -658,12 +662,11 @@ public class ChannelMediaStream extends DLNAResource {
 			if(splits[i].contains("url=")) {
 				String tmp=splits[i].substring(splits[i].indexOf("url=")+4);
 				realUrl=ChannelUtil.unescape(tmp);
-				Channels.debug("set sub url "+realUrl);
 				continue;
 			}
 			if(splits[i].contains("agent=")) {
 				String tmp=splits[i].substring(splits[i].indexOf("agent=")+6);
-				hdr=hdr+"-user-agent \""+ChannelUtil.unescape(tmp)+"\" ";
+				hdr=hdr+"-headers \"User-Agent: "+ChannelUtil.unescape(tmp)+"\"\n\r ";
 				continue;
 			}
 			if(splits[i].contains("subs=")&&!noSubs&&subs) {
@@ -674,9 +677,7 @@ public class ChannelMediaStream extends DLNAResource {
 					Channels.debug("set sub file "+sub.getExternalFile().getAbsolutePath());
 				} catch (FileNotFoundException e) {
 					return;
-				} catch (IOException e) {
-					return;
-				}
+				} 
 				sub.setId(1);
 				sub.setLang("und");
 				sub.setType(SubtitleType.SUBRIP);
@@ -771,7 +772,7 @@ public class ChannelMediaStream extends DLNAResource {
 			ChannelUtil.parseASX(url, ASX);
 		if(ChannelUtil.empty(processor))
 			return scraper.scrape(ch,url,processor,format,this,noSubs,imdb,
-								  embedSub,stash);
+								  embedSub,stash,null);
 		return url;
 	}
 	

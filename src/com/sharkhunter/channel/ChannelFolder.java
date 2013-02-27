@@ -860,6 +860,10 @@ public class ChannelFolder implements ChannelProps, SearchObj{
 	    				someName=cf.name;
 	    			someName=m.pend(someName, "name");
 	    		}
+	    		if(ChannelUtil.getProperty(cf.prop, "bad")) {
+	    			res.addChild(ChannelResource.redX(someName));
+	    			return;
+	    		}
 	    		if(Channels.isIllegal(someName, ChannelIllegal.TYPE_NAME))
 	 	    		   continue;
 	    		//parent.debug("cf.name "+cf.name+" ignore "+ignoreMatch);
@@ -930,9 +934,13 @@ public class ChannelFolder implements ChannelProps, SearchObj{
 	    	allSave=findAllPlay(res,"SAVE&PLAY");
 	    	// Remove them
 	    	if(allPlay!=null) {
+	    		ChannelPMSAllPlay a=(ChannelPMSAllPlay)allPlay;
+	    		a.clearID();
 	    		res.getChildren().remove(allPlay);
 	    	}
 	    	if(allSave!=null) {
+	    		ChannelPMSAllPlay a=(ChannelPMSAllPlay)allSave;
+	    		a.clearID();
 	    		res.getChildren().remove(allSave);
 	    	}
 	    	// If we got more than one left...
@@ -1251,11 +1259,11 @@ public class ChannelFolder implements ChannelProps, SearchObj{
 		return c.after(d);
 	}
 	
-	private DLNAResource findAllPlay(DLNAResource res,String name) {
+	private ChannelPMSAllPlay findAllPlay(DLNAResource res,String name) {
 		for(DLNAResource tmp : res.getChildren()) {
 			if(tmp instanceof ChannelPMSAllPlay) {
 				if(tmp.getName().startsWith(name))
-					return tmp;
+					return (ChannelPMSAllPlay) tmp;
 			}				
 		}
 		return null;

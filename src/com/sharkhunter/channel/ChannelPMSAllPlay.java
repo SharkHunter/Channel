@@ -19,4 +19,8 @@ public class ChannelPMSAllPlay extends VirtualFolder {
 			return super.getThumbnailInputStream();
 		}
 	}
+	
+	public void clearID() {
+		setId(null);
+	}
 }
