@@ -412,7 +412,7 @@ public class ChannelCfg {
 		String sv=(String)PMS.getConfiguration().getCustomProperty("channels.stream_var");
 		String nu=(String)PMS.getConfiguration().getCustomProperty("channels.null_url");
 		String bu=(String)PMS.getConfiguration().getCustomProperty("channels.bad_url");
-		String bs=(String)PMS.getConfiguration().getCustomProperty("channels.barvia_sub");
+		String bs=(String)PMS.getConfiguration().getCustomProperty("channels.bravia_sub");
 		
 		if(!ChannelUtil.empty(cf))
 			crawlFormat=cf;

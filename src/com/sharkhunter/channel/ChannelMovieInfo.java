@@ -29,8 +29,8 @@ public class ChannelMovieInfo {
 					try {
 						res.addChild(new FileMovieInfoVirtualFolder(plgn[i] +" INFO", thumb,numberOfActors,lineLength,imdbId));
 					}
-					catch (Exception e) {
-					}
+			catch (Exception e) {
+			}
 		}
 	}
 	
