@@ -1,4 +1,4 @@
-version=0.41
+version=0.42
 
 scriptdef furkSubs {
 	release='1
@@ -95,7 +95,7 @@ macrodef furkMacro {
 		matcher=a class=\"button-large button-play\" href=\"([^\"]+)\">(Play)<
 		order=url
 		type=empty
-		media {
+		 media {
 			matcher=<title>([^<]+)</title>\s+<location>([^<]+)</location>
 			order=name,url
 			subtitle=swesub,s4u,ut.se
@@ -104,18 +104,23 @@ macrodef furkMacro {
 	}
 }
 
+macrodef furkPlayItem {
+	media {
+		# <a class="playlist-item" href="http://ie9hajrspg5sg9mgqs4s1tf9nb9j0t3ds40r71g.gcdn.biz/d/R/KNoWaBGevj73PXNXuxaZiISdFFw__hnNo159OhQLI5epxWrSyuW_X1oi88NmdnIZ/01_Enter_Sandman.mp3" class="first" title="Metallica - Metallica (1991)/Metallica - Metallica/01 Enter Sandman.mp3">Metallica - Metallica (1991)/Metallica - Metallica/01 Enter Sandman.mp3</a> 
+		matcher=a class=\"playlist-item\" href=\"([^\"]+)\" .*?title=\"([^\"]+)\"
+		order=url,name
+		subtitle=swesub,s4u,ut.se
+		prop=name_index=0
+	}
+}
+
 macrodef furkFolder {
 	folder {
          matcher=a href=\"(/df/[^\"]+)\">([^<]+)<
          order=url,name
          url=https://www.furk.net/
+         macro=furkPlayItem
 		 macro=furkMacro
-         media {
-            # <a class="playlist-item" href="http://ie9hajrspg5sg9mgqs4s1tf9nb9j0t3ds40r71g.gcdn.biz/d/R/KNoWaBGevj73PXNXuxaZiISdFFw__hnNo159OhQLI5epxWrSyuW_X1oi88NmdnIZ/01_Enter_Sandman.mp3" class="first" title="Metallica - Metallica (1991)/Metallica - Metallica/01 Enter Sandman.mp3">Metallica - Metallica (1991)/Metallica - Metallica/01 Enter Sandman.mp3</a> 
-            matcher=a class=\"playlist-item\" href=\"([^\"]+)\" .*?title=\"([^\"]+)\"
-            order=url,name
-			subtitle=swesub,s4u,ut.se
-         }
 	}
 }
 
@@ -133,13 +138,13 @@ channel Furk {
    folder {
 		type=action
 		action_name=upload
-		#url=https://www.furk.net/users/files/add
 		url=http://api.furk.net/api/dl/add
 		prop=http_method=post
 		folder {
-			matcher=url_page":"([^"]+)
+			matcher=url_page\":\"([^\"]+)\"
 			order=url
 			type=empty
+			macro=furkPlayItem
 			macro=furkMacro
 		}
    }

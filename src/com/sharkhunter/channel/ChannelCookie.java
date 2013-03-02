@@ -3,18 +3,45 @@ package com.sharkhunter.channel;
 import java.net.URLConnection;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
+import java.util.Calendar;
+import java.util.TimeZone;
 
 public class ChannelCookie {
 	
-	private static long parseTTD(String expStr) {
-		SimpleDateFormat sdfDate = new SimpleDateFormat("dd-MMM-yyyy HH:mm:ss");
+	private static long parseTTD(String expStr,SimpleDateFormat sdfDate) throws ParseException {
 		java.util.Date d;
-		try {
+		String[] tmp=expStr.trim().split(" ");
+		if(tmp.length<2) {
+			// no timezone??
 			d = sdfDate.parse(expStr);
 			return d.getTime();
-		} catch (ParseException e) {
-			return System.currentTimeMillis()+(24*60*60*2*1000);
 		}
+		// Timezon convertion trick...
+		String tz=tmp[2];
+		sdfDate.setTimeZone(TimeZone.getTimeZone(tz));
+		d = sdfDate.parse(expStr);
+		Calendar c=Calendar.getInstance();
+		c.setTimeZone(TimeZone.getTimeZone(tz));
+		c.get(Calendar.DATE);
+		c.setTime(d);
+		c.setTimeZone(TimeZone.getDefault());
+		c.get(Calendar.DATE);
+		return c.getTimeInMillis();		
+	}
+	
+	private static long parseTTD(String expStr) {
+		SimpleDateFormat sdfDate = new SimpleDateFormat("dd-MMM-yyyy HH:mm:ss");
+		SimpleDateFormat sdfDate1 = new SimpleDateFormat("dd-MMM-yyyy HH:mm:ss z");
+		try {
+			return parseTTD(expStr,sdfDate);
+		} catch (ParseException e) {
+			try {
+				return parseTTD(expStr,sdfDate1);
+			} catch (ParseException e1) {
+				Channels.debug("bad ttd parse "+e1);
+			}
+		}
+		return System.currentTimeMillis()+(24*60*60*2*1000);
 	}
 	
 	public static String getCookie(String url) {
@@ -43,16 +70,19 @@ public class ChannelCookie {
 	 		int pos;
 	 		if((pos=cookie.indexOf(";"))!=-1)
 	 			cookie = cookie.substring(0, pos);
-	 		Channels.debug("cookie "+cookie);
 	 		if(a!=null&&ChannelUtil.cookieMethod(a.method))
 	 			if(!ChannelUtil.empty(a.authStr)&&cookie.equals(a.authStr))
 	 				continue;
-	 		if(fields.length>1)
-	 			if(fields[1].contains("expires")) {
-	 				String[] exp=fields[1].split(",");
-	 				if(exp.length>1)
-	 					ttd=parseTTD(exp[1]);
+	 		if(fields.length>1) {
+	 			for(int i=1;i<fields.length;i++) {
+	 				Channels.debug("cookie field "+fields[i]);
+	 				if(fields[i].contains("expires")) {
+	 					String[] exp=fields[i].split(",",2);
+	 					if(exp.length>1)
+	 						ttd=parseTTD(exp[1]);
+	 				}
 	 			}
+	 		}
 	 		if(a==null)
 	 			a=new ChannelAuth();
 	 		a.method=ChannelLogin.SIMPLE_COOKIE;

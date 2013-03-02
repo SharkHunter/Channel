@@ -40,7 +40,7 @@ import no.geosoft.cc.io.FileMonitor;
 public class Channels extends VirtualFolder implements FileListener {
 
 	// Version string
-	public static final String VERSION="2.17";
+	public static final String VERSION="2.18";
 	public static final String ZIP_VER="211";
 	
 	// Constants for RTMP string constructions
@@ -852,7 +852,9 @@ public class Channels extends VirtualFolder implements FileListener {
 	private static void writeCookieFile(String file) {
 		try {
 			FileOutputStream out=new FileOutputStream(file);
-			String data="# Cookie file\n"; // write a dummy line to make sure the file exists
+			// write a dummy line to make sure the file exists
+			Date now=new Date();
+			String data="# Cookie file generated "+ now.toString() +"\n"; 
 			out.write(data.getBytes(), 0, data.length());
 			for(String key : inst.cookies.keySet()) {
 				ArrayList<ChannelAuth> list= inst.cookies.get(key);
