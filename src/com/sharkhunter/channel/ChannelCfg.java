@@ -62,6 +62,7 @@ public class ChannelCfg {
 	private String nullUrl;
 	private String badUrl;
 	private boolean subBravia;
+	private boolean clearCookies;
 	
 	public ChannelCfg(Channels top) {
 		chPath=null;
@@ -99,6 +100,7 @@ public class ChannelCfg {
 		nullUrl=null;
 		badUrl=null;
 		subBravia=true;
+		clearCookies=false;
 	}
 	
 	///////////////////////////////////
@@ -357,6 +359,9 @@ public class ChannelCfg {
 		return subBravia;
 	}
 	
+	public boolean clearCookies() {
+		return clearCookies;
+	}
 	
 	////////////////////////////////////////
 	// Misc. methods
@@ -413,6 +418,7 @@ public class ChannelCfg {
 		String nu=(String)PMS.getConfiguration().getCustomProperty("channels.null_url");
 		String bu=(String)PMS.getConfiguration().getCustomProperty("channels.bad_url");
 		String bs=(String)PMS.getConfiguration().getCustomProperty("channels.bravia_sub");
+		String cc=(String)PMS.getConfiguration().getCustomProperty("channels.clear_cookies");
 		
 		if(!ChannelUtil.empty(cf))
 			crawlFormat=cf;
@@ -527,6 +533,8 @@ public class ChannelCfg {
 			badUrl=bu;
 		if(!ChannelUtil.empty(bs)&&bs.equalsIgnoreCase("false"))
 			subBravia=false;
+		if(!ChannelUtil.empty(cc)&&cc.equalsIgnoreCase("true"))
+			clearCookies=true;
 	}
 
 	private void configPath(String key,String val) {

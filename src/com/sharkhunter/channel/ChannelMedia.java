@@ -233,6 +233,16 @@ public class ChannelMedia implements ChannelProps,ChannelScraper {
 			res.addChild(ChannelResource.redX(nName));
 			return;
 		}
+		if(ChannelUtil.getProperty(prop, "ignore_save")) {
+			ChannelMediaStream cms=new ChannelMediaStream(parent,nName,url,thumb,script,resF,asx,this);
+			cms.setImdb(imdb);
+			cms.setSaveMode(ChannelUtil.getProperty(prop, "raw_save"));
+			cms.setFallbackFormat(videoFormat);
+			cms.setEmbedSub(subs);
+			cms.setStash(rtmpStash);
+			res.addChild(cms);
+			return;
+		}
 		if((Channels.save()&&sOpt==ChannelMedia.SAVE_OPT_NONE)||
 			(subtitle!=null||!ChannelUtil.empty(subs))) { // Add save version
 			ChannelPMSSaveFolder sf=new ChannelPMSSaveFolder(parent,nName,url,thumb,script,asx,

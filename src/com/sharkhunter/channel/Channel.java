@@ -64,6 +64,8 @@ public class Channel extends VirtualFolder {
 	private ChannelMatcher subConv;
 	private boolean subConvTimeMs;
 	
+	private ChannelSwitch urlResolve;
+	
 	public Channel(String name) {
 		super(name,null);
 		Ok=false;
@@ -84,6 +86,7 @@ public class Channel extends VirtualFolder {
 		embedSubType=SubtitleType.SUBRIP;
 		subConv=null;
 		subConvTimeMs=false;
+		urlResolve=null;
 		Ok=true;
 	}
 	
@@ -119,6 +122,11 @@ public class Channel extends VirtualFolder {
 				ArrayList<String> sc=ChannelUtil.gatherBlock(data,i+1);
 				i+=sc.size();
 				parseSubConv(sc);
+			}
+			if(line.contains("resolve {")) {
+				ArrayList<String> ur=ChannelUtil.gatherBlock(data,i+1);
+				i+=ur.size();
+				urlResolve=new ChannelSwitch(ur,this);
 			}
 			String[] keyval=line.split("\\s*=\\s*",2);
 			if(keyval.length<2)
@@ -263,6 +271,8 @@ public class Channel extends VirtualFolder {
 			}
 		for(int i=0;i<folders.size();i++) {
 			ChannelFolder cf=folders.get(i);
+			if(cf.isActionOnly())
+				continue;
 			if(cf.isATZ()) 
 				addChild(new ChannelATZ(cf));
 			else if(cf.isSearch())
@@ -623,5 +633,28 @@ public class Channel extends VirtualFolder {
 			Channels.debug("braviafy error "+e);
 		}
     	return subFile;
+	}
+	
+	/////////////////////////////////////////////////////////
+	
+	public String urlResolve(String url) {
+		if(urlResolve == null)
+			return null;
+		ChannelMatcher m=urlResolve.matcher;
+		m.startMatch(url);
+		if(m.match()) {
+			VirtualFolder dummy=new VirtualFolder("",null);
+			action(urlResolve,"",url,null,dummy,-1);
+			// pick the first
+			Channels.debug("urlResolve on channel "+getName()+" for url "+url);
+			for(DLNAResource r : dummy.getChildren()) {
+				if(!(r instanceof ChannelMediaStream))
+					continue;
+				ChannelMediaStream cms=(ChannelMediaStream)r;
+				cms.scrape(null);
+				return cms.getSystemName();
+			}
+		}
+		return null;
 	}
 }

@@ -817,4 +817,8 @@ public class ChannelMediaStream extends DLNAResource {
 	public byte[] getHeaders() {
 		return hdr.trim().getBytes();
 	}
+	
+	public boolean isURLResolved() {
+		return true;
+	}
 }

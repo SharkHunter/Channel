@@ -23,12 +23,13 @@ import net.pms.dlna.virtual.VirtualFolder;
 import net.pms.encoders.Player;
 import net.pms.external.AdditionalFolderAtRoot;
 import net.pms.external.FinalizeTranscoderArgsListener;
+import net.pms.external.URLResolver;
 //import net.pms.external.LastPlayedParent;
 import net.pms.external.StartStopListener;
 import net.pms.io.OutputParams;
 
 public class CH_plugin implements AdditionalFolderAtRoot, StartStopListener, 
-								  FinalizeTranscoderArgsListener {
+								  FinalizeTranscoderArgsListener, URLResolver {
 
 	private static final long DEFAULT_POLL_INTERVAL=20000;
 	private static boolean initFetchPending=false;
@@ -328,6 +329,13 @@ public class CH_plugin implements AdditionalFolderAtRoot, StartStopListener,
 			thumb=tmp[4];
 		Channels.debug("format is "+format+" thumb "+thumb);
 		return new ChannelMediaStream(tmp[2],tmp[0],ch,format,thumb);
+	}
+
+	@Override
+	public URLResult urlResolve(String url) {
+		URLResult res = new URLResult();
+		res.url=chRoot.urlResolve(url);
+		return res;
 	}
 	
 }

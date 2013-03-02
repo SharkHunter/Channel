@@ -499,7 +499,7 @@ public class ChannelFolder implements ChannelProps, SearchObj{
 		}
 		if(filter==null&&matcher==null&&type==ChannelFolder.TYPE_NORMAL) { // static folder
 			// static folders are not subject to filter
-			parent.debug("static folder");
+			parent.debug("static folder "+type);
 			ChannelPMSFolder cpf=new ChannelPMSFolder(this,name);
 			cpf.setImdb(ChannelUtil.empty(imdb)?imdbId:imdb);
 			res.addChild(cpf);

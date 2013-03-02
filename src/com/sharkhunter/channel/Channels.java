@@ -40,7 +40,7 @@ import no.geosoft.cc.io.FileMonitor;
 public class Channels extends VirtualFolder implements FileListener {
 
 	// Version string
-	public static final String VERSION="2.16";
+	public static final String VERSION="2.17";
 	public static final String ZIP_VER="211";
 	
 	// Constants for RTMP string constructions
@@ -786,8 +786,15 @@ public class Channels extends VirtualFolder implements FileListener {
 			handleCred(f);
 
 		}
-		if(readCookieFile(cfg.getCookiePath())) // only need to write back if we removed some
+		if(cfg.clearCookies()) {
+			// delete cookie file and creat an empty placeholder
+			new File(cfg.getCookiePath()).delete();
 			writeCookieFile(cfg.getCookiePath());
+		}
+		else {
+			if(readCookieFile(cfg.getCookiePath())) // only need to write back if we removed some
+				writeCookieFile(cfg.getCookiePath());
+		}
 	}
 	
 	//////////////////////////////////////////
@@ -1529,5 +1536,18 @@ public class Channels extends VirtualFolder implements FileListener {
 				return true;
 			}
     	});
+	}
+	
+	///////////////////////////////////////////////////////
+	// URL Resolving
+	///////////////////////////////////////////////////////
+	
+	public String urlResolve(String url) {
+		for(Channel ch : getChannels()) {
+			String u = ch.urlResolve(url);
+			if(!ChannelUtil.empty(u))
+				return u;
+		}
+		return null;
 	}
 }
