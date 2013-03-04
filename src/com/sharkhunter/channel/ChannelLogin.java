@@ -1,18 +1,14 @@
 package com.sharkhunter.channel;
 
-import java.io.File;
-import java.io.FileOutputStream;
-import java.io.UnsupportedEncodingException;
 import java.net.HttpURLConnection;
 import java.net.Proxy;
 import java.net.URL;
 import java.net.URLConnection;
-import java.net.URLEncoder;
-import java.sql.Date;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
+import java.util.Date;
 import java.util.TimeZone;
 
 import javax.net.ssl.HttpsURLConnection;
@@ -47,6 +43,7 @@ public class ChannelLogin {
 	private long ttd;
 	private ChannelSimple pre_fetch;
 	private boolean preFetched;
+	private String activeParams;
 	
 	public ChannelLogin(ArrayList<String> data,Channel parent) {
 		this.parent=parent;
@@ -58,6 +55,7 @@ public class ChannelLogin {
 		pre_fetch=null;
 		preFetched=false;
 		params="";
+		activeParams="";
 		parse(data);
 	}
 	
@@ -117,7 +115,7 @@ public class ChannelLogin {
 	private String mkQueryString(String usr,String pass) {
 		String usr_pwd=user+"="+ChannelUtil.escape(usr)+
 		"&"+pwd+"="+ChannelUtil.escape(pass);
-		return ChannelUtil.append(params, "&", usr_pwd);
+		return ChannelUtil.append(activeParams, "&", usr_pwd);
 	}
 	
 	private ChannelAuth mkResult(ChannelAuth a) {
@@ -232,17 +230,18 @@ public class ChannelLogin {
 	 			if(!auth.match())
 	 				continue;
 	 		}
-	        ttd=System.currentTimeMillis()+(24*60*60*2*1000);
+	        long ttd1=System.currentTimeMillis()+(24*60*60*2*1000);
 	 		if(fields.length>1) {
 	 			for(int i=1;i<fields.length;i++) {
-	 				Channels.debug("cookie field "+fields[i]);
 	 				if(fields[i].contains("expires")) {
 	 					String[] exp=fields[i].split(",",2);
 	 					if(exp.length>1)
-	 						ttd=parseTTD(exp[1]);
+	 						ttd1=parseTTD(exp[1]);
 	 				}
 	 			}
 	 		}
+	 		if((ttd==0 || ttd1<ttd) && ttd1!=0)
+	 			ttd=ttd1;
 	 		updateCookieDb(cookie,a);
 	 		tokenStr=ChannelUtil.append(tokenStr,"; ",cookie);
 	        loggedOn=true;
@@ -317,6 +316,14 @@ public class ChannelLogin {
 	
 	public ChannelAuth getAuthStr(String usr,String pass,boolean media,ChannelAuth a) {
 		Channels.debug("login on channel "+parent.getName()+" type "+type+" on "+loggedOn);
+		/*Date d=new Date(ttd);
+		Date d1 =new Date();
+		Channels.debug("d "+d.toString()+" "+d1.toString());*/
+		if(ttd<System.currentTimeMillis()) {
+			loggedOn=false;
+			preFetched=false;
+			ttd=0;
+		}
 		if(loggedOn)
 			return mkResult(a);
 		if(!media&&mediaOnly)
@@ -337,9 +344,11 @@ public class ChannelLogin {
 				Channels.debug("pre_fetch name "+name+" url "+url);
 				if(ChannelUtil.empty(name)||ChannelUtil.empty(url))
 					throw new Exception("Bad pre_fetch reply");
-				params=ChannelUtil.append(params, "&", name+"="+url);
+				activeParams=ChannelUtil.append(params, "&", name+"="+url);
 				preFetched=true;
 			}
+			else
+				activeParams=params;
 			if(type==ChannelLogin.AUTO_COOKIE)
 				return mkResult(a);
 			if(type==ChannelLogin.SIMPLE_COOKIE)
@@ -363,6 +372,7 @@ public class ChannelLogin {
 	public void reset() {
 		tokenStr="";
 		loggedOn=false;
+		ttd=0;
 	}
 	
 	private static class NullHostnameVerifier implements javax.net.ssl.HostnameVerifier {

@@ -48,6 +48,9 @@ public class ChannelCookie {
 		ChannelAuth a=Channels.getCookie(ChannelUtil.trimURL(url));
 		if(a==null)
 			return null;
+		long t=a.ttd;
+		if(t != 0 && t < System.currentTimeMillis())
+			return null;
 		return a.authStr;
 	}
 	
@@ -75,7 +78,6 @@ public class ChannelCookie {
 	 				continue;
 	 		if(fields.length>1) {
 	 			for(int i=1;i<fields.length;i++) {
-	 				Channels.debug("cookie field "+fields[i]);
 	 				if(fields[i].contains("expires")) {
 	 					String[] exp=fields[i].split(",",2);
 	 					if(exp.length>1)
