@@ -209,7 +209,6 @@ public class ChannelPMSSaveFolder extends VirtualFolder {
 		if(save) {
 			cms=new ChannelMediaStream(ch,displayName(SNS),url,
 					   thumb,proc,f,asx,scraper,name,name);
-			cms.setEmbedSub(embedSub);
 			cms.setImdb(imdb);
 			cms.setRender(this.defaultRenderer);
 			cms.setSaveMode(rawSave);
@@ -220,7 +219,6 @@ public class ChannelPMSSaveFolder extends VirtualFolder {
 		}
 		cms=new ChannelMediaStream(ch,displayName(PNS),url,thumb,
 				proc,f,asx,scraper,name,null);
-		cms.setEmbedSub(embedSub);
 		cms.setImdb(imdb);
 		cms.setRender(this.defaultRenderer);
 		cms.setSaveMode(rawSave);

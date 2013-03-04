@@ -666,7 +666,7 @@ public class ChannelMediaStream extends DLNAResource {
 			}
 			if(splits[i].contains("agent=")) {
 				String tmp=splits[i].substring(splits[i].indexOf("agent=")+6);
-				hdr=hdr+"-headers \"User-Agent: "+ChannelUtil.unescape(tmp)+"\"\n\r ";
+				hdr=hdr+"-user-agent \""+ChannelUtil.unescape(tmp)+"\" ";
 				continue;
 			}
 			if(splits[i].contains("subs=")&&!noSubs&&subs) {
