@@ -215,6 +215,7 @@ public class ChannelPMSSaveFolder extends VirtualFolder {
 			cms.setFallbackFormat(videoFormat);
 			cms.setStreamVars(streamVars);
 			cms.setStash(stash);
+			cms.noSubs();
 			addChild(cms);
 		}
 		cms=new ChannelMediaStream(ch,displayName(PNS),url,thumb,
@@ -225,6 +226,7 @@ public class ChannelPMSSaveFolder extends VirtualFolder {
 		cms.setFallbackFormat(videoFormat);
 		cms.setStreamVars(streamVars);
 		cms.setStash(stash);
+		cms.noSubs();
 		addChild(cms);
 	}
 

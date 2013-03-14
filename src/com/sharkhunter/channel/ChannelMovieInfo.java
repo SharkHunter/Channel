@@ -27,7 +27,8 @@ public class ChannelMovieInfo {
 			for(int i=0;i < plgn.length;i++)
 				if (!plgn[i].equals(","))
 					try {
-						res.addChild(new FileMovieInfoVirtualFolder(plgn[i] +" INFO", thumb,numberOfActors,lineLength,imdbId));
+						FileMovieInfoVirtualFolder fi = new FileMovieInfoVirtualFolder(plgn[i] +" INFO", thumb,numberOfActors,lineLength,imdbId);
+						res.addChild(fi);
 					}
 			catch (Exception e) {
 			}

@@ -331,7 +331,7 @@ public class CH_plugin implements AdditionalFolderAtRoot, StartStopListener,
 		return new ChannelMediaStream(tmp[2],tmp[0],ch,format,thumb);
 	}
 
-	@Override
+	
 	public URLResult urlResolve(String url) {
 		URLResult res = new URLResult();
 		res.url=chRoot.urlResolve(url);

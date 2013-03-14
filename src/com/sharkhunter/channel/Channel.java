@@ -64,7 +64,7 @@ public class Channel extends VirtualFolder {
 	private ChannelMatcher subConv;
 	private boolean subConvTimeMs;
 	
-	private ChannelSwitch urlResolve;
+	private ArrayList<ChannelSwitch> urlResolve;
 	
 	public Channel(String name) {
 		super(name,null);
@@ -86,7 +86,7 @@ public class Channel extends VirtualFolder {
 		embedSubType=SubtitleType.SUBRIP;
 		subConv=null;
 		subConvTimeMs=false;
-		urlResolve=null;
+		urlResolve=new ArrayList<ChannelSwitch>();
 		Ok=true;
 	}
 	
@@ -126,7 +126,9 @@ public class Channel extends VirtualFolder {
 			if(line.contains("resolve {")) {
 				ArrayList<String> ur=ChannelUtil.gatherBlock(data,i+1);
 				i+=ur.size();
-				urlResolve=new ChannelSwitch(ur,this);
+				ChannelSwitch s=new ChannelSwitch(ur,this);
+				if(s.Ok)
+					urlResolve.add(s);
 			}
 			String[] keyval=line.split("\\s*=\\s*",2);
 			if(keyval.length<2)
@@ -638,21 +640,21 @@ public class Channel extends VirtualFolder {
 	/////////////////////////////////////////////////////////
 	
 	public String urlResolve(String url) {
-		if(urlResolve == null)
-			return null;
-		ChannelMatcher m=urlResolve.matcher;
-		m.startMatch(url);
-		if(m.match()) {
-			VirtualFolder dummy=new VirtualFolder("",null);
-			action(urlResolve,"",url,null,dummy,-1);
-			// pick the first
-			Channels.debug("urlResolve on channel "+getName()+" for url "+url);
-			for(DLNAResource r : dummy.getChildren()) {
-				if(!(r instanceof ChannelMediaStream))
-					continue;
-				ChannelMediaStream cms=(ChannelMediaStream)r;
-				cms.scrape(null);
-				return cms.getSystemName();
+		for(ChannelSwitch resolver : urlResolve) {
+			ChannelMatcher m=resolver.matcher;
+			m.startMatch(url);
+			if(m.match()) {
+				VirtualFolder dummy=new VirtualFolder("",null);
+				action(resolver,"",url,null,dummy,-1);
+				// pick the first
+				Channels.debug("urlResolve on channel "+getName()+" for url "+url);
+				for(DLNAResource r : dummy.getChildren()) {
+					if(!(r instanceof ChannelMediaStream))
+						continue;
+					ChannelMediaStream cms=(ChannelMediaStream)r;
+					cms.scrape(null);
+					return cms.getSystemName();
+				}
 			}
 		}
 		return null;
