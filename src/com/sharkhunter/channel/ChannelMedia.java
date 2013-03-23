@@ -495,4 +495,9 @@ public class ChannelMedia implements ChannelProps,ChannelScraper {
 	public String relativeURL() {
 		return ChannelUtil.getPropertyValue(prop, "relative_url");
 	}
+
+	@Override
+	public boolean isResolved() {
+		return !ChannelUtil.getProperty(prop, "do_resolve");
+	}
 }

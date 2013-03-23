@@ -1,4 +1,4 @@
-version=0.35
+version=0.36
 
 macrodef via_media {
 	media {
@@ -40,7 +40,7 @@ macrodef via_ses_epi {
 }
 
 channel TV3 {
-	img=http://tv3.se/sites/all/themes/free_tv/css/custom/tv3_se/images/logo.png
+	img=http://www.mynewsdesk.com/se/view/Image/download/resource_image/95624
 	sub_conv {
 		matcher=<Subtitle .*?TimeIn=\"([^\"]+)\" TimeOut=\"([^\"]+)\"[^>]+>(.*?)</Subtitle>
 		order=start,stop,text_embed

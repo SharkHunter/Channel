@@ -371,5 +371,10 @@ public class ChannelNaviX extends VirtualFolder implements ChannelScraper {
 	public HashMap<String,Object> subSelect(DLNAResource start,String imdb,String subSite) {
 		return ChannelSubUtil.subSelect(start, imdb, subSite, subtitle, parent);
 	}
+
+	@Override
+	public boolean isResolved() {
+		return true;
+	}
 	
 }

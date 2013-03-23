@@ -6,7 +6,7 @@ import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
 
-import net.pms.util.OpenSubtitle;
+//import net.pms.util.OpenSubtitle;
 
 public class ChannelOpenSubs extends ChannelSubs {
 	
@@ -16,7 +16,7 @@ public class ChannelOpenSubs extends ChannelSubs {
 		// Check if OpenSubs is installed, this is
 		// an ugly but effective way
 		img="http://static.opensubtitles.org/gfx/logo.gif";
-		OpenSubtitle.getName("xxx");
+		//OpenSubtitle.getName("xxx");
 	}
 	
 		
@@ -29,7 +29,7 @@ public class ChannelOpenSubs extends ChannelSubs {
 	}
 	
 	public String resolve(ChannelSubSelected css) {
-		try {
+		/*try {
 			String fName=css.name+"_"+ChannelISO.iso(css.lang, 3);
 			File f=new File(OpenSubtitle.subFile(fName));
 			if(f.exists())
@@ -38,18 +38,18 @@ public class ChannelOpenSubs extends ChannelSubs {
 			return OpenSubtitle.fetchSubs(css.url,f.getAbsolutePath());
 		} catch (FileNotFoundException e) {
 		} catch (IOException e) {
-		}
+		}*/
 		return "";
 	}
 	
 	public HashMap<String,Object> select(HashMap<String,String> map) {
-		try {
+		/*try {
 			if(!ChannelUtil.empty(map.get("imdb")))
 				return map(OpenSubtitle.findSubs(map.get("imdb")));
 			if(!ChannelUtil.empty("url"))
 				return map(OpenSubtitle.querySubs(map.get("url")));
 		} catch (Exception e) {
-		}
+		}*/
 		return null;
 	}
 	

@@ -819,6 +819,8 @@ public class ChannelMediaStream extends DLNAResource {
 	}
 	
 	public boolean isURLResolved() {
-		return true;
+		if(scraper==null)
+			return false;
+		return scraper.isResolved();
 	}
 }

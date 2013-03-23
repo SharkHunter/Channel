@@ -335,6 +335,20 @@ public class CH_plugin implements AdditionalFolderAtRoot, StartStopListener,
 	public URLResult urlResolve(String url) {
 		URLResult res = new URLResult();
 		res.url=chRoot.urlResolve(url);
+		if(!ChannelUtil.empty(res.url)) {
+			if(res.url.startsWith("precoder://")) {
+				res.url=res.url.substring(11);
+				String[] tmp=res.url.split("####");
+				res.precoder=new ArrayList<String>();
+				if(ChannelUtil.extension(tmp[0]).equals(".py"))
+					res.precoder.add(Channels.cfg().getPythonPath());
+				if(ChannelUtil.extension(tmp[0]).equals(".pl"))
+					res.precoder.add(Channels.cfg().getPerlPath());
+				res.precoder.add(Channels.cfg().getScriptPath()+File.separator+tmp[0]);
+				res.precoder.add(tmp[1]);
+				res.url=null;
+			}
+		}
 		return res;
 	}
 	

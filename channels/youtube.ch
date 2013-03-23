@@ -1,4 +1,4 @@
-version = 0.50
+version = 0.51
 
 macrodef apiMedia {
 	media {
@@ -28,6 +28,7 @@ channel YouTube {
 	folder {
 		type=action
 		action_name=resolved
+		url=dummy_url
 		media {
 			escript=youtube-dl.bat
 			prop=ignore_save
