@@ -134,38 +134,12 @@ public class CH_plugin implements AdditionalFolderAtRoot, StartStopListener,
 		return ChannelUtil.execute(pb);
 	}
 	
-	public static void postInstall() {
-		initFetchPending=true;
-		PMS.getConfiguration().setCustomProperty("channels.path", "extras\\channels");
-		PMS.getConfiguration().setCustomProperty("pmsencoder.script.directory" ,"extras\\scripts");
-		PMS.getConfiguration().setCustomProperty("cookie.path","extras\\cookies");
-		if(Platform.isWindows()) {
-			PMS.getConfiguration().setCustomProperty("perl.path","extras\\perl\\bin\\perl.exe");
-			PMS.getConfiguration().setCustomProperty("python.path","extras\\Python27\\python.exe");
-			PMS.getConfiguration().setCustomProperty("youtube-dl.path","extras\\bin\\youtube-dl.exe");
-			PMS.getConfiguration().setCustomProperty("rtmpdump.path","extras\\bin\\rtmpdump.exe");
-			PMS.getConfiguration().setCustomProperty("curl.path","extras\\bin\\curl.exe");
-		}
-		else if(Platform.isLinux()) {
-			PMS.getConfiguration().setCustomProperty("perl.path",linuxPath("perl"));
-			PMS.getConfiguration().setCustomProperty("python.path",linuxPath("python"));
-			PMS.getConfiguration().setCustomProperty("rtmpdump.path",linuxPath("rtmpdump"));
-			PMS.getConfiguration().setCustomProperty("curl.path",linuxPath("curl"));
-		}
-		PMS.getConfiguration().setCustomProperty("channels.ch_zip",Channels.ZIP_VER);
+	public static void unzip(String path,File f) {
 		try {
-			PMS.getConfiguration().save();
-		} catch (ConfigurationException e) {
-		}
-		ZipInputStream zis;
-		File pepy=new File("extras" + File.separator + "pepy.zip");
-		if(!pepy.exists())
-			return;
-		try {
-			zis = new ZipInputStream(new FileInputStream(pepy));
+			ZipInputStream zis = new ZipInputStream(new FileInputStream(f));
 			ZipEntry entry;
 			 while((entry = zis.getNextEntry()) != null) {
-				 File dst=new File("extras" + File.separator + entry.getName());
+				 File dst=new File(path + File.separator + entry.getName());
 				 if(entry.isDirectory()) {
 					 dst.mkdirs();
 					 continue;
@@ -184,7 +158,46 @@ public class CH_plugin implements AdditionalFolderAtRoot, StartStopListener,
 		 } catch (Exception e) {
 			 PMS.info("unzip error "+e);
 		 }
-		 pepy.delete();
+	}
+	
+	public static void postInstall() {
+		initFetchPending=true;
+		PMS.getConfiguration().setCustomProperty("channels.path", "extras\\channels");
+		PMS.getConfiguration().setCustomProperty("pmsencoder.script.directory" ,"extras\\scripts");
+		PMS.getConfiguration().setCustomProperty("cookie.path","extras\\cookies");
+		if(Platform.isWindows()) {
+			PMS.getConfiguration().setCustomProperty("perl.path","extras\\perl\\bin\\perl.exe");
+			PMS.getConfiguration().setCustomProperty("python.path","extras\\Python27\\python.exe");
+			PMS.getConfiguration().setCustomProperty("youtube-dl.path","extras\\bin\\youtube-dl.exe");
+			PMS.getConfiguration().setCustomProperty("rtmpdump.path","extras\\bin\\rtmpdump.exe");
+			PMS.getConfiguration().setCustomProperty("curl.path","extras\\bin\\curl.exe");
+		}
+		else if(Platform.isLinux()) {
+			PMS.getConfiguration().setCustomProperty("perl.path",linuxPath("perl"));
+			PMS.getConfiguration().setCustomProperty("python.path",linuxPath("python"));
+			PMS.getConfiguration().setCustomProperty("rtmpdump.path",linuxPath("rtmpdump"));
+			PMS.getConfiguration().setCustomProperty("curl.path",linuxPath("curl"));
+		}
+		File pepy=new File("extras" + File.separator + "pepy.zip");
+		if(pepy.exists()) {
+			unzip("extras", pepy);
+			pepy.delete();
+		}
+		if(Platform.isWindows()) {
+			File pywin=new File("extras" + File.separator + "pywin.zip");
+			if(pywin.exists()) {
+				String pylib="extras\\Python27\\Lib\\site-packages";
+				if(new File(pylib).exists()) {
+					unzip(pylib,pywin);
+					PMS.getConfiguration().setCustomProperty("python.pywin_extra","true");
+				}
+				pywin.delete();
+			}
+		}
+		try {
+			PMS.getConfiguration().save();
+		} catch (ConfigurationException e) {
+		}
 	}
 	
 	private void removeArg(List<String> list,String arg) {

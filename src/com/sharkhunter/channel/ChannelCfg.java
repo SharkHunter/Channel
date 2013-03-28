@@ -14,6 +14,8 @@ import java.util.regex.Pattern;
 
 import org.apache.commons.configuration.ConfigurationException;
 
+import com.sun.jna.Platform;
+
 import net.pms.PMS;
 
 public class ChannelCfg {
@@ -618,6 +620,7 @@ public class ChannelCfg {
 	private static final String chReg="<td class=\"content\"><a href=\"[^\"]+\" [^>]+>([^<]+)</a></td>";
 	private static final String rawChBase="https://github.com/SharkHunter/Channel/raw/master/channels/";
 	private static final String rawScBase="https://github.com/SharkHunter/Channel/raw/master/scripts/";
+	private static final String pywin="http://sharkhunter-shb.googlecode.com/files/pywin.zip"; 
 	
 	private void fetchFromGit(String list,String raw,String path) throws Exception {
 		URL u=new URL(list);
@@ -647,6 +650,20 @@ public class ChannelCfg {
             in.close();
 		}
       } 
+	
+	private void fetchPyWinOverlay() throws ConfigurationException {
+		String tmp = (String) PMS.getConfiguration().getCustomProperty("python.pywin_extra");
+		if(ChannelUtil.empty(tmp)||!tmp.equalsIgnoreCase("true")) {
+			if(Platform.isWindows()) {
+				File f=new File("extra"+File.separator+"pywin.zip");
+				ChannelUtil.downloadBin(pywin, f);
+				CH_plugin.unzip("extras\\Python27\\Lib\\site-packages", f);
+				f.delete();
+				PMS.getConfiguration().setCustomProperty("python.pywin_extra","true");
+				PMS.getConfiguration().save();
+			}
+		}
+	}
 
 	public void fetchChannels() {
 		try {			
@@ -655,6 +672,8 @@ public class ChannelCfg {
 			fetchFromGit(chList,rawChBase,chPath);
 			// and then the scripts
 			fetchFromGit(scList,rawScBase,scriptPath);
+			// Fetch th pywin overlay (if needed)
+			fetchPyWinOverlay();
 		}
 		catch(Exception e) {
 			Channels.debug("error fetching channels "+e);
