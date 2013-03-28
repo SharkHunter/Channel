@@ -16,6 +16,7 @@ public class ChannelPMSFolder extends VirtualFolder implements ChannelFilter{
 		private String filter;
 		private String url;
 		private String imdb;
+		private String embSubs;
 		
 		private boolean thumbScriptRun;
 		private boolean favorized;
@@ -39,10 +40,15 @@ public class ChannelPMSFolder extends VirtualFolder implements ChannelFilter{
 			this.url=url;
 			favorized=false;
 			thumbScriptRun=false;
+			embSubs="";
 		}
 		
 		public void setImdb(String imdb) {
 			this.imdb=imdb;
+		}
+		
+		public void setEmbSubs(String s) {
+			embSubs=s;
 		}
 		
 		public void discoverChildren() {
@@ -77,7 +83,7 @@ public class ChannelPMSFolder extends VirtualFolder implements ChannelFilter{
 						}
 					});
 				}
-				cf.match(this,this,url,thumbnailIcon,name,imdb);
+				cf.match(this,this,url,thumbnailIcon,name,imdb,embSubs);
 				cf.addMovieInfo(this, imdb,thumbnailIcon);
 			} catch (Exception e) {
 			}

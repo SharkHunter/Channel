@@ -1,4 +1,4 @@
-version=0.42
+version=0.43
 
 scriptdef furkSubs {
 	release='1
@@ -140,6 +140,12 @@ channel Furk {
 		action_name=upload
 		url=http://api.furk.net/api/dl/add
 		prop=http_method=post
+		media {
+			# this is qued
+			matcher=(\"found_files\":\"0\").*?\"name\":\"([^\"]+)\"
+			order=url,name
+			prop=bad
+		}
 		folder {
 			matcher=url_page\":\"([^\"]+)\"
 			order=url
