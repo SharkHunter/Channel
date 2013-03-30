@@ -6,6 +6,7 @@ import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
 
+import net.pms.util.FileUtil;
 import net.pms.util.OpenSubtitle;
 
 public class ChannelOpenSubs extends ChannelSubs {
@@ -68,7 +69,7 @@ public class ChannelOpenSubs extends ChannelSubs {
 			css.name=css.name.trim();
 			css.owner=this;
 			css.url=(String) data.get(key);
-			res.put(css.name, css);			
+			res.put(FileUtil.getFileNameWithoutExtension(css.name), css);			
 		}
 		return res;
 	}
