@@ -373,8 +373,10 @@ public class ChannelNaviX extends VirtualFolder implements ChannelScraper {
 	}
 
 	@Override
-	public boolean isResolved() {
-		return true;
+	public boolean getBoolProp(String p) {
+		if(p.equals("do_resolve"))
+			return true;
+		return ChannelUtil.getProperty(props, p);
 	}
 	
 }

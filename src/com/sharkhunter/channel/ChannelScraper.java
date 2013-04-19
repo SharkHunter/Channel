@@ -16,5 +16,5 @@ public interface ChannelScraper {
 	public HashMap<String, Object> subSelect(DLNAResource start,String imdb);
 	public HashMap<String, Object> subSelect(DLNAResource start,String imdb,String site);
 	public ArrayList<String> subSites();
-	public boolean isResolved();
+	public boolean getBoolProp(String prop);
 }

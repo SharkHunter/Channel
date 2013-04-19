@@ -1,4 +1,4 @@
-version = 0.51
+version = 0.52
 
 macrodef apiMedia {
 	media {
@@ -11,7 +11,7 @@ macrodef apiMedia {
 }
 
 channel YouTube {
-	img = http://www.engr.uky.edu/solarcar/sites/default/files/YouTube_icon.png
+	img=http://www.youtube.com/yt/brand/media/image/yt-brand-standard-logo-630px.png
 	fallback_video=.mp4
 	login {
 		url=https://www.google.com/youtube/accounts/ClientLogin

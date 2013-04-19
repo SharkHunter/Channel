@@ -1,4 +1,4 @@
-version=0.70
+version=0.75
 
 scriptdef svtFilter{
 	url=s_url
@@ -72,6 +72,44 @@ channel SVTPlay {
 		}
 	}
 	folder {
+		name=Öppet Arkiv
+		url=http://www.oppetarkiv.se/kategori/titel
+		type=ATZ
+		folder {
+			#<li class="svtoa-anchor-list-item"><a class="svt-text-default" href="http://www.oppetarkiv.se/etikett/titel/Vilse%20i%20pannkakan/">Vilse i pannkakan</a></li>
+			matcher=<li class=\"svtoa-anchor-list-item\"><a class=\"svt-text-default\" href=\"([^\"]+)\">([^<]+)</a>
+			order=url,name
+			folder {
+				matcher=data-imagename=\"([^\"]+)\" alt=\"([^\"]+)\".*?class=\"svtLink-Discreet-THEMED svtJsLoadHref\" href=\"([^\"]+)\"
+				order=thumb,name,url
+				prop=matcher_dotall
+				folder {
+					type=empty
+					matcher=data-json-href=\"([^\"]+)\"
+					url=http://www.oppetarkiv.se/
+					prop=append_url=?output=json,monitor
+					media {
+						matcher=\"url\":\"(rtmp[^\"]+)\",\"bitrate\":([^,]+),
+						order=url,name
+						prop=append_name=Kbps,name_separator=###0,url_mangle=svtFilter
+						put=swfVfy=http://www.svtplay.se/public/swf/video/svtplayer-2012.34.swf
+					}
+					folder {
+						matcher=\"url\":\"(http[^\"]+)\",\"bitrate\":\d+,\"playerType\":\"ios\"
+						order=url
+						type=empty
+						prop=no_case
+						media {
+							matcher=BANDWIDTH=(\d+)\d###lcbr###3###rcbr###+.*?\n([^\n]+)
+							order=name,url
+							prop=matcher_dotall,append_name=Kbps,relative_url=path,name_separator=###0,name_index=1
+						}
+					}
+				}
+			}
+		}
+	}
+	folder {
 		name=A-Z
 		type=ATZ
 		url=http://www.svtplay.se/program
@@ -82,8 +120,8 @@ channel SVTPlay {
 			 prop=matcher_dotall,monitor
 			 folder {
 				url=http://www.svtplay.se/
-		  		matcher=<a href=\"([^\"]+)\" class=\"playLink [^\"]+"\>.*?<img class=\"playGridThumbnail\" alt=\"([^\"]+)\" src=\"([^\"]+)\"/>
-				order=url,name,thumb
+		  		matcher=data-title=\"([^\"]+)\".*?<a href=\"([^\"]+)\" class=\"playLink [^\"]+\">.*?<img class=\"playGridThumbnail\" alt=\"[^\"]*\" src=\"([^\"]+)\"
+				order=name,url,thumb
 				action_name=crawl
 				prop=matcher_dotall,monitor,crawl_mode=FLA+HML
 				folder {

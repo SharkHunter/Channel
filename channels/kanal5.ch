@@ -1,7 +1,7 @@
-version=0.30
+version=0.32
 
 channel Kanal5Play {
-   img=http://www.kanal5play.se/themes/kanal5/images/logo.png
+   img=http://sbsmediagroup.se/wp-content/uploads/2012/01/stor5play1.png
    var {
 	disp_name=Bitrate
 	var_name=br
@@ -37,7 +37,7 @@ channel Kanal5Play {
 					matcher=\"bitrate\":@#br@#000,\"source\":\"([^\"]+)\",\"drmProtected\":false}.*?\"streamBaseUrl\":\"([^\"]+)\".*?\"id\":(\d+),\"type\"
 					order=playpath,url,subs
 					prop=prepend_subs=http://www.kanal5play.se/api/subtitles/
-					put=swfVfy=http://www.kanal5play.se/flash/StandardPlayer.swf
+					put=swfVfy=http://www.kanal5play.se/flash/K5StandardPlayer.swf
 				}
 			}
 		}
