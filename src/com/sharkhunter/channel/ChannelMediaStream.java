@@ -109,6 +109,9 @@ public class ChannelMediaStream extends DLNAResource {
 		bgThread=null;
 		bgCnt=0;
 		hdr="";
+		setMedia(new DLNAMediaInfo());
+		getMedia().setAudioTracksList(new ArrayList<DLNAMediaAudio>());
+		getMedia().setMediaparsed(true);
 	}
 	
 	public ChannelMediaStream(ChannelMediaStream cms) {
@@ -145,6 +148,9 @@ public class ChannelMediaStream extends DLNAResource {
 		bgThread=cms.bgThread;
 		bgCnt=cms.bgCnt;
 		hdr=cms.hdr;
+		setMedia(cms.getMedia());
+		getMedia().setAudioTracksList(new ArrayList<DLNAMediaAudio>());
+		getMedia().setMediaparsed(true);
 	}
 	
 	public ChannelMediaStream(String name,String realUrl,Channel parent,int format,
@@ -177,6 +183,9 @@ public class ChannelMediaStream extends DLNAResource {
 		bgThread=null;
 		bgCnt=0;
 		hdr="";
+		setMedia(new DLNAMediaInfo());
+		getMedia().setAudioTracksList(new ArrayList<DLNAMediaAudio>());
+		getMedia().setMediaparsed(true);
 	}
 	
 	public String saveName() {
@@ -340,10 +349,6 @@ public class ChannelMediaStream extends DLNAResource {
     	if(ChannelUtil.empty(realUrl))
     		return;
     	Channels.debug("real "+realUrl+" nd "+fool+" noSubs "+noSubs+" "+Channels.cfg().usePMSEncoder());
-    	if(media==null) {
-    		media=new DLNAMediaInfo();
-    		media.setAudioTracksList(new ArrayList<DLNAMediaAudio>());
-    	}
     	if(Channels.cfg().usePMSEncoder()) {
     		if(fool) {
     			if(realUrl.startsWith("subs://"))
@@ -825,6 +830,10 @@ public class ChannelMediaStream extends DLNAResource {
 	}
 	
 	public boolean isResumeable() {
-		return true;
+		boolean b=super.isResumeable();
+		if(scraper!=null) {
+			b=b&&!scraper.getBoolProp("live");
+		}
+		return b;
 	}
 }
