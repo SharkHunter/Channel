@@ -1,4 +1,4 @@
-version=1.31
+version=1.32
 channel Movie2K {
 
 	login {
@@ -104,6 +104,17 @@ folder {
 	}
 }
 
+folder {
+	name=TV Shows - Featured
+	url=http://www.movie2k.to/tvshows_featured.php
+	folder {
+		matcher=a href="([^\"]+)\"><img src=\"([^\"]+)\" .*?title=\"([^\"]+)\">
+		order=url,thumb,name
+		url=http://www.movie2k.to/
+		macro=mediamacro
+	}
+}
+
 
 }
 
@@ -194,14 +205,16 @@ macrodef partsmacro {
 }
 
 
+scriptdef stream2k {
+	s_referer=s_url
+	regex='file=([^']+)'
+	scrape
+	url=v1
+	play
+}
+
 macrodef mediamacro {
 	
-media {
-#Megavideo - OK with Curl - needs megavideo.groovy
-	matcher=img src="(http://img.movie2k.to/thumbs/[^\"]+)\"[^\*]+(http://megavideo.com/[^\s\"]+)\s?\"?
-	order=thumb,url
-	prop=concat_name=rear,name_separator=  - ,
-	}
 media {
 #Movshare - OK with curl
 	matcher=img src="(http://img.movie2k.to/thumbs/[^\"]+)\"[^\*]+?(http://www\.movshare\.net/[^\/]+/[^\/\"]+)/?\"?
@@ -220,15 +233,10 @@ item {
 	}	
 	}
 
-item {
-#Stream2K - Needs to be fixed	
-	matcher=img src="(http://img.movie2k.to/thumbs/[^\"]+)\"[^\*]+?flashvars=\"config=([^\"]+?)\"
-	order=thumb,url
-	prop=auto_media,concat_name=rear,name_separator=  - ,
- media {
-	matcher=(http://[^\<]+)<
-	prop=concat_name=rear,name_separator=  - ,
-	}
+	media {
+		matcher=src=\"(http://.*?stream2k.com[^\"]+)\"
+		order=url
+		script=stream2k		
 	}
 
 item {
@@ -260,6 +268,4 @@ item {
 	prop=concat_name=rear,name_separator=  - ,
 	}
 	}
-
-
 }
