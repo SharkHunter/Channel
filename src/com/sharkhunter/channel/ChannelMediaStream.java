@@ -839,8 +839,11 @@ public class ChannelMediaStream extends DLNAResource {
 	}
 	
 	private boolean live() {
-		if(ChannelUtil.empty(realUrl))
+		if(ChannelUtil.empty(realUrl)) {
+			if(scraper==null)
+				return false;
 			return scraper.getBoolProp("live");
+		}
 		return scraper.getBoolProp("live")||
 			   realUrl.contains("live=")||
 			   realUrl.contains("-v");
