@@ -89,6 +89,10 @@ public class ChannelPMSFolder extends VirtualFolder implements ChannelFilter{
 			}
 		}
 		
+		public String getURL() {
+			return url;
+		}
+		
 		public void resolve() {
 			this.discovered=false;
 			this.getChildren().clear();

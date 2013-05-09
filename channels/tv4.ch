@@ -1,4 +1,4 @@
-version=0.31
+version=0.35
 
 channel TV4 {
 	img=http://cdn01.tv4.se/polopoly_fs/2.740!logoImage/807786835.png
@@ -14,6 +14,14 @@ channel TV4 {
 		params=https=&my_page=true
 		type=cookie
 	}
+	resolve {
+		matcher=http://www.tv4play.se/(program/[^\?]+\?video_id=.*)
+		action=resolved
+	}
+	resolve {
+		matcher=(program/[^\?]+\?video_id=.*)
+		action=resolved
+	}
 	folder {
 		type=ATZ
 		name=A-Z
@@ -21,16 +29,16 @@ channel TV4 {
 		folder {
 			# Programs
 			# <h3 class="video-title"><a href="/dokumentarer/112_-_luftens_hjaltar">112 - luftens hjältar</a></h3>
-			matcher=<li><a href=\"([^\"]+)\">([^<]+)</a>
+			matcher=<li>\s*<a href=\"([^\"]+)\">([^<]+)</a>
 			order=url,name
-			url=http://www.tv4play.se/
 			folder {
 				# Episodes
 				#<h3 class="video-title"><a href="/program/112-p%C3%A5-liv-och-d%C3%B6d?video_id=2286322">112 - på liv och död del 3</a>
 				matcher=<h3 class=\"video-title\">\s*<a href=\"([^\"]+)\">([^<]+)</a>
 				order=url,name,thumb
-				prop=matcher_dotall,discard_duplicates
+				prop=matcher_dotall,discard_duplicates,crawl_mode=HML
 				url=http://www.tv4play.se/
+				action_name=resolved
 				folder {
 					matcher=tv4play://play/([^\"]+)\" 
 					order=url
@@ -44,7 +52,7 @@ channel TV4 {
 						media {
 							matcher=BANDWIDTH=(\d+)\d###lcbr###3###rcbr###+.*?(index.*?)\n
 							order=name,url
-							prop=matcher_dotall,append_name=Kbps,relative_url=path,name_separator=###0,name_index=1
+							prop=matcher_dotall,append_name=Kbps,relative_url=path,name_separator=###0,name_index=1,last_play_action=resolved
 						}
 					}
 				}

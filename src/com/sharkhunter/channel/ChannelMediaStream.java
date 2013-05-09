@@ -815,8 +815,17 @@ public class ChannelMediaStream extends DLNAResource {
 	public String write() {
 		//ch,url,processor,format,this,noSubs,imdb,
 		   //embedSub,stash
-		return url+">"+ch.getName()+">"+playlistName()+">"+ChannelUtil.format2str(format)+">"+thumb+
+		String lpr =url;
+		if(scraper!=null) {
+			lpr=scraper.lastPlayResolveURL(this.getParent());
+			if(ChannelUtil.empty(lpr))
+				lpr=url;
+			else
+				lpr="resolve@"+lpr;
+		}
+		String res= lpr+">"+ch.getName()+">"+playlistName()+">"+ChannelUtil.format2str(format)+">"+thumb+
 		">"+processor+">"+realUrl;
+		return res;
 	}
 	
 	public byte[] getHeaders() {
@@ -829,10 +838,18 @@ public class ChannelMediaStream extends DLNAResource {
 		return !scraper.getBoolProp("do_resolve");
 	}
 	
+	private boolean live() {
+		if(ChannelUtil.empty(realUrl))
+			return scraper.getBoolProp("live");
+		return scraper.getBoolProp("live")||
+			   realUrl.contains("live=")||
+			   realUrl.contains("-v");
+	}
+	
 	public boolean isResumeable() {
 		boolean b=super.isResumeable();
 		if(scraper!=null) {
-			b=b&&!scraper.getBoolProp("live");
+			b=b&&!live();
 		}
 		return b;
 	}

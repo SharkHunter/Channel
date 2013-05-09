@@ -378,5 +378,11 @@ public class ChannelNaviX extends VirtualFolder implements ChannelScraper {
 			return true;
 		return ChannelUtil.getProperty(props, p);
 	}
+
+	@Override
+	public String lastPlayResolveURL(DLNAResource start) {
+		// TODO Auto-generated method stub
+		return null;
+	}
 	
 }

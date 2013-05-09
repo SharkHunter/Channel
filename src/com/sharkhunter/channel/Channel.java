@@ -418,7 +418,7 @@ public class Channel extends VirtualFolder {
 		actions.add(cf);
 	}
 	
-	public void action(ChannelSwitch swi,String name,String url,String thumb,DLNAResource res,int form) {
+	public ChannelFolder action(ChannelSwitch swi,String name,String url,String thumb,DLNAResource res,int form) {
 		String action=swi.getAction();
 		String rUrl=swi.runScript(url);
 		int f=form;
@@ -431,10 +431,12 @@ public class Channel extends VirtualFolder {
 				continue;
 			try {
 				cf.action(res,null,rUrl,thumb,name,null,f);
+				return cf;
 			} catch (MalformedURLException e) {
 			}
-			return;
+			return null;
 		}
+		return null;
 	}
 	
 	public ChannelFolder getAction(String action) {
@@ -639,21 +641,33 @@ public class Channel extends VirtualFolder {
 	
 	/////////////////////////////////////////////////////////
 	
+	private String resolved(DLNAResource r) {
+		ChannelMediaStream cms=(ChannelMediaStream)r;
+		cms.scrape(null);
+		return cms.getSystemName();
+	}
+	
 	public String urlResolve(String url) {
 		for(ChannelSwitch resolver : urlResolve) {
 			ChannelMatcher m=resolver.matcher;
 			m.startMatch(url);
 			if(m.match()) {
 				VirtualFolder dummy=new VirtualFolder("",null);
-				action(resolver,"",url,null,dummy,-1);
-				// pick the first
+				ChannelFolder af=action(resolver,"",m.getMatch("url",true),null,dummy,-1);
 				Channels.debug("urlResolve on channel "+getName()+" for url "+url);
+				String mstr ="";
+				if(af!=null)
+					mstr=af.getProp("crawl_mode");
+				// first lets crawl
+				ChannelCrawl crawler=new ChannelCrawl();
+				DLNAResource res =crawler.startCrawl(dummy, mstr);
+				if(res!=null && (res instanceof ChannelMediaStream))
+					return resolved(res);
+				// pick the first
 				for(DLNAResource r : dummy.getChildren()) {
 					if(!(r instanceof ChannelMediaStream))
 						continue;
-					ChannelMediaStream cms=(ChannelMediaStream)r;
-					cms.scrape(null);
-					return cms.getSystemName();
+					return resolved(r);
 				}
 			}
 		}

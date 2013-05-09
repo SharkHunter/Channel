@@ -75,15 +75,13 @@ public class ChannelCrawl implements Comparator {
 		return name;
 	}
 	
-	public DLNAResource crawlOneLevel(ArrayList<DLNAResource> start,int crawlMode) {
+	public static DLNAResource crawlOneLevel(ArrayList<DLNAResource> start,int crawlMode) {
 		int pos=-1;
 		int size=start.size();
 		if(size==0)
 			return null;
 		
 		switch(crawlMode) {
-		case CRAWL_ALL:
-			allMode=true;
 		case CRAWL_LOW:
 		case CRAWL_FIRST:
 			pos=0;
@@ -114,6 +112,17 @@ public class ChannelCrawl implements Comparator {
 		return null;
 	}
 	
+	public DLNAResource crawlOne(ArrayList<DLNAResource> start,int crawlMode) {
+		switch(crawlMode) {
+		case CRAWL_ALL:
+			allMode=true;
+			break;
+		default:
+			break;
+		}
+		return crawlOneLevel(start,crawlMode);
+	}
+	
 	private ArrayList<DLNAResource> sortedList(ArrayList<DLNAResource> list) {
 		ArrayList<DLNAResource> res=new ArrayList<DLNAResource>();
 		for(DLNAResource r : list) {
@@ -137,7 +146,7 @@ public class ChannelCrawl implements Comparator {
 				crawlMode=Channels.cfg().getCrawlHLMode();
 				res=sortedList(res);
 			}
-			res1=crawlOneLevel(res,crawlMode);
+			res1=crawlOne(res,crawlMode);
 			if(res1==null)
 				return null;
 			if(ChannelUtil.empty(name))
@@ -171,8 +180,19 @@ public class ChannelCrawl implements Comparator {
 		return modes;
 	}
 	
+	private String findMode(DLNAResource r) {
+		if(r instanceof ChannelPMSFolder) {
+			ChannelPMSFolder pmf=(ChannelPMSFolder)r;
+			ChannelFolder cf=pmf.getFolder();
+			String modeStr=cf.getProp("crawl_mode");
+			if(!ChannelUtil.empty(modeStr))
+				return modeStr;
+		}
+		return "FLA";
+	}
+	
 	public DLNAResource startCrawl(ArrayList<DLNAResource> start,String modeStr) {
-		Channels.debug("do crawl for "+start);
+		Channels.debug("do crawl for "+start+ " mode "+modeStr);
 		DLNAResource r=crawl(start, mkModes(modeStr));
 		// We are out of modes here
 		// But if we might not be at the end of the line
@@ -187,14 +207,7 @@ public class ChannelCrawl implements Comparator {
 			// maybe we are lucky and got ourself a ChannelFolder
 			// if so we can take it's mode string?
 			// otherwise we always use FLA
-			modeStr="FLA";
-			if(r instanceof ChannelPMSFolder) {
-				ChannelPMSFolder pmf=(ChannelPMSFolder)r;
-				ChannelFolder cf=pmf.getFolder();
-				modeStr=cf.getProp("crawl_mode");
-				if(ChannelUtil.empty(modeStr))
-					modeStr="FLA";
-			}
+			modeStr = findMode(r);
 			r=crawl(r,mkModes(modeStr));
 			// Don't mix this with all
 			allMode=false;
@@ -204,6 +217,9 @@ public class ChannelCrawl implements Comparator {
 	}
 	
 	public DLNAResource startCrawl(DLNAResource start,String modeStr) {
+		if(ChannelUtil.empty(modeStr)) {
+			modeStr=findMode(start);
+		}
 		return startCrawl((ArrayList<DLNAResource>) start.getChildren(),modeStr);
 	}
 

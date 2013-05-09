@@ -499,4 +499,27 @@ public class ChannelMedia implements ChannelProps,ChannelScraper {
 	public boolean getBoolProp(String p) {
 		return ChannelUtil.getProperty(prop, p);
 	}
+
+	@Override
+	public String lastPlayResolveURL(DLNAResource start) {
+		String resolver=ChannelUtil.getPropertyValue(prop, "last_play_action");
+		if(ChannelUtil.empty(resolver))
+			return null;
+		DLNAResource tmp=start;
+		while(tmp!=null) {
+			if(tmp instanceof Channels)
+				return null;
+			if(!(tmp instanceof ChannelPMSFolder)) {
+				tmp=tmp.getParent();
+				continue;
+			}
+			ChannelPMSFolder f=(ChannelPMSFolder)tmp;
+			ChannelFolder cf=f.getFolder();
+			if(resolver.equals(cf.actionName())) {
+				return f.getURL();
+			}
+			tmp=tmp.getParent();
+		}
+		return null;
+	}
 }

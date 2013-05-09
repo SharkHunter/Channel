@@ -19,6 +19,7 @@ import net.pms.PMS;
 import net.pms.configuration.PmsConfiguration;
 import net.pms.dlna.DLNAMediaInfo;
 import net.pms.dlna.DLNAResource;
+import net.pms.dlna.WebStream;
 import net.pms.dlna.virtual.VirtualFolder;
 import net.pms.encoders.Player;
 import net.pms.external.AdditionalFolderAtRoot;
@@ -327,6 +328,8 @@ public class CH_plugin implements AdditionalFolderAtRoot, StartStopListener,
 		System.out.println("Done");
 		System.exit(0);
 	}
+	
+	private static final String DUMMY_URL = "http://dummy_url.dummy.dummy/";
 
 	public DLNAResource create(String arg0) {
 		String[] tmp=arg0.split(">");
@@ -341,12 +344,20 @@ public class CH_plugin implements AdditionalFolderAtRoot, StartStopListener,
 		if(tmp.length>4)
 			thumb=tmp[4];
 		Channels.debug("format is "+format+" thumb "+thumb);
+		if(tmp[0].startsWith("resolve@")) {
+			String url=tmp[0].substring(8);
+			if(!url.contains("://")) {
+				url=DUMMY_URL+url;
+			}
+			return new ChannelResolve(tmp[2],url,thumb,ch,format);
+		}
 		return new ChannelMediaStream(tmp[2],tmp[0],ch,format,thumb);
 	}
 
 	
 	public URLResult urlResolve(String url) {
 		URLResult res = new URLResult();
+		url=url.replace(DUMMY_URL, "");
 		res.url=chRoot.urlResolve(url);
 		if(!ChannelUtil.empty(res.url)) {
 			if(res.url.startsWith("precoder://")) {
