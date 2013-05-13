@@ -659,29 +659,31 @@ public class ChannelUtil {
 			
 	}
 	
-	private static DLNAResource backTrackCompensate(DLNAResource start) {
-		// start from the bottom
+	private static boolean backTrackCompensate(DLNAResource start) {
 		// if we are in a subslector skip that
 		if(start instanceof ChannelPMSSubSelector) 
-			start=start.getParent();
+			return true;
 		// Sub sites should be skipped to
 		if(start instanceof ChannelPMSSubSiteSelector)
-			start=start.getParent();
-		// we know that we have a save folder
-		if(Channels.save())
-			start=start.getParent();
-		return start;
+			return true;
+		return false;
 	}
 	
 	public static String backTrack(DLNAResource start,int stop) {
 		if(start==null)
 			return null;
 		int i=0;
-		DLNAResource curr=backTrackCompensate(start.getParent());
+		DLNAResource curr=start;
+		if(Channels.save())
+			curr=start.getParent();
+		while(backTrackCompensate(curr)) // inital compensation
+			curr=curr.getParent();
 		if(stop==0)
 			return curr.getName();
 		while(i<stop) {
 			curr=curr.getParent();
+			if(backTrackCompensate(curr))
+				continue; // don't count these
 			i++;
 			if(curr instanceof Channel) {
 				curr=null;

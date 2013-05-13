@@ -402,13 +402,14 @@ public class ChannelMediaStream extends DLNAResource {
     	if(parent instanceof ChannelPMSSaveFolder)
     		if(((ChannelPMSSaveFolder)parent).preventAutoPlay())
     			return null;
-    	Channels.debug("cms getinp/2... scrape "+scraper+" url "+realUrl);
+    	Channels.debug("cms getinp/2... scrape "+scraper+" url "+realUrl+" "+scraped);
     	scrape_i(mediarenderer);
     	if(realUrl.startsWith("resource://")) {
     		return getResourceInputStream(realUrl.substring("resource://".length()));
     	}
     	if(delayed())
     		return null;
+    	Channels.debug("using player "+getPlayer());
     	InputStream is=super.getInputStream(range,mediarenderer);
     	if(Channels.cfg().fileBuffer()&&!ChannelUtil.empty(realUrl)&&
     	   !realUrl.startsWith("rtmpdump://channel?"))
@@ -850,7 +851,11 @@ public class ChannelMediaStream extends DLNAResource {
 	}
 	
 	public boolean isResumeable() {
-		boolean b=super.isResumeable();
+		boolean b=true;
+		if (getFormat() != null) {
+			// Only resume videos
+			b=getFormat().isVideo();
+		}
 		if(scraper!=null) {
 			b=b&&!live();
 		}
