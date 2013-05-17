@@ -1544,9 +1544,9 @@ public class Channels extends VirtualFolder implements FileListener {
 	// URL Resolving
 	///////////////////////////////////////////////////////
 	
-	public String urlResolve(String url) {
+	public String urlResolve(String url,boolean dummyOnly) {
 		for(Channel ch : getChannels()) {
-			String u = ch.urlResolve(url);
+			String u = ch.urlResolve(url,dummyOnly);
 			if(!ChannelUtil.empty(u))
 				return u;
 		}

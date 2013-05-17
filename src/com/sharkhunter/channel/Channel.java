@@ -644,16 +644,20 @@ public class Channel extends VirtualFolder {
 	private String resolved(DLNAResource r) {
 		ChannelMediaStream cms=(ChannelMediaStream)r;
 		cms.scrape(null);
-		return cms.getSystemName();
+		return cms.urlResolve();
 	}
 	
-	public String urlResolve(String url) {
+	public String urlResolve(String url,boolean dummyOnly) {
 		for(ChannelSwitch resolver : urlResolve) {
+			boolean dummy_match=ChannelUtil.getProperty(resolver.getProps(), "dummy_match");
+			if(!dummyOnly&&dummy_match)
+				continue;
 			ChannelMatcher m=resolver.matcher;
 			m.startMatch(url);
 			if(m.match()) {
+				String url1=m.getMatch("url",true);
 				VirtualFolder dummy=new VirtualFolder("",null);
-				ChannelFolder af=action(resolver,"",m.getMatch("url",true),null,dummy,-1);
+				ChannelFolder af=action(resolver,"",url1,null,dummy,-1);
 				Channels.debug("urlResolve on channel "+getName()+" for url "+url);
 				String mstr ="";
 				if(af!=null)

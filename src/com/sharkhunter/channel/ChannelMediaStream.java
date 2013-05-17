@@ -861,4 +861,29 @@ public class ChannelMediaStream extends DLNAResource {
 		}
 		return b;
 	}
+	
+	public String urlResolve() {
+		if(Channels.cfg().usePMSEncoder()) {
+			if(fool) {
+				if(realUrl.startsWith("subs://"))
+					fixStuff(realUrl.substring(7),true);
+				else if(realUrl.startsWith("navix://")) {
+					fixStuff(realUrl.substring(8+8),false);
+				}
+			}
+		}
+		else {
+			if(realUrl.startsWith("subs://"))
+				fixStuff(realUrl.substring(7),true);
+			else if(realUrl.startsWith("navix://")) 
+				fixStuff(realUrl.substring(8+8),false);
+			else if(realUrl.startsWith("rtmpdump://")) {
+				rtmpUrl(realUrl.substring(11+8));
+			}
+			else if(realUrl.startsWith("rtmp://")) {
+				rtmpUrl(realUrl.substring(7));
+			}
+		}
+		return getSystemName();
+	}
 }

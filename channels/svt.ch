@@ -1,4 +1,4 @@
-version=0.75
+version=0.76
 
 scriptdef svtFilter{
 	url=s_url
@@ -21,7 +21,7 @@ macrodef svtHLSMedia {
 		media {
 			matcher=BANDWIDTH=(\d+)\d###lcbr###3###rcbr###+.*?\n([^\n]+)
 			order=name,url
-			prop=matcher_dotall,append_name=Kbps,relative_url=path,name_separator=###0
+			prop=matcher_dotall,append_name=Kbps,relative_url=path,name_separator=###0,name_index=0
 		}
 	}
 }
@@ -102,7 +102,7 @@ channel SVTPlay {
 						media {
 							matcher=BANDWIDTH=(\d+)\d###lcbr###3###rcbr###+.*?\n([^\n]+)
 							order=name,url
-							prop=matcher_dotall,append_name=Kbps,relative_url=path,name_separator=###0,name_index=1
+							prop=matcher_dotall,append_name=Kbps,relative_url=path,name_separator=###0,name_index=0
 						}
 					}
 				}
@@ -143,7 +143,7 @@ channel SVTPlay {
 						media {
 							matcher=BANDWIDTH=(\d+)\d###lcbr###3###rcbr###+.*?\n([^\n]+)
 							order=name,url
-							prop=matcher_dotall,append_name=Kbps,relative_url=path,name_separator=###0,name_index=1
+							prop=matcher_dotall,append_name=Kbps,relative_url=path,name_separator=###0,name_index=0
 						}
 					}
 				}

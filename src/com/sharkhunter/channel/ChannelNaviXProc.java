@@ -146,13 +146,16 @@ public class ChannelNaviXProc {
 		boolean if_skip=false;
 		boolean if_true=false;
 		int maxV=0;
-		debug("parse v2 ");
 		vars.put("s_url", url);
 		for(int i=start;i<lines.length;i++) {
 			String line=lines[i];
 			if(ChannelUtil.ignoreLine(line))
 				continue;
 			line=line.trim();
+			if(line.startsWith("nodebug=\'")) {
+				// take this first to disable debugging early
+				vars.put("nodebug", line.substring(9));
+			}
 			debug("navix proc line "+line);
 			if(if_true)
 				if(line.startsWith("else")||line.startsWith("elseif")) {
@@ -769,13 +772,13 @@ public class ChannelNaviXProc {
 			ChannelAuth a=null;
 			if(ch!=null) { 
 				a=ch.prepareCom();
-				Channels.debug("a "+a+" cookie "+a.authStr);
+				debug("a "+a+" cookie "+a.authStr);
 				if(a!=null&&a.method==ChannelLogin.COOKIE)
 					vars.put("s_cookie", a.authStr);
-				Channels.debug("cookie "+vars.get("s_cookie"));
+				debug("cookie "+vars.get("s_cookie"));
 			}
 			if(parseV2(lines,0,url,a))
-				Channels.debug("found report statement in NIPL lite script. Hopefully script worked anyway.");
+				debug("found report statement in NIPL lite script. Hopefully script worked anyway.");
 			String rUrl=ChannelUtil.parseASX(vars.get("url"),asx);
 			vars.put("url", rUrl);
 			HashMap<String,String> res=new HashMap<String, String>(vars);

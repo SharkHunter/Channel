@@ -357,8 +357,9 @@ public class CH_plugin implements AdditionalFolderAtRoot, StartStopListener,
 	
 	public URLResult urlResolve(String url) {
 		URLResult res = new URLResult();
+		boolean dummyOnly=url.contains(DUMMY_URL);
 		url=url.replace(DUMMY_URL, "");
-		res.url=chRoot.urlResolve(url);
+		res.url=chRoot.urlResolve(url,dummyOnly);
 		if(!ChannelUtil.empty(res.url)) {
 			if(res.url.startsWith("precoder://")) {
 				res.url=res.url.substring(11);

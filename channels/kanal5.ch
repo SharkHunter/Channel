@@ -1,4 +1,15 @@
-version=0.32
+version=0.35
+
+scriptdef fix_quote {
+	nodebug='1
+	url=s_url
+	regex='\\\"
+	replace url '\"
+	# Specail obscure fix
+	regex='^\\?
+	replace url '- 
+	play
+}
 
 channel Kanal5Play {
    img=http://sbsmediagroup.se/wp-content/uploads/2012/01/stor5play1.png
@@ -9,9 +20,18 @@ channel Kanal5Play {
 	suffix=Kbps
    }
    sub_conv {
-		matcher=\"startMillis\":(\d+),\"endMillis\":(\d+),\"text\":\"(.*?)\",
+		matcher=\"startMillis\":(\d+),\"endMillis\":(\d+),\"text\":\"(.*?)\",\"posX\"
 		order=start,stop,text
-		prop=time_ms,matcher_dotall
+		prop=time_ms,matcher_dotall,text_mangle=fix_quote
+   }
+   resolve {
+		matcher=http://www.kanal5play.se/program/[^/]+/video/([^\"]+)
+		action=resolved
+   }
+   resolve {
+		matcher=^(\d+)
+		action=resolved
+		prop=dummy_match
    }
    folder {
 	name=A-Z
@@ -33,10 +53,11 @@ channel Kanal5Play {
 				order=url,name,name
 				url=http://www.kanal5play.se/api/getVideo?format=FLASH&videoId=
 				prop=matcher_dotall,name_separator=###0
+				action_name=resolved
 				media {
 					matcher=\"bitrate\":@#br@#000,\"source\":\"([^\"]+)\",\"drmProtected\":false}.*?\"streamBaseUrl\":\"([^\"]+)\".*?\"id\":(\d+),\"type\"
 					order=playpath,url,subs
-					prop=prepend_subs=http://www.kanal5play.se/api/subtitles/
+					prop=prepend_subs=http://www.kanal5play.se/api/subtitles/,last_play_action=resolved
 					put=swfVfy=http://www.kanal5play.se/flash/K5StandardPlayer.swf
 				}
 			}
