@@ -1,4 +1,4 @@
-version=0.76
+version=0.77
 
 scriptdef svtFilter{
 	url=s_url
@@ -76,8 +76,8 @@ channel SVTPlay {
 		url=http://www.oppetarkiv.se/kategori/titel
 		type=ATZ
 		folder {
-			#<li class="svtoa-anchor-list-item"><a class="svt-text-default" href="http://www.oppetarkiv.se/etikett/titel/Vilse%20i%20pannkakan/">Vilse i pannkakan</a></li>
-			matcher=<li class=\"svtoa-anchor-list-item\"><a class=\"svt-text-default\" href=\"([^\"]+)\">([^<]+)</a>
+			#<li class="svtoa-anchor-list-item svt-column-avoid-break-inside"><a class="svt-text-default" href="http://www.oppetarkiv.se/etikett/titel/Abba%20dabba%20dooo/">Abba dabba dooo</a></li>
+			matcher=<li class=\"svtoa-anchor-list-item[^\"]+\"><a class=\"svt-text-default\" href=\"([^\"]+)\">([^<]+)</a>
 			order=url,name
 			folder {
 				matcher=data-imagename=\"([^\"]+)\" alt=\"([^\"]+)\".*?class=\"svtLink-Discreet-THEMED svtJsLoadHref\" href=\"([^\"]+)\"
