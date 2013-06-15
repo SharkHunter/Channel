@@ -1,4 +1,4 @@
-version=0.77
+version=0.80
 
 scriptdef svtFilter{
 	url=s_url
@@ -34,6 +34,14 @@ channel SVTPlay {
 		default=true
 		type=bool
 		action=null
+	}
+	resolve {
+		matcher=http://www.svtplay.se/(video/.*)
+		action=resolved
+	}
+	resolve {
+		matcher=(http://www.oppetarkiv.se/video/.*)
+		action=resolved_open
 	}
 	folder {
 		url=http://www.svtplay.se/kanaler
@@ -83,6 +91,7 @@ channel SVTPlay {
 				matcher=data-imagename=\"([^\"]+)\" alt=\"([^\"]+)\".*?class=\"svtLink-Discreet-THEMED svtJsLoadHref\" href=\"([^\"]+)\"
 				order=thumb,name,url
 				prop=matcher_dotall
+				action_name=resolved_open
 				folder {
 					type=empty
 					matcher=data-json-href=\"([^\"]+)\"
@@ -118,6 +127,7 @@ channel SVTPlay {
 			 order=url,name
 			 url=http://www.svtplay.se/
 			 prop=matcher_dotall,monitor
+			 action_name=resolved
 			 folder {
 				url=http://www.svtplay.se/
 		  		matcher=data-title=\"([^\"]+)\".*?<a href=\"([^\"]+)\" class=\"playLink [^\"]+\">.*?<img class=\"playGridThumbnail\" alt=\"[^\"]*\" src=\"([^\"]+)\"
@@ -143,7 +153,7 @@ channel SVTPlay {
 						media {
 							matcher=BANDWIDTH=(\d+)\d###lcbr###3###rcbr###+.*?\n([^\n]+)
 							order=name,url
-							prop=matcher_dotall,append_name=Kbps,relative_url=path,name_separator=###0,name_index=0
+							prop=matcher_dotall,append_name=Kbps,relative_url=path,name_separator=###0,name_index=1
 						}
 					}
 				}

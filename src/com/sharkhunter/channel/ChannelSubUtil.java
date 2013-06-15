@@ -23,7 +23,7 @@ public class ChannelSubUtil {
 	}
 
 	public static HashMap<String,Object> subSelect(DLNAResource start,String imdb,
-			String[] subtitle,Channel ch) {
+			String[] subtitle,Channel ch,String realName) {
 		if(subtitle==null) 
 			return null;
 		for(int i=0;i<subtitle.length;i++) {
@@ -32,13 +32,24 @@ public class ChannelSubUtil {
 				continue;
 			if(!subs.langSupported()||!subs.selectable())
 				continue;
-			return subSelect(start,imdb,subs,subtitle,ch);
+			return subSelect(start,imdb,subs,subtitle,ch, realName);
 		}
 		return null;
 	}
 
+    public static HashMap<String,Object> subSelect(DLNAResource start,String imdb,
+                                                   String[] subtitle,Channel ch) {
+        return subSelect(start,imdb,subtitle,ch, null);
+
+    }
+
+    public static HashMap<String,Object> subSelect(DLNAResource start,String imdb,String subSite,
+                                                   String[] subtitle,Channel ch) {
+        return subSelect(start,imdb,subtitle,ch, null);
+    }
+
 	public static HashMap<String,Object> subSelect(DLNAResource start,String imdb,String subSite,
-			String[] subtitle,Channel ch) {
+			String[] subtitle,Channel ch, String realName) {
 		if(ChannelUtil.empty(subSite)) // fallback solution
 			return subSelect(start,imdb,subtitle,ch);
 		ChannelSubs subs=Channels.getSubs(subSite);
@@ -46,12 +57,13 @@ public class ChannelSubUtil {
 			return null;
 		if(!subs.langSupported()||!subs.selectable())
 			return null;
-		return subSelect(start,imdb,subs,subtitle,ch);
+		return subSelect(start,imdb,subs,subtitle,ch, realName);
 	}
 
 	private static HashMap<String,Object> subSelect(DLNAResource start,String imdb,ChannelSubs subs,
-			String[] subtitle,Channel ch) {
-		String realName=backtrackedName(start,subtitle);
+			String[] subtitle,Channel ch, String realName) {
+        if(ChannelUtil.empty(realName))
+		     realName=backtrackedName(start,subtitle);
 		Channels.debug("backtracked name "+realName);
 		HashMap<String,String> subName;
 		int subScript=0;

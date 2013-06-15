@@ -1,4 +1,4 @@
-version=0.43
+version=0.45
 
 scriptdef furkSubs {
 	release='1
@@ -122,6 +122,12 @@ macrodef furkFolder {
          macro=furkPlayItem
 		 macro=furkMacro
 	}
+	folder {
+		type=recurse
+		matcher=a href=\"([^\"]+)\" class=\"nextprev\" title=\"Go to (Next Page)\"
+		order=url,name
+		url=https://www.furk.net/
+	}
 }
 
 channel Furk {
@@ -134,6 +140,11 @@ channel Furk {
       type=cookie
       #params=url=&gigya_uid=
 	  associate=www.furk.net
+   }
+   resolve {
+		matcher=magnet:[^=]+=urn:btih:([^&]+)&dn=[^&]+&tr
+		prop=prepend_url=info_hash=
+		action=upload
    }
    folder {
 		type=action
@@ -157,13 +168,14 @@ channel Furk {
    folder {
 		name=Stored
 		url=http://www.furk.net/users/files/finished
+		prop=continue_name=.*Next Page.*,continue_limit=6
 		macro=furkFolder
   }
   folder {
       name=Search
 	  type=search
 	  url=http://api.furk.net/api/search
-	  prop=prepend_url=format=json;q=
+	  prop=continue_name=.*Next Page.*,continue_limit=6,prepend_url=format=json;q=
 	  folder {
          matcher=url_page\":\"([^\"]+)\".*?name\":\"([^\"]+)\"
          order=url,name
@@ -176,3 +188,4 @@ channel Furk {
 	}
   }
 }
+ 

@@ -485,11 +485,11 @@ public class ChannelMedia implements ChannelProps,ChannelScraper {
 	}
 	
 	public HashMap<String,Object> subSelect(DLNAResource start,String imdb) {
-		return ChannelSubUtil.subSelect(start, imdb, subtitle, parent);
+		return ChannelSubUtil.subSelect(start, imdb, subtitle, parent, backtrackedName(start));
 	}
 	
 	public HashMap<String,Object> subSelect(DLNAResource start,String imdb,String subSite) {
-		return ChannelSubUtil.subSelect(start, imdb, subSite, subtitle, parent);
+		return ChannelSubUtil.subSelect(start, imdb, subSite, subtitle, parent, backtrackedName(start));
 	}
 	
 	public String relativeURL() {

@@ -826,6 +826,7 @@ public class ChannelMediaStream extends DLNAResource {
 		}
 		String res= lpr+">"+ch.getName()+">"+playlistName()+">"+ChannelUtil.format2str(format)+">"+thumb+
 		">"+processor+">"+realUrl;
+		res=res.replaceAll("[\n\r]", "");
 		return res;
 	}
 	
