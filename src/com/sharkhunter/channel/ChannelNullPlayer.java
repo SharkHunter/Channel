@@ -11,11 +11,15 @@ import net.pms.dlna.DLNAMediaSubtitle;
 import net.pms.dlna.DLNAResource;
 import net.pms.encoders.FFMpegVideo;
 import net.pms.encoders.MEncoderWebVideo;
+import net.pms.formats.v2.SubtitleUtils;
 import net.pms.io.OutputParams;
 import net.pms.io.PipeProcess;
 import net.pms.io.ProcessWrapper;
 import net.pms.io.ProcessWrapperImpl;
 import net.pms.util.CodecUtil;
+import net.pms.util.FileUtil;
+
+import static org.apache.commons.lang3.StringUtils.isNotBlank;
 
 public class ChannelNullPlayer extends FFMpegVideo {
 
@@ -74,11 +78,13 @@ public class ChannelNullPlayer extends FFMpegVideo {
 			args.add("-sub");
 			args.add(subFile.getAbsolutePath());
 			args.add("-subcp");
-			args.add(configuration.getMencoderSubCp());
+            // Append -subcp option for non UTF external subtitles
+            String subcp = "UTF-8";
+            args.add(subcp);
 			args.add("-subpos");
 			int subpos = 1;
 			try {
-				subpos = Integer.parseInt(configuration.getMencoderAssMargin());
+				subpos = Integer.parseInt(configuration.getMencoderNoAssSubPos());
 			} catch (NumberFormatException n) {
 			}
 			args.add(String.valueOf(100 - subpos));
@@ -89,8 +95,8 @@ public class ChannelNullPlayer extends FFMpegVideo {
 			args.add("-subfont-blur");
 			args.add(configuration.getMencoderNoAssBlur());
 			String font = CodecUtil.getDefaultFontPath();
-			if(!ChannelUtil.empty(configuration.getMencoderFont()))
-				font=configuration.getMencoderFont();
+			if(!ChannelUtil.empty(configuration.getFont()))
+				font=configuration.getFont();
 			if(!ChannelUtil.empty(font)) {
 				args.add("-font");
 				args.add(font);
@@ -100,10 +106,10 @@ public class ChannelNullPlayer extends FFMpegVideo {
 	}
 	
 	public ProcessWrapper launchTranscode(
-			String fileName,
 			DLNAResource dlna,
 			DLNAMediaInfo media,
 			OutputParams params) throws IOException {
+        String fileName  = dlna.getSystemName();
 		Channels.debug("ch_null_player launch "+fileName+" "+dlna);
 			params.minBufferSize = params.minFileSize;
 			params.secondread_minsize = 100000;

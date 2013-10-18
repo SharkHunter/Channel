@@ -30,6 +30,7 @@ import net.pms.dlna.Range;
 import net.pms.encoders.Player;
 import net.pms.encoders.PlayerFactory;
 import net.pms.formats.Format;
+import net.pms.formats.FormatFactory;
 import net.pms.formats.v2.SubtitleType;
 import net.pms.formats.WEB;
 import net.pms.io.BufferedOutputFile;
@@ -256,41 +257,36 @@ public class ChannelMediaStream extends DLNAResource {
     		return;
     	}	
 
-    	if(getExt().getProfiles()==null) // no profiles, what do we do? give up
-    		return;
+
     	// need to update player as well
     	int i=0;
     	Player pl=null;
-        while (pl == null && i < getExt().getProfiles().size()) {
-                pl = PlayerFactory.getPlayer(getExt().getProfiles().get(i), getExt());
-                i++;
-        }
         String name = getName();
-    	
-		for (Class<? extends Player> clazz : getExt().getProfiles()) {
-			for (Player p : PlayerFactory.getPlayers()) {
-				if (p.getClass().equals(clazz)) {
-					String end = "[" + p.id() + "]";
-					
-					if (name.endsWith(end)) {
-						//nametruncate = name.lastIndexOf(end);
-						pl = p;
-						break;
-					} else if (getParent() != null && getParent().getName().endsWith(end)) {
-						//getParent().nametruncate = getParent().getName().lastIndexOf(end);
-						pl = p;
-						break;
-					}
-				}
-			}
+
+        for (Player p : PlayerFactory.getPlayers()) {
+            String end = "[" + p.id() + "]";
+
+            if (name.endsWith(end)) {
+                //nametruncate = name.lastIndexOf(end);
+                pl = p;
+                break;
+            } else if (getParent() != null && getParent().getName().endsWith(end)) {
+                //getParent().nametruncate = getParent().getName().lastIndexOf(end);
+                pl = p;
+                break;
+            }
 		}
+
+        if (pl == null) {
+            pl = PlayerFactory.getPlayer(this);
+        }
 
 		// if we didn't find a new player leave the old one
       //  if(pl!=null)
 		if(Channels.cfg().usePMSEncoder()) {
 			boolean forceTranscode = false;
 			if (getExt() != null) {
-				forceTranscode = getExt().skip(PMS.getConfiguration().getForceTranscode(), getDefaultRenderer() != null ? getDefaultRenderer().getTranscodedExtensions() : null);
+				forceTranscode = getExt().skip(PMS.getConfiguration().getForceTranscodeForExtensions(), getDefaultRenderer() != null ? getDefaultRenderer().getTranscodedExtensions() : null);
 			}
 
 			boolean isIncompatible = false;
@@ -548,7 +544,7 @@ public class ChannelMediaStream extends DLNAResource {
     private boolean legalExt(String ext) {
     	if(ChannelUtil.empty(ext))
     		return false;
-    	ArrayList<Format> formats=PMS.get().getExtensions();
+    	ArrayList<Format> formats= (ArrayList<Format>) FormatFactory.getSupportedFormats();
     	for(Format f : formats) {
     		String[] supported=f.getId();
     		for(int i=0;i<supported.length;i++)
@@ -589,7 +585,7 @@ public class ChannelMediaStream extends DLNAResource {
 
 	public boolean isValid() {
 		if(render!=null&&render.isXBOX()&&(format==Format.VIDEO)) {
-			ext = PMS.get().getAssociatedExtension("dummy.avi");
+			ext = FormatFactory.getAssociatedFormat("dummy.avi");
 			if(media==null)
 				media=new DLNAMediaInfo();
 			media.mimeType=FormatConfiguration.MIMETYPE_AUTO;
