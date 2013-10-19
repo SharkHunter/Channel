@@ -812,6 +812,8 @@ public class ChannelNaviXProc {
 		if(script==null)
 			return str;
 		HashMap<String,String> res=lite(str,script,initStash,ch);
+        if(res == null)
+            return null;
 		return res.get("url");
 	}
 }

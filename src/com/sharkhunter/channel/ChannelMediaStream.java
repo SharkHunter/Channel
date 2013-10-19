@@ -680,7 +680,7 @@ public class ChannelMediaStream extends DLNAResource {
 				} catch (FileNotFoundException e) {
 					return;
 				} 
-				sub.setId(1);
+				sub.setId(101);
 				sub.setLang("und");
 				sub.setType(SubtitleType.SUBRIP);
 				media.container="unknown"; // avoid bug in mencvid
