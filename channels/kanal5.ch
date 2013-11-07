@@ -1,4 +1,4 @@
-version=0.35
+version=0.36
 
 scriptdef fix_quote {
 	nodebug='1
@@ -55,7 +55,7 @@ channel Kanal5Play {
 				prop=matcher_dotall,name_separator=###0
 				action_name=resolved
 				media {
-					matcher=\"bitrate\":@#br@#000,\"source\":\"([^\"]+)\",\"drmProtected\":false}.*?\"streamBaseUrl\":\"([^\"]+)\".*?\"id\":(\d+),\"type\"
+					matcher=\"bitrate\":@#br@#000,\"source\":\"([^\"]+)\",\"drmProtected\":false[^}]+}.*?\"streamBaseUrl\":\"([^\"]+)\".*?\"id\":(\d+),\"type\"
 					order=playpath,url,subs
 					prop=prepend_subs=http://www.kanal5play.se/api/subtitles/,last_play_action=resolved
 					put=swfVfy=http://www.kanal5play.se/flash/K5StandardPlayer.swf
