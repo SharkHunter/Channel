@@ -715,7 +715,7 @@ public class ChannelMediaStream extends DLNAResource {
 					Channels.debug("set sub file "+sub.getExternalFile().getAbsolutePath());
 				} catch (FileNotFoundException e) {
 				}
-				sub.setId(1);
+				sub.setId(101);
 				sub.setLang("und");
 				sub.setType(SubtitleType.SUBRIP);
 				media.container="unknown"; // avoid bug in mencvid

@@ -262,9 +262,6 @@ public class CH_plugin implements AdditionalFolderAtRoot, StartStopListener,
 		} catch (ConfigurationException e) {
 			e.printStackTrace();
 			System.exit(0);
-		} catch (IOException e) {
-			e.printStackTrace();
-			System.exit(0);
 		}
 		PMS.getConfiguration().setFfmpegAlternativePath("ffmpeg.exe");
 		Channels chRoot=new Channels(".","","");

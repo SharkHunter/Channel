@@ -617,7 +617,7 @@ public class ChannelCfg {
 	
 	private static final String chList="https://github.com/SharkHunter/Channel/tree/master/channels";
 	private static final String scList="https://github.com/SharkHunter/Channel/tree/master/scripts";
-	private static final String chReg="<td class=\"content\">\\s*.*?<a href=\"[^\"]+\" [^>]+>([^<]+)</a></td>";
+	private static final String chReg="<td class=\"content\">\\s*.*?<a href=\"[^\"]+\" [^>]+>([^<]+)</a>";
 	private static final String rawChBase="https://github.com/SharkHunter/Channel/raw/master/channels/";
 	private static final String rawScBase="https://github.com/SharkHunter/Channel/raw/master/scripts/";
 	private static final String pywin="http://sharkhunter-shb.googlecode.com/files/pywin.zip"; 

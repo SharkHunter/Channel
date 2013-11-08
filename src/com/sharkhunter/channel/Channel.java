@@ -538,7 +538,7 @@ public class Channel extends VirtualFolder {
 		if(dst.exists())
 			return dst.getAbsolutePath();
 		int index=1;
-		String fe=PMS.getConfiguration().getMencoderSubCp();
+		String fe=ChannelUtil.getCodePage();
 		String data=FileUtils.readFileToString(src,fe);
 		OutputStreamWriter out=new OutputStreamWriter(new FileOutputStream(dst),fe);
 		subConv.startMatch(data);
@@ -617,7 +617,7 @@ public class Channel extends VirtualFolder {
 			File outFile=new File(subFile+".bravia");
 			if(outFile.exists())
 				return outFile.getAbsolutePath();
-			String cp=PMS.getConfiguration().getMencoderSubCp();
+			String cp=ChannelUtil.getCodePage();
 			BufferedReader in=new BufferedReader(new InputStreamReader(
 												 new FileInputStream(subFile),cp));	
 			String str;
