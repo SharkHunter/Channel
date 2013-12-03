@@ -1,4 +1,4 @@
-version=0.80
+version=0.82
 
 scriptdef svtFilter{
 	url=s_url
@@ -42,6 +42,28 @@ channel SVTPlay {
 	resolve {
 		matcher=(http://www.oppetarkiv.se/video/.*)
 		action=resolved_open
+	}
+	resolve {
+		matcher=http://www.svt.se/(wd\?.*)
+		prop=append_url=&output=json&format=json,prepend_url=http://www.svt.se/
+		action=svt_klipp_resolved		
+	}
+	resolve {
+		matcher=(.*svt.se/.*)
+		action=svt_klipp
+	}
+	folder {
+		type=action
+		action_name=svt_klipp
+		folder {
+			type=empty
+			# <iframe src="http://www.svt.se/wd?widgetId=23991&sectionId=1752&articleId=1634593&type=embed&contextSectionId=1752&autostart=false
+			matcher=<p class=\"svtplayembed svtWpVideo\"><iframe src=\"([^\"]+)\"[^>]+
+			prop=append_url=&output=json&format=json
+			macro=svtHLSMedia
+			action_name=svt_klipp_resolved 
+		}
+		
 	}
 	folder {
 		url=http://www.svtplay.se/kanaler
