@@ -1,4 +1,4 @@
-version=0.40
+version=0.50
 
 scriptdef viaFilter{
 	url=s_url
@@ -63,44 +63,6 @@ macrodef viaHLS {
 	}
 }
 
-macrodef hlsMedia {
-	folder {
-		matcher=<ProductId>(\d+)</ProductId>.*?<Title><!\[CDATA\[([^>]+)\]\]></Title>.*?<SamiFile>(.*?)</SamiFile>
-		order=url,name,subs
-		prop=matcher_dotall,discard_duplicates
-		url=http://viastream.viasat.tv/MobileStream/
-		macro=viaHLS
-	}
-	folder {
-		matcher=<ProductId>(\d+)</ProductId>.*?<Title><!\[CDATA\[([^>]+)\]\]></Title>
-		order=url,name
-		url=http://viastream.viasat.tv/MobileStream/
-		prop=discard_duplicates
-		macro=viaHLS
-	}
-	
-}
-
-macrodef via_ses_epi {
-	matcher=<siteMapNode title=\"(.*)\" id=\"(.*)\" children=\"true\".*>
-	order=name,url
-	folder {
-		# Season
-		matcher=<siteMapNode title=\"(.*)\" id=\"(.*)\" children=\"false\".*>
-		order=name,url
-		url=http://viastream.viasat.tv/Products/Category/
-		folder {
-			#Episodes
-			matcher=<ProductId>([^>]+)</ProductId>[^<]+<Title><!\[CDATA\[([^>]+)\]\]></Title>
-			url=http://viastream.viasat.tv/Products/
-			order=url,name
-			type=empty
-			macro=hlsMedia
-			macro=via_rtmp
-		}
-	}
-}
-
 channel TV3 {
 	img=http://www.mynewsdesk.com/se/view/Image/download/resource_image/95624
 	var {
@@ -119,66 +81,38 @@ channel TV3 {
 	folder {
 		name=A-Z
 		type=ATZ
-		url=http://viastream.viasat.tv/siteMapData/se/2se/
+		url=http://www.tv3play.se/program
 		folder {
 			# Programs
-			url=http://viastream.viasat.tv/siteMapData/se/2se/
-			macro=via_ses_epi
+			#<a href="http://www.tv3play.se/program/101-satt-att-aka-ur-en-gameshow" class="list-item" data-channel-id="1209">101 sätt att åka ur en gameshow</a><br/>
+			matcher=a href=\"([^\"]+)\" class=\"list-item\"[^>]+>(.*)</a><br/>
+			order=url,name
+			prop=discard_duplicates
+			folder {
+				# Season
+				#<li class="selector-item is-current" data-id="6302" data-title="Säsong 2"
+				matcher=<li class=\"selector-item[^\"]*\" data-id=\"([^\"]+)\" data-title=\"([^\"]+)\"
+				order=url,name
+				prop=prepend_parenturl,prepend_url=/avsnitt?id=			
+				folder {
+					# Episode
+					#<a href="http://www.tv6play.se/program/112-aina/325517?autostart=true">		
+			#<div class="clip-image">
+		#		<img class="lazyload" src="http://cdn.playstatic.mtgx.tv/static/ui/img/clip-small-placeholder.png" data-src="http://cdn.playapi.mtgx.tv/imagecache/230x150/seasons/6302/325517/5aaa4bd3ccc98d302dedaf9738dc32aa-3jpg.jpg"/>
+		#	</div>
+		#	<div class="clip-description-wrapper">
+		#										<div class="clip-description">
+		#			<h3 class="clip-title">Avsnitt 8</h3>
+		#		</div>
+					matcher=<a href=\".*?/program/[^/]+/([0-9]+)\?autostart=true\">.*?<div class=\"clip-image\">.*?<img class=\"lazyload\" src=\"[^\"]+\" data-src=\"([^\"]+)\"/>.*?<h3 class=\"clip-title\">([^<]+)</h3>
+					order=url,thumb,name
+					prop=matcher_dotall
+					url=http://viastream.viasat.tv/MobileStream/
+					macro=viaHLS
+				}
+			}
 		}
 	}
 }
 
 
-channel TV6 {
-	img=http://www.tv6.se/sites/all/themes/free_tv/css/custom/tv6_se/images/logo.png
-	var {
-		disp_name=HLS Only
-		var_name=hls_only
-		default=true
-		type=bool
-		action=null
-	}
-	sub_conv {
-		matcher=<Subtitle .*?TimeIn=\"([^\"]+)\" TimeOut=\"([^\"]+)\"[^>]+>(.*?)</Subtitle>
-		order=start,stop,text_embed
-		prop=matcher_dotall,text_separator=###n
-		emb_matcher_text=<Text [^>]+>(.*?)</Text>
-	}
-	folder {
-		name=A-Z
-		type=ATZ
-		url=http://viastream.viasat.tv/siteMapData/se/3se/
-		folder {
-			# Programs
-			url=http://viastream.viasat.tv/siteMapData/se/3se/
-			macro=via_ses_epi
-		}
-	}
-}
-
-channel TV8 {
-	img=http://www.tv8.se/sites/all/themes/free_tv/css/custom/tv8_se/images/logo.png
-	var {
-		disp_name=HLS Only
-		var_name=hls_only
-		default=true
-		type=bool
-		action=null
-	}
-	sub_conv {
-		matcher=<Subtitle .*?TimeIn=\"([^\"]+)\" TimeOut=\"([^\"]+)\"[^>]+>(.*?)</Subtitle>
-		order=start,stop,text_embed
-		prop=matcher_dotall,text_separator=###n
-		emb_matcher_text=<Text [^>]+>(.*?)</Text>
-	}
-	folder {
-		name=A-Z
-		type=ATZ
-		url=http://viastream.viasat.tv/siteMapData/se/4se/
-		folder {
-			# Programs
-			url=http://viastream.viasat.tv/siteMapData/se/4se/
-			macro=via_ses_epi
-		}
-	}
-}
