@@ -1,4 +1,4 @@
-version=0.45
+version=0.46
 
 scriptdef furkSubs {
 	release='1
@@ -99,7 +99,7 @@ macrodef furkMacro {
 			matcher=<title>([^<]+)</title>\s+<location>([^<]+)</location>
 			order=name,url
 			subtitle=swesub,s4u,ut.se
-			prop=name_index=0
+			prop=name_index=1
 		}
 	}
 }
@@ -159,6 +159,7 @@ channel Furk {
 		}
 		folder {
 			matcher=url_page\":\"([^\"]+)\"
+			url=https://www.furk.net/
 			order=url
 			type=empty
 			macro=furkPlayItem
