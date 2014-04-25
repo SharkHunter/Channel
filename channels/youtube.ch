@@ -22,7 +22,7 @@ channel YouTube {
 		authstr=GoogleLogin auth=
 	}
 	resolve {
-		matcher=(youtube\.com)
+		matcher=(.*youtube\.com/.*)
 		action=resolved
 	}
 	folder {

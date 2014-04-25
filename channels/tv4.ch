@@ -1,4 +1,4 @@
-version=0.40
+version=0.41
 
 macrodef tv4PlayMac {
 			folder {
@@ -79,7 +79,7 @@ channel TV4 {
 			folder {
 				# Episodes
 				#<h3 class="video-title"><a href="/program/112-p%C3%A5-liv-och-d%C3%B6d?video_id=2286322">112 - på liv och död del 3</a>
-				matcher=<h3 class=\'video-title\'>\s*<a href=\'([^\']+)\'>([^<]+)</a>
+				matcher=<h3 class=\'video-title\'>\s*<a href=\"([^\"]+)\">([^<]+)</a>
 				order=url,name,thumb
 				prop=matcher_dotall,discard_duplicates,crawl_mode=HML
 				url=http://www.tv4play.se/

@@ -1,4 +1,4 @@
-version=0.82
+version=0.90
 
 scriptdef svtFilter{
 	url=s_url
@@ -184,3 +184,49 @@ channel SVTPlay {
 	}
 }
 			
+channel SVTFlow {
+	img=http://www.svtflow.se/public/version_ae0812cc31cdecf53ab8e39a17675d9b08909372/images/favicon.ico
+	folder {
+		name=Flow
+		url=http://www.svtflow.se
+		folder {
+			matcher=data-fulltitle=\"([^\"]+)\".*?data-json-href=\"(/video[^\"]+)\".*?data-thumbnailxlimax=\"([^\"]+)\"			
+			order=name,url,thumb
+			url=http://www.svtplay.se
+			action_name=crawl
+			prop=matcher_dotall,monitor,crawl_mode=FLA+HML,append_url=?output=json
+			media {
+				matcher=\"url\":\"(rtmp[^\"]+)\",\"bitrate\":([^,]+),
+				order=url,name
+				prop=append_name=Kbps,name_separator=###0,url_mangle=svtFilter
+				put=swfVfy=http://www.svtplay.se/public/swf/video/svtplayer-2012.34.swf
+			}
+			macro=svtHLSMedia	
+		}
+	}
+	folder {
+		name=Program
+		type=ATZ
+		url=http://www.svtflow.se/program
+		folder {
+			matcher=<article class=\"svt_mediablock\">.*?<a href=\"([^\"]+)\">.*?<img src=\"([^\"]+)\" alt=\"([^\"]+)\"[^>]+>
+			order=url,thumb,name
+			url=http://www.svtflow.se
+			prop=matcher_dotall
+			folder {
+				matcher=data-fulltitle=\"([^\"]+)\".*?data-json-href=\"(/video[^\"]+)\".*?data-thumbnailxl=\"([^\"]+)\"					
+				order=name,url,thumb
+				url=http://www.svtplay.se
+				action_name=crawl
+				prop=matcher_dotall,monitor,crawl_mode=FLA+HML,append_url=?output=json
+				media {
+					matcher=\"url\":\"(rtmp[^\"]+)\",\"bitrate\":([^,]+),
+					order=url,name
+					prop=append_name=Kbps,name_separator=###0,url_mangle=svtFilter
+					put=swfVfy=http://www.svtplay.se/public/swf/video/svtplayer-2012.34.swf
+				}
+				macro=svtHLSMedia				
+			}
+		}
+	}
+}
