@@ -153,22 +153,22 @@ public class ChannelUtil {
 		//	connection.setRequestProperty("Content-Length", "0"); 
 			connection.setDoInput(true);
 			connection.setDoOutput(true);
-		    BufferedReader in = new BufferedReader(new InputStreamReader(connection.getInputStream()));
-		    StringBuilder page=new StringBuilder();
-		    String str;
-		    while ((str = in.readLine()) != null) { 
-		    //	page.append("\n");
-		    	page.append(str.trim());
-		    	page.append("\n");
-		    }
-		    in.close();
+			BufferedReader in = new BufferedReader(new InputStreamReader(connection.getInputStream()));
+			StringBuilder page=new StringBuilder();
+			String str;
+			while ((str = in.readLine()) != null) {
+			//	page.append("\n");
+				page.append(str.trim());
+				page.append("\n");
+			}
+			in.close();
 			Channels.restoreProxyDNS();
-		    return page.toString();
+			return page.toString();
 		}
 		catch (Exception e) {
 			Channels.debug("fetch exception "+e.toString());
 			Channels.restoreProxyDNS();
-		    return "";
+			return "";
 		}
 	}
 	
@@ -273,54 +273,54 @@ public class ChannelUtil {
 	
 	public static ArrayList<String> gatherBlock(String[] lines,int start) {
 		ArrayList<String> res=new ArrayList<String>();
-    	int curls=1;
-    	for(int i=start;i<lines.length;i++) {
-    		String str=lines[i].trim();
-    		if(str.startsWith("}")) {
-    			res.add("}");
-    			curls--;
-    			if(curls==0)
-    				break;
-    			continue;
-    		}
-    		if(str.contains("{"))
-    			curls++;
-    		res.add(str+"\n");
-    	}
-    	return res; 
+		int curls=1;
+		for(int i=start;i<lines.length;i++) {
+			String str=lines[i].trim();
+			if(str.startsWith("}")) {
+				res.add("}");
+				curls--;
+				if(curls==0)
+					break;
+				continue;
+			}
+			if(str.contains("{"))
+				curls++;
+			res.add(str+"\n");
+		}
+		return res;
 	}
 	
 	public static ArrayList<String> gatherBlock(ArrayList<String> data,int start) {
 		ArrayList<String> res=new ArrayList<String>();
-    	int curls=1;
-    	for(int i=start;i<data.size();i++) {
-    		String str=data.get(i).trim();
-    		if(str.startsWith("}")) {
-    			res.add("}");
-    			curls--;
-    			if(curls==0)
-    				break;
-    			continue;
-    		}
-    		if(str.contains("{"))
-    			curls++;
-    		res.add(str+"\n");
-    	}
-    	return res; 
+		int curls=1;
+		for(int i=start;i<data.size();i++) {
+			String str=data.get(i).trim();
+			if(str.startsWith("}")) {
+				res.add("}");
+				curls--;
+				if(curls==0)
+					break;
+				continue;
+			}
+			if(str.contains("{"))
+				curls++;
+			res.add(str+"\n");
+		}
+		return res;
 	}
 	
 	public static String append(String res,String sep,String data) {
 		res=ChannelUtil.separatorToken(res);
 		data=ChannelUtil.separatorToken(data);
 		sep=ChannelUtil.separatorToken(sep);
-  	  	if(empty(res))
-  	  		return data;
-  	  	if(empty(data))
-  	  		return res;
-  	  	if(empty(sep))
-  	  		return res+data;
-  	  	return res+sep+data;
-    }
+		if(empty(res))
+			return data;
+		if(empty(data))
+			return res;
+		if(empty(sep))
+			return res+data;
+		return res+sep+data;
+	}
 	
 	public static ChannelMacro findMacro(ArrayList<ChannelMacro> macros,String macro) {
 		if(macros==null)
@@ -492,7 +492,7 @@ public class ChannelUtil {
 		if(render != null)
 			braviaFix = render.isBRAVIA() && Channels.cfg().subBravia();
 		sub=ch.convSub(sub,braviaFix);
-        Channels.debug("sub fiel "+sub);
+		Channels.debug("sub fiel "+sub);
 		rUrl=append(rUrl,"&subs=",escape(sub));
 		//-spuaa 3 -subcp ISO-8859-10 -subfont C:\Windows\Fonts\Arial.ttf -subfont-text-scale 2 -subfont-outline 1 -subfont-blur 1 -subpos 90 -quiet -quiet -sid 100 -fps 25 -ofps 25 -sub C:\downloads\Kings Speech.srt -lavdopts fast -mc 0 -noskip -af lavcresample=48000 -srate 48000 -o \\.\pipe\mencoder1299956406082
 		PmsConfiguration configuration=PMS.getConfiguration();
@@ -503,14 +503,14 @@ public class ChannelUtil {
 		rUrl=append(rUrl,"&subout=",escape(configuration.getMencoderNoAssOutline()));
 		rUrl=append(rUrl,"&subblur=",escape(configuration.getMencoderNoAssBlur()));
 		int subpos = 1;
-        try {
-        	subpos = Integer.parseInt(configuration.getMencoderNoAssSubPos());
-        } catch (NumberFormatException n) {
-        }
-        rUrl=append(rUrl,"&subpos=",String.valueOf(100 - subpos));
-        rUrl=append(rUrl,"&subtype=",ch.embSubExt());
-      //  rUrl=append(rUrl,"&subdelay=","20000");
-        return rUrl;
+		try {
+			subpos = Integer.parseInt(configuration.getMencoderNoAssSubPos());
+		} catch (NumberFormatException n) {
+		}
+		rUrl=append(rUrl,"&subpos=",String.valueOf(100 - subpos));
+		rUrl=append(rUrl,"&subtype=",ch.embSubExt());
+	  //  rUrl=append(rUrl,"&subdelay=","20000");
+		return rUrl;
 	}
 	
 	public static String badResource() {
@@ -776,17 +776,17 @@ public class ChannelUtil {
 			pb.redirectErrorStream(true);
 			Process pid=pb.start();
 			InputStream is = pid.getInputStream();
-	        InputStreamReader isr = new InputStreamReader(is);
-	        BufferedReader br = new BufferedReader(isr);
-	        String line;
-	        StringBuilder sb=new StringBuilder();
-	        while ((line = br.readLine()) != null) { 
-	        	sb.append(line);
-	        	if(verbose)
-	        		Channels.debug("execute read line "+line);
-	        }
-	        pid.waitFor();
-	        return sb.toString();
+			InputStreamReader isr = new InputStreamReader(is);
+			BufferedReader br = new BufferedReader(isr);
+			String line;
+			StringBuilder sb=new StringBuilder();
+			while ((line = br.readLine()) != null) {
+				sb.append(line);
+				if(verbose)
+					Channels.debug("execute read line "+line);
+			}
+			pid.waitFor();
+			return sb.toString();
 		}
 		catch (Exception e) {
 			Channels.debug("executing external script failed "+e);
@@ -1269,11 +1269,11 @@ public class ChannelUtil {
 		return def;
 	}
 
-    public static String getCodePage() {
-        String cp = PMS.getConfiguration().getSubtitlesCodepage();
-        if(empty(cp))
-            return "utf-8";
-        return cp;
-    }
+	public static String getCodePage() {
+		String cp = PMS.getConfiguration().getSubtitlesCodepage();
+		if(empty(cp))
+			return "utf-8";
+		return cp;
+	}
 	
 }

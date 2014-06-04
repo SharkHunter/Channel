@@ -1,4 +1,4 @@
-version=0.90
+version=0.91
 
 scriptdef svtFilter{
 	url=s_url
@@ -79,10 +79,10 @@ channel SVTPlay {
 	}
 	folder {
 		name=Live
-		url=http://www.svtplay.se/?live=1
+		url=http://www.svtplay.se/?tab=live&sida=1
 		folder {
-			matcher=a href=\"(/video[^\"]+)\" class=\"[^\"]+\">.*?<img *class=\"svtMediaBlockFig-L playBroadcastThumbnail\" alt=\"([^\"]+)\" src=\"([^\"]+)\"
-			order=url,name,thumb
+			matcher=data-title=\"([^\"]+).*?a href=\"(/video[^\"]+)\" class=\"[^\"]+\">.*?<img *class=\"playGridThumbnail\" alt=\"\" src=\"([^\"]+)\"
+			order=name,url,thumb
 			prop=matcher_dotall
 			url=http://www.svtplay.se/
 			folder {
@@ -145,14 +145,14 @@ channel SVTPlay {
 		type=ATZ
 		url=http://www.svtplay.se/program
 		folder {
-			 matcher=<a href=\"([^\"]+)\" class=\"playAlphabeticLetterLink\".*?>([^<]+)</a>
+			 matcher=<a href=\"([^\"]+)\" class=\"play_alphabetic-link play_h4\">([^<]+)</a>
 			 order=url,name
 			 url=http://www.svtplay.se/
 			 prop=matcher_dotall,monitor
 			 action_name=resolved
 			 folder {
 				url=http://www.svtplay.se/
-		  		matcher=data-title=\"([^\"]+)\".*?<a href=\"([^\"]+)\" class=\"playLink [^\"]+\">.*?<img class=\"playGridThumbnail\" alt=\"[^\"]*\" src=\"([^\"]+)\"
+		  		matcher=data-title=\"([^\"]+)\".*?<a href="(/video/[^\"]+)" class="play_videolist-element__link playLink playIELinkFix playJsGridItem play_link-decoration-none play_js-videlist-element__link" .*?<img class=\"[^\"]*\" alt=\"[^\"]*\" src=\"([^\"]+)\"
 				order=name,url,thumb
 				action_name=crawl
 				prop=matcher_dotall,monitor,crawl_mode=FLA+HML
