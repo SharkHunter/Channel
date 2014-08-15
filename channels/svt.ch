@@ -1,4 +1,4 @@
-version=0.91
+version=0.92
 
 scriptdef svtFilter{
 	url=s_url
@@ -145,15 +145,15 @@ channel SVTPlay {
 		type=ATZ
 		url=http://www.svtplay.se/program
 		folder {
-			 matcher=<a href=\"([^\"]+)\" class=\"play_alphabetic-link play_h4\">([^<]+)</a>
+			 matcher=<a href=\"([^\"]+)\" class=\"play_alphabetic-link[^\"]*\">([^<]+)</a>
 			 order=url,name
 			 url=http://www.svtplay.se/
 			 prop=matcher_dotall,monitor
 			 action_name=resolved
 			 folder {
 				url=http://www.svtplay.se/
-		  		matcher=data-title=\"([^\"]+)\".*?<a href="(/video/[^\"]+)" class="play_videolist-element__link playLink playIELinkFix playJsGridItem play_link-decoration-none play_js-videlist-element__link" .*?<img class=\"[^\"]*\" alt=\"[^\"]*\" src=\"([^\"]+)\"
-				order=name,url,thumb
+		  		matcher=<a title=\"[^\"]+\" href="(/video/[^\"]+)" class=\"[^\"]+\" .*?<img class=\"[^\"]*\".*?imagename=\"([^\"]+)\".*?<span class=\"play-link-sub\">([^<]+)</span>
+				order=url,thumb,name
 				action_name=crawl
 				prop=matcher_dotall,monitor,crawl_mode=FLA+HML
 				folder {
