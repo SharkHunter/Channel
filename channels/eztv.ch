@@ -1,11 +1,11 @@
-version=0.16
+version=0.17
 
 macrodef ezSwitch {
 	folder {
 	#<a href="/ep/38340/the-big-bang-theory-s06e02-hdtv-x264-lol/" title="The Big Bang Theory S06E02 HDTV x264-LOL (123.68 MB)"
 		matcher=<a href=\"(/ep/[^\"]+)\"\s*title=\"([^\"]+)\"\s*alt=
 		order=url,name
-		url=http://eztv.it
+		url=https://eztv.it
 		switch {
 			matcher=href=\"(magnet:[^\"]+)\" class=\"magnet\" title=\"([^\"]+)\">
 			order=url,name
@@ -29,27 +29,27 @@ macrodef ezSwitch {
 
 channel EZTV {
 	folder {
-		url=http://eztv.it/showlist/
+		url=https://eztv.it/showlist/
 		type=ATZ
 		name=A-Z
 		folder {
 		#><a href="/shows/449/10-oclock-live/" class="thread_link">10 O'Clock Live</a></td>
-			matcher=<a href=\"([^\"]+)\".*?>([^<]+)</a>
+			matcher=<a href=\"([^\"]+)\".*?>([^<]+)</a></td>
 			order=url,name
-			url=http://eztv.it
+			url=https://eztv.it
 			prop=monitor,monitor_type=parent,monitor_templ=tpbMonitor,crawl_mode=FLA+FLA+FLA
 			macro=ezSwitch
 		}
 	}
 	folder {
 		name=Added Recently
-		url=http://eztv.it/sort/100/
+		url=https://eztv.it/sort/100/
 		macro=ezSwitch
 		folder {
 			type=recurse
 			matcher=a href=\"([^\"]+)\"> (next page)
 			order=url,name
-			url=http://eztv.it
+			url=https://eztv.it
 			prop=only_first
 		}
 	}
