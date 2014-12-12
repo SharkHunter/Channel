@@ -1,4 +1,4 @@
-version=0.94
+version=0.96
 
 scriptdef svtFilter{
 	url=s_url
@@ -70,7 +70,7 @@ channel SVTPlay {
 		type=empty
 		folder {
 			#data-jsonhref="/kanaler/svt1" data-channel="svt1" title="SVT1 |
-			matcher=data-thumbnail=\"([^\"]+)\" data-jsonhref=\"(/kanaler/[^\"]+)\" data-channel=\"[^\"]+\" title=\"([^\|]+) \|
+			matcher=data-thumbnail=\"([^\"]+)\" data-jsonhref=\"(/kanaler/[^\"]+)\" data-channel=\"([^\"]+)\"
 			order=thumb,url,name
 			url=http://www.svtplay.se/
 			prop=append_url=?output=json
@@ -152,7 +152,7 @@ channel SVTPlay {
 			 action_name=resolved
 			 folder {
 				url=http://www.svtplay.se/
-		  		matcher=<a title=\"[^\"]+\" href=\"(/video/[^\"]+)\" class=\"[^\"]+\" .*?<img.*?alt=\"([^\"]+)\".*?src=\"([^\"]+)\"
+		  		matcher=<a title=\"[^\"]+\".*?href=\"(/video/[^\"]+)\".*?class=\"[^\"]+\".*?<img.*?alt=\"([^\"]+)\".*?src=\"([^\"]+)\"
 				order=url,name,thumb
 				action_name=crawl
 				prop=matcher_dotall,monitor,crawl_mode=FLA+HML
