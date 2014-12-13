@@ -1,4 +1,4 @@
-version=0.10
+version=0.11
 
 scriptdef etMonitor {
 	regex='\.*\[.*?\]
@@ -64,6 +64,17 @@ macrodef etSwitch {
 	}
 }
 
+macrodef etNext {
+	folder {
+		#<a href="/view/popular/TV.html?page=4&amp;srt=added&amp;order=desc&amp;pp=50" title="4" class="pager_link">4</a>
+		type=recurse
+		matcher=a href=\"([^\"]+)\" title=\"[^\"]+\" class=\"pager_link\">(&gt;)</a>
+		order=url,name
+		url=http://extratorrent.cc
+		prop=continue_name=.*gt;,continue_limit=3
+	}
+}
+
 channel ExtraTorrent {
 	img=http://static.extratorrent.cc/images/logo.gif
 	folder {
@@ -76,7 +87,9 @@ channel ExtraTorrent {
 		folder {
 			name=TV
 			url=http://extratorrent.cc/view/popular/TV.html
+			prop=continue_name=.*gt;,continue_limit=3
 			macro=etSwitch
+			macro=etNext
 		}
 		folder {
 			name=Music
@@ -90,16 +103,19 @@ channel ExtraTorrent {
 		folder {
 			name=Movies
 			url=http://extratorrent.cc/category/4/Movies+Torrents.html
+			prop=continue_name=.*gt;,continue_limit=3
 			folder {
 				matcher=a href=\"(/category[^\"]+)\"[^>]+>([^<]+)</a>
 				order=url,name
 				url=http://extratorrent.cc/
 				macro=etSwitch
-			}			
+			}
+			macro=etNext
 		}
 		folder {
 			name=Tv
 			url=http://extratorrent.cc/category/8/TV+Torrents.html
+			type=ATZ
 			folder {
 				matcher=a href=\"(/category[^\"]+)\"[^>]+>([^<]+)</a></td>
 				order=url,name				
