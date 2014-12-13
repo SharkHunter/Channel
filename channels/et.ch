@@ -83,6 +83,7 @@ channel ExtraTorrent {
 			name=Movies
 			url=http://extratorrent.cc/view/popular/Movies.html
 			macro=etSwitch
+			macro=etNext
 		}
 		folder {
 			name=TV
@@ -96,6 +97,7 @@ channel ExtraTorrent {
 			url=http://extratorrent.cc/view/popular/Music.html
 			format=audio
 			macro=etSwitch
+			macro=etNext
 		}
 	}		
 	folder {
@@ -122,6 +124,7 @@ channel ExtraTorrent {
 				url=http://extratorrent.cc/
 				macro=etSwitch
 			}			
+			macro=etNext
 		}
 		folder {
 			name=Music
@@ -133,6 +136,7 @@ channel ExtraTorrent {
 				format=audio
 				macro=etSwitch
 			}			
+			macro=etNext
 		}
 	}
 	
