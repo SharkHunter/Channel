@@ -1,4 +1,4 @@
-version=0.97
+version=0.98
 
 scriptdef svtFilter{
 	url=s_url
@@ -145,7 +145,7 @@ channel SVTPlay {
 		type=ATZ
 		url=http://www.svtplay.se/program
 		folder {
-			 matcher=<a href=\"([^\"]+)\".*?class=\".*?play_alphabetic-li[^\"]*\">([^<]+)</a>
+			 matcher=<a href=\"(/[^\"]+)\".*?class=\".*?play_alphabetic-li[^\"]+\">([^<]+)</a>
 			 order=url,name
 			 url=http://www.svtplay.se/
 			 prop=matcher_dotall,monitor
