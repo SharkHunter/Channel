@@ -361,7 +361,7 @@ public class Channel extends VirtualFolder {
 	}
 	
 	public void addSearcher(String id,SearchObj obj) {
-		searchFolders.put(id,obj);
+		searchFolders.put(id, obj);
 	}
 	
 	public void research(String str,String id,DLNAResource res) {
@@ -383,6 +383,13 @@ public class Channel extends VirtualFolder {
 		if(obj==null)
 			return;
 		obj.search(str, res);
+	}	
+	public void searchAll(String str, DLNAResource res) {
+		for(String id : searchFolders.keySet()) {
+			SearchObj sobj = searchFolders.get(id);
+			if(sobj!=null)
+				sobj.search(str,res);
+		}
 	}
 	
 	public HashMap<String,String> getSubMap(String realName,int id) {

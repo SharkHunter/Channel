@@ -16,6 +16,7 @@ public class ChannelMonitor {
 	private boolean scanning;
 	private String templ;
 	private String search;
+	private boolean try_search;
 
 	ChannelMonitor(ChannelFolder cf,ArrayList<String> oldEntries,String name) {
 		this.cf=cf;
@@ -24,6 +25,7 @@ public class ChannelMonitor {
 		templ=null;
 		search=null;
 		scanning=false;
+		try_search = false;
 	}
 	
 	public void setTemplate(String t) {
@@ -33,6 +35,8 @@ public class ChannelMonitor {
 	public void setSearch(String s) {
 		search=s;
 	}
+
+	public void setTrySearch(boolean b) { try_search = b; }
 	
 	public void scan() {
 		if(scanning)
@@ -43,8 +47,13 @@ public class ChannelMonitor {
 		try {
 			if(!ChannelUtil.empty(search))
 				cf.search(search, dummy);
-			else
+			else {
+				if(try_search) {
+					Channel ch = cf.getChannel();
+					ch.searchAll(name, dummy);
+				}
 				cf.match(dummy);
+			}
 		} catch (MalformedURLException e) {
 			scanning=false;
 			return;

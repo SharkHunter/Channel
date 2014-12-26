@@ -241,7 +241,7 @@ public class ChannelPMSSaveFolder extends VirtualFolder {
 	}
 	
 	public void childDone() {
-		childDone=System.currentTimeMillis();
+		//childDone=System.currentTimeMillis();
 	}
 	
 	public boolean preventAutoPlay() {

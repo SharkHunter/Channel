@@ -5,6 +5,7 @@ import java.util.HashMap;
 import java.util.TreeMap;
 import java.util.TreeSet;
 
+import net.pms.dlna.DLNAMediaSubtitle;
 import org.apache.commons.lang.StringUtils;
 
 import net.pms.dlna.DLNAResource;

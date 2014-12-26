@@ -12,6 +12,7 @@ public class ChannelMatcher implements ChannelProps{
 	 private Matcher matcher;
 	 private Channel parent;
 	 private int flags;
+	 private String pageReg;
 	 private HashMap<String,ChannelMatcher> embed;
 	 
 	 private static final String lcbr="###lcbr###";
@@ -28,6 +29,7 @@ public class ChannelMatcher implements ChannelProps{
 		 this.properties=prop;
 		 regexp=null;
 		 parent=null;
+		 pageReg = null;
 		 flags=Pattern.MULTILINE;
 		 embed=new HashMap<String,ChannelMatcher>();
 	  }
@@ -41,6 +43,7 @@ public class ChannelMatcher implements ChannelProps{
 			 flags|=Pattern.DOTALL;
 		 if(ChannelUtil.getProperty(props, "no_case"))
 			 flags|=Pattern.CASE_INSENSITIVE;
+		 pageReg = ChannelUtil.getPropertyValue(props, "page_split");
 		 for(String key : embed.keySet()) {
 			 ChannelMatcher m=embed.get(key);
 			 m.processProps(props);
@@ -72,6 +75,14 @@ public class ChannelMatcher implements ChannelProps{
 		 if(ChannelUtil.empty(regStr))
 			 return;
 		 regexp=Pattern.compile(fixReg(regStr),flags);
+		 if(!ChannelUtil.empty(pageReg)) {
+			 // inherit flags
+			 Pattern re = Pattern.compile(fixReg(pageReg), flags);
+			 Matcher m1 = re.matcher(str);
+			 if(m1.find()) {
+				 str = m1.group(1);
+			 }
+		 }
 		 this.matcher=this.regexp.matcher(str);
 	 }
 
