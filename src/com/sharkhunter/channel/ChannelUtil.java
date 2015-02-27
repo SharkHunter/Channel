@@ -277,13 +277,13 @@ public class ChannelUtil {
 		for(int i=start;i<lines.length;i++) {
 			String str=lines[i].trim();
 			if(str.startsWith("}")) {
-				res.add("}");
 				curls--;
 				if(curls==0)
 					break;
+				res.add("}");
 				continue;
 			}
-			if(str.contains("{"))
+			if(str.endsWith("{"))
 				curls++;
 			res.add(str+"\n");
 		}
@@ -296,13 +296,13 @@ public class ChannelUtil {
 		for(int i=start;i<data.size();i++) {
 			String str=data.get(i).trim();
 			if(str.startsWith("}")) {
-				res.add("}");
 				curls--;
 				if(curls==0)
 					break;
+				res.add("}");
 				continue;
 			}
-			if(str.contains("{"))
+			if(str.endsWith("{"))
 				curls++;
 			res.add(str+"\n");
 		}
