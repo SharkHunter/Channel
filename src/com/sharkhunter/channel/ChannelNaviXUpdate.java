@@ -1,14 +1,12 @@
 package com.sharkhunter.channel;
 
-import java.io.IOException;
-import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLConnection;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 public class ChannelNaviXUpdate {
-	
+
 	private static String baseUrl="http://www.navixtreme.com/";
 	private static String myUrl=baseUrl+"playlist/mine.plx";
 	private static String loginUrl=baseUrl+"members";
@@ -16,7 +14,7 @@ public class ChannelNaviXUpdate {
 	private static String listId=null;
 	private static String naviCookie=null;
 	private static boolean local;
-	
+
 	private static boolean setId(String url,String name,String name1,String type) {
 		Pattern re=Pattern.compile("/(\\d+)/");
 		if(ChannelUtil.empty(url)) {
@@ -49,7 +47,7 @@ public class ChannelNaviXUpdate {
 		}
 		return false;
 	}
-	
+
 	private static void fetchCookie(ChannelCred cr) throws Exception{
 		if(cr==null)
 			return;
@@ -57,7 +55,7 @@ public class ChannelNaviXUpdate {
 		String query="action=takelogin&ajax=1&username="+cr.user+"&password="+cr.pwd;
 		URLConnection c=u.openConnection();
 		String page=ChannelUtil.postPage(c, query);
-		if(ChannelUtil.empty(page)) 
+		if(ChannelUtil.empty(page))
 			throw new Exception("Empty NaviX login page");
 		String[] lines=page.split("\n");
 		if(!lines[0].contains("ok"))
@@ -66,7 +64,7 @@ public class ChannelNaviXUpdate {
 		ChannelCookie.parseCookie(c, a, baseUrl);
 		naviCookie="l_access="+lines[1].trim();
 	}
-	
+
 	private static void fetchListId(String name) throws Exception {
 		Channels.debug("using "+name+" as NaviX upload list");
 		if(name.equals("local")) {
@@ -101,13 +99,13 @@ public class ChannelNaviXUpdate {
 		}
 		setId(url,name,name1,type);
 	}
-	
+
 	public static void init(String listName,ChannelCred cred) throws Exception {
 		local=false;
 		fetchCookie(cred);
-		fetchListId(listName);		
+		fetchListId(listName);
 	}
-	
+
 	private static void upload(String query) throws Exception {
 		if(ChannelUtil.empty(listId)||ChannelUtil.empty(naviCookie))
 			throw new Exception("NaviXupdater missing listId or cookie");
@@ -116,13 +114,13 @@ public class ChannelNaviXUpdate {
 		String s=ChannelUtil.postPage(u.openConnection(), query,naviCookie,null);
 		Channels.debug("navixup res "+s);
 	}
-	
+
 	public static void updatePlx(String name,String url) throws Exception {
 		String query="action=item_save&id=0&list_id="+listId+"&text_local=0&"+
 			"list_pos=top&type=plx&name="+ChannelUtil.escape(name)+"&URL="+ChannelUtil.escape(url);
 		upload(query);
 	}
-	
+
 	public static void sync(String name,String url,String proc,int format,
 			String thumb,String imdb) throws Exception {
 		if(ChannelUtil.empty(proc)) // just to make sure
@@ -166,7 +164,7 @@ public class ChannelNaviXUpdate {
 		"&description="+ChannelUtil.escape(imdb);
 		upload(query);
 	}
-	
+
 	public static void updateMedia(Channel ch,String name,String url,String proc,int format,
 			String thumb,String imdb) throws Exception {
 		if(local) {
@@ -175,11 +173,11 @@ public class ChannelNaviXUpdate {
 		if(netActive())
 			sync(name,url,proc,format,thumb,imdb);
 	}
-	
+
 	public static boolean netActive() {
 		return (!ChannelUtil.empty(listId))&&(!ChannelUtil.empty(naviCookie));
 	}
-	
+
 	public static boolean active() {
 		return local||netActive();
 	}

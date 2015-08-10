@@ -13,12 +13,9 @@ import java.io.PipedOutputStream;
 import java.net.URL;
 import java.net.URLConnection;
 import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
-
+import org.slf4j.LoggerFactory;
 import net.pms.PMS;
 import net.pms.configuration.FormatConfiguration;
 import net.pms.configuration.RendererConfiguration;
@@ -32,13 +29,11 @@ import net.pms.encoders.PlayerFactory;
 import net.pms.formats.Format;
 import net.pms.formats.FormatFactory;
 import net.pms.formats.v2.SubtitleType;
-import net.pms.formats.WEB;
-import net.pms.io.BufferedOutputFile;
 import net.pms.io.OutputParams;
-import net.pms.io.WindowsNamedPipe;
 
 public class ChannelMediaStream extends DLNAResource {
 
+	private static org.slf4j.Logger LOGGER = LoggerFactory.getLogger(ChannelMediaStream.class);
 	private String url;
 	private String thumb;
 	private String name;
@@ -48,7 +43,7 @@ public class ChannelMediaStream extends DLNAResource {
 	private String realUrl;
 	private int ASX;
 	private ChannelScraper scraper;
-	private String saveName; 
+	private String saveName;
 	private String dispName;
 	private Thread saver;
 	private boolean scraped;
@@ -67,17 +62,17 @@ public class ChannelMediaStream extends DLNAResource {
 	private Thread bgThread;
 	private int bgCnt;
 	private String hdr;
-	
+
 	public ChannelMediaStream(Channel ch,String name,String nextUrl,
 			  String thumb,String proc,int type,int asx,
-			  ChannelScraper scraper) {	
+			  ChannelScraper scraper) {
 		this(ch,name,nextUrl,thumb,proc,type,asx,scraper,name,null);
 	}
 	public ChannelMediaStream(Channel ch,String name,String nextUrl,
 							  String thumb,String proc,int type,int asx,
 							  ChannelScraper scraper,String dispName) {
 		this(ch,name,nextUrl,thumb,proc,type,asx,scraper,dispName,null);
-		
+
 	}
 	public ChannelMediaStream(Channel ch,String name,String nextUrl,
 							  String thumb,String proc,int type,int asx,
@@ -114,11 +109,11 @@ public class ChannelMediaStream extends DLNAResource {
 		getMedia().setAudioTracksList(new ArrayList<DLNAMediaAudio>());
 		getMedia().setMediaparsed(true);
 	}
-	
+
 	public ChannelMediaStream(ChannelMediaStream cms) {
 		this(cms,null);
 	}
-	
+
 	public ChannelMediaStream(ChannelMediaStream cms,String name) {
 		super(cms.getType());
 		url=cms.url;
@@ -153,7 +148,7 @@ public class ChannelMediaStream extends DLNAResource {
 		getMedia().setAudioTracksList(new ArrayList<DLNAMediaAudio>());
 		getMedia().setMediaparsed(true);
 	}
-	
+
 	public ChannelMediaStream(String name,String realUrl,Channel parent,int format,
 			String thumb) {
 		super(format);
@@ -188,51 +183,51 @@ public class ChannelMediaStream extends DLNAResource {
 		getMedia().setAudioTracksList(new ArrayList<DLNAMediaAudio>());
 		getMedia().setMediaparsed(true);
 	}
-	
+
 	public String saveName() {
 		return saveName;
 	}
-	
+
 	public void noSubs() {
 		noSubs=true;
 	}
-	
+
 	public void subs() {
 		noSubs=false;
 	}
-	
+
 	public void setRender(RendererConfiguration r) {
 		render=r;
 	}
-	
+
 	public void setSaveMode(boolean raw) {
 		rawSave=raw;
 	}
-	
+
 	public void setFallbackFormat(String s) {
 		videoFormat=s;
 	}
-	
+
 	public void setEmbedSub(Object str) {
 		embedSub=str;
 	}
-	
+
 	public ChannelScraper scraper() {
 		return scraper;
 	}
-	
+
 	public String imdb() {
 		return imdb;
 	}
-	
+
 	public void setName(String n) {
 		name=n;
 	}
-	
+
 	public void setStash(HashMap<String,String> map) {
 		stash=map;
 	}
-	
+
     public InputStream getThumbnailInputStream() throws IOException {
     	if (thumb != null) {
     		try {
@@ -245,17 +240,17 @@ public class ChannelMediaStream extends DLNAResource {
     	}
 		return super.getThumbnailInputStream();
     }
-    
-    
+
+
     private void updateStreamDetails(boolean loop) {
-    	Format old_ext=getExt();
+    	Format old_ext = getFormat();
     	// update format, use checktype to be future proof
-    	setExt(null);
-    	checktype();
-    	if(getExt()==null) { // no ext found restore what we got and bail out
-    		setExt(old_ext);
+    	setFormat(null);
+    	resolveFormat();
+    	if(getFormat() == null) { // no ext found restore what we got and bail out
+    		setFormat(old_ext);
     		return;
-    	}	
+    	}
 
 
     	// need to update player as well
@@ -285,13 +280,13 @@ public class ChannelMediaStream extends DLNAResource {
       //  if(pl!=null)
 		if(Channels.cfg().usePMSEncoder()) {
 			boolean forceTranscode = false;
-			if (getExt() != null) {
-				forceTranscode = getExt().skip(PMS.getConfiguration().getForceTranscodeForExtensions(), getDefaultRenderer() != null ? getDefaultRenderer().getTranscodedExtensions() : null);
+			if (getFormat() != null) {
+				forceTranscode = getFormat().skip(PMS.getConfiguration().getForceTranscodeForExtensions(), getDefaultRenderer() != null ? getDefaultRenderer().getTranscodedExtensions() : null);
 			}
 
 			boolean isIncompatible = false;
 
-			if (!getExt().isCompatible(getMedia(),getDefaultRenderer())) {
+			if (!getFormat().isCompatible(getMedia(),getDefaultRenderer())) {
 				isIncompatible = true;
 			}
 			boolean mp2=false;
@@ -315,14 +310,14 @@ public class ChannelMediaStream extends DLNAResource {
 			setPlayer(pl);
 		}
     }
-    
+
     public DLNAMediaSubtitle getSubs() {
     	DLNAMediaSubtitle sub=this.getMediaSubtitle();
-    	if(sub!=null&&sub.id!=-1)
+    	if(sub != null && sub.getId() != -1)
     		return null;
     	return sub;
     }
-    
+
     public void scrape(RendererConfiguration render) {
     	if(!scraped) {
     		if(scraper!=null)
@@ -334,7 +329,7 @@ public class ChannelMediaStream extends DLNAResource {
     	}
     	scraped=true;
     }
-    
+
     private void scrape_i(RendererConfiguration render) {
     	Channels.debug("scrape "+name+" nosubs "+noSubs);
     	fool=Channels.cfg().netDiscStyle();
@@ -357,7 +352,7 @@ public class ChannelMediaStream extends DLNAResource {
     	else {
     		if(realUrl.startsWith("subs://"))
 				fixStuff(realUrl.substring(7),true);
-    		else if(realUrl.startsWith("navix://")) 
+    		else if(realUrl.startsWith("navix://"))
     			fixStuff(realUrl.substring(8+8),false);
     		else if(realUrl.startsWith("rtmpdump://")) {
     			rtmpUrl(realUrl.substring(11+8));
@@ -367,19 +362,19 @@ public class ChannelMediaStream extends DLNAResource {
     		}
     	}
     	if(noSubs) { // make sure subs are off here
-			media_subtitle=new DLNAMediaSubtitle();
-			media_subtitle.setId(-1);
+			setMediaSubtitle(new DLNAMediaSubtitle());
+			getMediaSubtitle().setId(-1);
 		}
     	Channels.debug("call update "+realUrl);
     	updateStreamDetails(true);
     	fool=false;
     	ch.prepareCom();
     }
-    
-    
+
+
     public InputStream getInputStream(long low, long high, double timeseek, RendererConfiguration mediarenderer) throws IOException {
-    	if(parent instanceof ChannelPMSSaveFolder)
-    		if(((ChannelPMSSaveFolder)parent).preventAutoPlay())
+    	if(getParent() instanceof ChannelPMSSaveFolder)
+    		if(((ChannelPMSSaveFolder)getParent()).preventAutoPlay())
     			return null;
     	scrape_i(mediarenderer);
     	if(delayed())
@@ -391,12 +386,12 @@ public class ChannelMediaStream extends DLNAResource {
     	else
     	    return is;
     }
-    
+
     //public InputStream getInputStream(long low, long high, double timeseek, RendererConfiguration mediarenderer) throws IOException {
     public InputStream getInputStream(Range range, RendererConfiguration mediarenderer) throws IOException {
-    	PMS.debug("cms getinp/2 scrape "+scraper+" url "+realUrl);
-    	if(parent instanceof ChannelPMSSaveFolder)
-    		if(((ChannelPMSSaveFolder)parent).preventAutoPlay())
+    	LOGGER.debug("{Channel} Cms getinp/2 scrape {} url {}", scraper, realUrl);
+    	if(getParent() instanceof ChannelPMSSaveFolder)
+    		if(((ChannelPMSSaveFolder)getParent()).preventAutoPlay())
     			return null;
     	Channels.debug("cms getinp/2... scrape "+scraper+" url "+realUrl+" "+scraped);
     	scrape_i(mediarenderer);
@@ -416,7 +411,7 @@ public class ChannelMediaStream extends DLNAResource {
     	else
     	    return is;
     }
-    
+
     private InputStream getStream() {
     	if(realUrl.startsWith("resource://")) {
     		return getResourceInputStream(realUrl.substring("resource://".length()));
@@ -431,7 +426,7 @@ public class ChannelMediaStream extends DLNAResource {
 			if(auth!=null) {
 				if(auth.method==ChannelLogin.STD)
 					conn.setRequestProperty("Authorization", auth.authStr);
-				else if(ChannelUtil.cookieMethod(auth.method)) 
+				else if(ChannelUtil.cookieMethod(auth.method))
 					cookie=ChannelUtil.append(cookie,"; ",auth.authStr);
 			}
 			if(!ChannelUtil.empty(cookie))
@@ -462,7 +457,7 @@ public class ChannelMediaStream extends DLNAResource {
     		return null;
     	return getStream();
     }
-    
+
     private InputStream startSave(InputStream is) throws IOException {
     	String sName=saveName;
     	boolean cache=ChannelUtil.empty(saveName);
@@ -482,14 +477,20 @@ public class ChannelMediaStream extends DLNAResource {
     		new Thread(r).start();
     		return is;
     	}
+    	OutputStream[] oss = null;
+    	PipedInputStream pis = null;
     	BufferedOutputStream fos=new BufferedOutputStream(new FileOutputStream(fName));
+    	try {
  	   	PipedOutputStream pos=(new PipedOutputStream());
- 	   	PipedInputStream pis=new PipedInputStream(pos);
-		OutputStream[] oss=new OutputStream[2];
+ 	   	pis=new PipedInputStream(pos);
+		oss=new OutputStream[2];
 		oss[0]=fos;
 		oss[1]=pos;
+    	} finally {
+    		fos.close();
+    	}
 		saver=new Thread(new ChannelSaver(is,oss));
-		saver.start(); 
+		saver.start();
 		return new BufferedInputStream(pis);
     }
 
@@ -514,7 +515,7 @@ public class ChannelMediaStream extends DLNAResource {
     public long lastModified() {
     	return 0;
     }
-    
+
     public boolean directStream() {
     	if(format==Format.AUDIO)
     		return true;
@@ -524,7 +525,7 @@ public class ChannelMediaStream extends DLNAResource {
     	else {
     		u= realUrl;
     	}
-    	return u.startsWith("http")&&(media_subtitle!=null);
+    	return u.startsWith("http") && (getMediaSubtitle() != null);
     }
 
     public String getSystemName() {
@@ -540,20 +541,20 @@ public class ChannelMediaStream extends DLNAResource {
 			return ensureExt(u.substring(u.lastIndexOf("/")+1));
 		return (u); // need this to
     }
-    
+
     private boolean legalExt(String ext) {
     	if(ChannelUtil.empty(ext))
     		return false;
     	ArrayList<Format> formats= (ArrayList<Format>) FormatFactory.getSupportedFormats();
     	for(Format f : formats) {
-    		String[] supported=f.getId();
+    		String[] supported = f.getSupportedExtensions();
     		for(int i=0;i<supported.length;i++)
     			if(ext.equalsIgnoreCase(supported[i]))
     				return true;
     	}
     	return false;
     }
-    
+
     private String ensureExt(String str) {
     	if(legalExt(ChannelUtil.extension(str,true))) {
     		return str;
@@ -562,7 +563,7 @@ public class ChannelMediaStream extends DLNAResource {
     		return str+ch.fallBackVideoFormat();
     	return str+(videoFormat);
     }
-    
+
     public String realFormat() {
     	String u;
     	if(ChannelUtil.empty(realUrl))
@@ -574,7 +575,7 @@ public class ChannelMediaStream extends DLNAResource {
     		return null;
     	return ensureExt(u);
     }
-    
+
     public String fullUrl() {
     	if(ChannelUtil.empty(realUrl))
     		return url;
@@ -584,21 +585,21 @@ public class ChannelMediaStream extends DLNAResource {
     }
 
 	public boolean isValid() {
-		if(render!=null&&render.isXBOX()&&(format==Format.VIDEO)) {
-			ext = FormatFactory.getAssociatedFormat("dummy.avi");
-			if(media==null)
-				media=new DLNAMediaInfo();
-			media.mimeType=FormatConfiguration.MIMETYPE_AUTO;
-			media.mediaparsed=true;
+		if(render!=null&&render.isXbox360()&&(format==Format.VIDEO)) {
+			setFormat(FormatFactory.getAssociatedFormat("dummy.avi"));
+			if(getMedia() == null)
+				setMedia(new DLNAMediaInfo());
+			getMedia().setMimeType(FormatConfiguration.MIMETYPE_AUTO);
+			getMedia().setMediaparsed(true);
 			return true;
 		}
-		checktype();
+		resolveFormat();
 		return true;
 	}
-	
+
 	public void donePlaying() {
-		if(parent instanceof ChannelPMSSaveFolder)
-			((ChannelPMSSaveFolder)parent).childDone();
+		if(getParent() instanceof ChannelPMSSaveFolder)
+			((ChannelPMSSaveFolder)getParent()).childDone();
 		DLNAResource tmp=this.getParent();
 		ArrayList<DLNAResource> ancestors=new ArrayList<DLNAResource>();
 		while(tmp!=null) {
@@ -606,7 +607,7 @@ public class ChannelMediaStream extends DLNAResource {
 				break;
 			if(Channels.monitoredPlay(tmp)) {
 				if(ancestors.size()==0) { // odd case1
-					tmp.getChildren().remove(this);					
+					tmp.getChildren().remove(this);
 					break;
 				}
 				DLNAResource oldest=ancestors.get(ancestors.size()-1);
@@ -628,7 +629,7 @@ public class ChannelMediaStream extends DLNAResource {
 			ancestors.add(tmp);
 			tmp=tmp.getParent();
 		}
-		if(bgThread!=null) 
+		if(bgThread!=null)
 			if(--bgCnt!=0) // more people using this thread don't kill the dl
 				return;
 		// killThread can handle bgThread==null, so it's safe to call it
@@ -636,28 +637,28 @@ public class ChannelMediaStream extends DLNAResource {
 		ChannelUtil.killThread(bgThread);
 		bgThread=null;
 	}
-	
+
 	public void nowPlaying() {
 		startTime=System.currentTimeMillis();
 	}
-	
+
 	public void setImdb(String i) {
 		imdb=i;
 	}
-	
-	public void bgThread(Thread t) {			
+
+	public void bgThread(Thread t) {
 		bgThread=t;
 		bgCnt=1;
 	}
-	
+
 	public void moreBg() {
 		bgCnt++;
 	}
-	
+
 	public boolean isBgDownload() {
 		return (bgThread!=null);
 	}
-	
+
 	private void fixStuff(String str,boolean subs) {
 		String[] splits=str.split("&");
 		for(int i=0;i<splits.length;i++) {
@@ -679,17 +680,17 @@ public class ChannelMediaStream extends DLNAResource {
 					Channels.debug("set sub file "+sub.getExternalFile().getAbsolutePath());
 				} catch (FileNotFoundException e) {
 					return;
-				} 
+				}
 				sub.setId(101);
 				sub.setLang("und");
 				sub.setType(SubtitleType.SUBRIP);
-				media.container="unknown"; // avoid bug in mencvid
-				media_subtitle=sub;
+				getMedia().setContainer("unknown"); // avoid bug in mencvid
+				setMediaSubtitle(sub);
 				continue;
 			}
 		}
 	}
-	
+
 	private void rtmpUrl(String str) {
 		String[] tmp=str.split("&");
 		StringBuffer sb=new StringBuffer();
@@ -718,8 +719,8 @@ public class ChannelMediaStream extends DLNAResource {
 				sub.setId(101);
 				sub.setLang("und");
 				sub.setType(SubtitleType.SUBRIP);
-				media.container="unknown"; // avoid bug in mencvid
-				media_subtitle=sub;
+				getMedia().setContainer("unknown"); // avoid bug in mencvid
+				setMediaSubtitle(sub);
 				continue;
 			}
 			if(s[0].equals("subtype")) {
@@ -742,7 +743,7 @@ public class ChannelMediaStream extends DLNAResource {
 		}
 		realUrl=sb.toString();
 	}
-	
+
 	private long getDynDelay() {
 		try {
 			return Long.parseLong(Channels.getStashData("default", "sleep","0"));
@@ -750,25 +751,25 @@ public class ChannelMediaStream extends DLNAResource {
 			return 0;
 		}
 	}
-	
+
 	private boolean delayed() {
 		if(delay==-1) { // dynamic
 			delay=1000*getDynDelay();
 		}
 		return ((scrapeTime+delay)>System.currentTimeMillis());
 	}
-	
+
 	////////////////////////////////////////
 	// Playlist
 	////////////////////////////////////////
-	
+
 	public String playlistName() {
 		if(scraper!=null)
 			return scraper.backtrackedName(this);
 		else
 			return name;
 	}
-	
+
 	public String playlistURI() {
 		if(scraper==null)
 			ChannelUtil.parseASX(url, ASX);
@@ -777,7 +778,7 @@ public class ChannelMediaStream extends DLNAResource {
 								  embedSub,stash,null);
 		return url;
 	}
-	
+
 	public String playlistExtra() {
 		String res=ch.getName();
 		if(scraper==null)
@@ -786,11 +787,11 @@ public class ChannelMediaStream extends DLNAResource {
 			return res;
 		return res+","+processor+","+ChannelUtil.format2str(format);
 	}
-	
+
 	public String playlistThumb() {
 		return thumb;
 	}
-	
+
 	public List<String> addStreamvars(List<String> cmdList,OutputParams params) {
 		Channels.debug("streamvars adding "+getName()+" "+streamVars);
 		if(streamVars==null)
@@ -800,15 +801,15 @@ public class ChannelMediaStream extends DLNAResource {
 			cmdList1=cmdList;
 		return cmdList1;
 	}
-	
+
 	public void setStreamVars(ChannelStreamVars vars) {
 		streamVars=vars;
 	}
-	
+
 	public String toString() {
 		return super.toString()+" url "+url+" proc "+processor+" "+" real "+realUrl;
 	}
-	
+
 	public String write() {
 		//ch,url,processor,format,this,noSubs,imdb,
 		   //embedSub,stash
@@ -825,17 +826,17 @@ public class ChannelMediaStream extends DLNAResource {
 		res=res.replaceAll("[\n\r]", "");
 		return res;
 	}
-	
+
 	public byte[] getHeaders() {
 		return hdr.trim().getBytes();
 	}
-	
+
 	public boolean isURLResolved() {
 		if(scraper==null)
 			return false;
 		return !scraper.getBoolProp("do_resolve");
 	}
-	
+
 	private boolean live() {
 		if(ChannelUtil.empty(realUrl)) {
 			if(scraper==null)
@@ -846,7 +847,7 @@ public class ChannelMediaStream extends DLNAResource {
 			   realUrl.contains("live=")||
 			   realUrl.contains("-v");
 	}
-	
+
 	public boolean isResumeable() {
 		boolean b=true;
 		if (getFormat() != null) {
@@ -858,7 +859,7 @@ public class ChannelMediaStream extends DLNAResource {
 		}
 		return b;
 	}
-	
+
 	public String urlResolve() {
 		if(Channels.cfg().usePMSEncoder()) {
 			if(fool) {
@@ -872,7 +873,7 @@ public class ChannelMediaStream extends DLNAResource {
 		else {
 			if(realUrl.startsWith("subs://"))
 				fixStuff(realUrl.substring(7),true);
-			else if(realUrl.startsWith("navix://")) 
+			else if(realUrl.startsWith("navix://"))
 				fixStuff(realUrl.substring(8+8),false);
 			else if(realUrl.startsWith("rtmpdump://")) {
 				rtmpUrl(realUrl.substring(11+8));

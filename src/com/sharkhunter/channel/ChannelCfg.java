@@ -19,11 +19,11 @@ import com.sun.jna.Platform;
 import net.pms.PMS;
 
 public class ChannelCfg {
-	
+
 	public static final int PROXY_DNS_NONE=0;
 	public static final int PROXY_DNS_ALL=1;
 	public static final int PROXY_DNS_CHANNEL=2;
-	
+
 	private String chPath;
 	private String saPath;
 	private String rtmpPath;
@@ -65,7 +65,7 @@ public class ChannelCfg {
 	private String badUrl;
 	private boolean subBravia;
 	private boolean clearCookies;
-	
+
 	public ChannelCfg(Channels top) {
 		chPath=null;
 		saPath=null;
@@ -104,59 +104,59 @@ public class ChannelCfg {
 		subBravia=true;
 		clearCookies=false;
 	}
-	
+
 	///////////////////////////////////
 	// Set methods
 	///////////////////////////////////
-	
+
 	public void setPath(String p) {
 		chPath=p;
 	}
-	
+
 	public void setSavePath(String p) {
 		saPath=p;
 	}
-	
+
 	public void setRtmpPath(String p) {
 		rtmpPath=p;
 	}
-	
+
 	public void setScriptPath(String p) {
 		scriptPath=p;
 	}
-	
+
 	public void setSopPath(String p) {
 		sopcastPath=p;
 	}
-	
+
 	public void setPPLivePath(String p) {
 		pplivePath=p;
 	}
-	
+
 	public void setPerlPath(String p) {
 		perlPath=p;
 	}
-	
+
 	public void setPythPath(String p) {
 		pythonPath=p;
 	}
-	
+
 	public void setGetFlPath(String p) {
 		get_flPath=p;
 	}
-	
+
 	public void setYouTubePath(String p) {
 		ytPath=p;
 	}
-	
+
 	public void setCookiePath(String p) {
 		cookiePath=p;
 	}
-	
+
 	public void setCredPath(String p) {
 		credPath=p;
 	}
-	
+
 	public void setNaviXUpload(String p) {
 		String[] tmp=p.split(",");
 		navixUploadList=p;
@@ -166,41 +166,41 @@ public class ChannelCfg {
 			navixUploadList2=tmp[1];
 		}
 	}
-	
+
 	public void setFavorite(boolean b) {
 		favorite=b;
 	}
-	
+
 	public void setLongSvaeName(boolean b) {
 		longSaveName=b;
 	}
-	
+
 	public void setCrawl(boolean b) {
 		crawl=b;
 	}
-	
+
 	public void setCrawlFL(String str) {
 		setCrawlFL(ChannelCrawl.parseCrawlMode(ChannelCrawl.CRAWL_FLA, str));
 	}
-	
+
 	public void setCrawlFL(int t) {
 		if(t!=ChannelCrawl.CRAWL_UNKNOWN)
 			crawlFL=t;
 	}
-	
+
 	public void setCrawlHL(String str) {
 		setCrawlHL(ChannelCrawl.parseCrawlMode(ChannelCrawl.CRAWL_HML, str));
 	}
-	
+
 	public void setCrawlHL(int t) {
 		if(t!=ChannelCrawl.CRAWL_UNKNOWN)
 			crawlHL=t;
 	}
-	
+
 	public void setStdAlone(boolean b) {
 		stdAlone=b;
 	}
-	
+
 	////////////////////////////////////////
 	// Get methods
 	////////////////////////////////////////
@@ -208,175 +208,175 @@ public class ChannelCfg {
 	public String getPath() {
 		return chPath;
 	}
-	
+
 	public String getSavePath() {
 		return saPath;
 	}
-	
+
 	public String getRtmpPath() {
 		return rtmpPath;
 	}
-	
+
 	public String getScriptPath() {
 		return scriptPath;
 	}
-	
+
 	public String getSopPath() {
 		return sopcastPath;
 	}
-	
+
 	public String getPPLivePath() {
 		return pplivePath;
 	}
-	
+
 	public String getPerlPath() {
 		return perlPath;
 	}
-	
+
 	public String getPythonPath() {
 		return pythonPath;
 	}
-	
+
 	public String getFlashPath() {
 		if(ChannelUtil.empty(get_flPath))
 			return getScriptPath();
 		return get_flPath;
 	}
-	
+
 	public String getYouTubePath() {
 		if(ChannelUtil.empty(ytPath))
 			return getScriptPath();
 		return ytPath;
 	}
-	
+
 	public boolean getCache() {
 		return cache;
 	}
-	
+
 	public String getCookiePath() {
 		return cookiePath;
 	}
-	
+
 	public String getCredPath() {
 		return credPath;
 	}
-	
+
 	public boolean favorite() {
 		return favorite;
 	}
-	
+
 	public String getNaviXUpload() {
 		return navixUploadList;
 	}
-	
+
 	public String getNaviXUpload2() {
 		return navixUploadList2;
 	}
-	
+
 	public boolean noPlay() {
 		return noPlay;
 	}
-	
+
 	public boolean netDiscStyle() {
 		return netDisc;
 	}
-	
+
 	public boolean rawSave() {
 		return rawSave;
 	}
-	
+
 	public boolean allPlay() {
 		return allPlay;
 	}
-	
+
 	public int proxyDNSMode() {
 		return proxyDNSMode;
 	}
-	
+
 	public String proxyDNS() {
 		return proxyDNS;
 	}
-	
+
 	public boolean longSaveName() {
 		return longSaveName;
 	}
-	
+
 	public boolean oldSub() {
 		return oldSub;
 	}
-	
+
 	public String getCurlPath() {
 		return (String) PMS.getConfiguration().getCustomProperty("curl.path");
 	}
-	
+
 	public boolean mp2Force() {
 		return mp2force;
 	}
-	
+
 	public boolean fileBuffer() {
 		return fileBuffer;
 	}
-	
+
 	public int getCrawlHLMode() {
 		return crawlHL;
 	}
-	
+
 	public int getCrawlFLMode() {
 		return crawlFL;
 	}
-	
+
 	public String getCrawlFormat() {
 		return crawlFormat;
 	}
-	
+
 	public boolean crawl() {
 		return crawl;
 	}
-	
+
 	public boolean stdAlone() {
 		return stdAlone;
-	}	
-	
+	}
+
 	public boolean monitor() {
 		return monitor;
 	}
-	
+
 	public boolean usePMSEncoder() {
 		return pmsenc;
 	}
-	
+
 	public boolean useStreamVar() {
 		return streamVar;
 	}
-	
+
 	public String nullURL() {
 		return nullUrl;
 	}
-	
+
 	public String badURL() {
 		return badUrl;
 	}
-	
+
 	public boolean subBravia() {
 		return subBravia;
 	}
-	
+
 	public boolean clearCookies() {
 		return clearCookies;
 	}
-	
+
 	////////////////////////////////////////
 	// Misc. methods
 	////////////////////////////////////////
-	
+
 	public String scriptFile(String file) {
 		return scriptPath+File.separator+file;
 	}
-	
+
 	//////////////////////////////////////
 	// Other methods
 	//////////////////////////////////////
-	
+
 	public void init() {
 		// Paths
 		chPath=Channels.getPath();
@@ -392,7 +392,7 @@ public class ChannelCfg {
 		cookiePath=(String) PMS.getConfiguration().getCustomProperty("cookie.path");
 		credPath=(String) PMS.getConfiguration().getCustomProperty("cred.path");
 		chZipUrl=(String) PMS.getConfiguration().getCustomProperty("channels.ch_zip");
-		
+
 		// Other
 		String dbg=(String)PMS.getConfiguration().getCustomProperty("channels.debug");
 		String sub=(String) PMS.getConfiguration().getCustomProperty("channels.subtitles");
@@ -421,10 +421,10 @@ public class ChannelCfg {
 		String bu=(String)PMS.getConfiguration().getCustomProperty("channels.bad_url");
 		String bs=(String)PMS.getConfiguration().getCustomProperty("channels.bravia_sub");
 		String cc=(String)PMS.getConfiguration().getCustomProperty("channels.clear_cookies");
-		
+
 		if(!ChannelUtil.empty(cf))
 			crawlFormat=cf;
-		
+
 		if(rtmpMode!=null) {
 			if(rtmpMode.trim().equalsIgnoreCase("1"))
 				Channels.rtmpMethod(Channels.RTMP_MAGIC_TOKEN);
@@ -446,11 +446,11 @@ public class ChannelCfg {
 				Channels.setCache(true);
 			else
 				Channels.setCache(false);
-		
+
 		// Defaults
 		if(ChannelUtil.empty(rtmpPath)) {
 			File plugPath=new File(PMS.getConfiguration().getMplayerPath());
-			String ext=(PMS.get().isWindows()?".exe":"");
+			String ext=(Platform.isWindows()?".exe":"");
 			File f=new File(plugPath.getParent()+File.separator+"rtmpdump"+ext);
 			if(f.exists()&&f.canExecute())
 				rtmpPath=f.getAbsolutePath();
@@ -543,7 +543,7 @@ public class ChannelCfg {
 		if(!ChannelUtil.empty(val))
 			PMS.getConfiguration().setCustomProperty(key,val);
 	}
-	
+
 	public void commit() {
 		top.setSave(saPath);
 		top.setPath(chPath);
@@ -576,52 +576,52 @@ public class ChannelCfg {
 		//	PMS.getConfiguration().setCustomProperty("channels.mpeg2_force",String.valueOf(mp2force));
 			PMS.getConfiguration().setCustomProperty("channels.pmsencoder", String.valueOf(pmsenc));
 			PMS.getConfiguration().setCustomProperty("channels.stream_var", String.valueOf(streamVar));
-			if(!ChannelUtil.empty(navixUploadList)) 
+			if(!ChannelUtil.empty(navixUploadList))
 				PMS.getConfiguration().setCustomProperty("channels.navix_upload",
 						ChannelUtil.append(navixUploadList,",",navixUploadList2));
 			PMS.getConfiguration().save();
 		} catch (Exception e) {
 		}
 	}
-	
+
 	public void ensureCreated(String p) {
 		File f=new File(p);
 		if(!(f.exists()&&f.isDirectory()))
 			f.mkdir();
 	}
-	
+
 	private void validatePMSEncoder() throws IOException {
 		if(pmsenc)
 			setEngines();
-		if(ChannelUtil.empty(scriptPath)) { 
+		if(ChannelUtil.empty(scriptPath)) {
 			ensureCreated("scripts");
 			scriptPath=new File("scripts").getCanonicalPath().toString();
 		}
 		else
 			ensureCreated(scriptPath);
 	}
-	
+
 	private void setEngines() {
 		List<String> eng=PMS.getConfiguration().getEnginesAsList(PMS.get().getRegistry());
 		for(int i=0;i<eng.size();i++) {
-			if(eng.get(i).equalsIgnoreCase("pmsencoder")) // pmsencoder is there  
+			if(eng.get(i).equalsIgnoreCase("pmsencoder")) // pmsencoder is there
 				return;
 		}
 		eng.add("pmsencoder");
-		PMS.getConfiguration().setEnginesAsList((ArrayList<String>) eng);		
+		PMS.getConfiguration().setEnginesAsList((ArrayList<String>) eng);
 	}
-	
+
 	////////////////////////////////////////////
 	// Fetch files
 	///////////////////////////////////////////
-	
+
 	private static final String chList="https://github.com/SharkHunter/Channel/tree/master/channels";
 	private static final String scList="https://github.com/SharkHunter/Channel/tree/master/scripts";
 	private static final String chReg="<td class=\"content\">\\s*.*?<a href=\"[^\"]+\" [^>]+>([^<]+)</a>";
 	private static final String rawChBase="https://github.com/SharkHunter/Channel/raw/master/channels/";
 	private static final String rawScBase="https://github.com/SharkHunter/Channel/raw/master/scripts/";
-	private static final String pywin="http://sharkhunter-shb.googlecode.com/files/pywin.zip"; 
-	
+	private static final String pywin="http://sharkhunter-shb.googlecode.com/files/pywin.zip";
+
 	private void fetchFromGit(String list,String raw,String path) throws Exception {
 		URL u=new URL(list);
 		Pattern re=Pattern.compile(chReg);
@@ -649,8 +649,8 @@ public class ChannelCfg {
             dest.close();
             in.close();
 		}
-      } 
-	
+      }
+
 	private void fetchPyWinOverlay() throws ConfigurationException {
 		String tmp = (String) PMS.getConfiguration().getCustomProperty("python.pywin_extra");
 		if(ChannelUtil.empty(tmp)||!tmp.equalsIgnoreCase("true")) {
@@ -666,7 +666,7 @@ public class ChannelCfg {
 	}
 
 	public void fetchChannels() {
-		try {			
+		try {
 			validatePMSEncoder();
 			// fetch channels
 			fetchFromGit(chList,rawChBase,chPath);
@@ -677,13 +677,13 @@ public class ChannelCfg {
 		}
 		catch(Exception e) {
 			Channels.debug("error fetching channels "+e);
-		}	
+		}
 	}
-	
+
 	///////////////////////////////////////////////////
 	// Channel Var functions
 	///////////////////////////////////////////////////
-	
+
 	public void putChVars(String ch,String inst,String var,String val) {
 		String vData=ChannelUtil.append(ch, "@", inst);
 		String putData=vData+"@"+var+"@"+val;
@@ -702,7 +702,7 @@ public class ChannelCfg {
 			}
 			if(!found) // new variable
 				pData=putData+","+pData;
-			putData=pData;		
+			putData=pData;
 		}
 		try {
 			PMS.getConfiguration().setCustomProperty("channels.ch_vars", putData);
@@ -710,7 +710,7 @@ public class ChannelCfg {
 		} catch (ConfigurationException e) {
 		}
 	}
-	
+
 	public void chVars(String chName,Channel ch) {
 		if(stdAlone)
 			return;

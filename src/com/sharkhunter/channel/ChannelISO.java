@@ -2,7 +2,6 @@ package com.sharkhunter.channel;
 
 import java.util.HashMap;
 import java.util.Locale;
-import java.util.Set;
 
 public class ChannelISO {
 	private static HashMap<String,String> special=new HashMap<String,String>();
@@ -36,16 +35,16 @@ public class ChannelISO {
 			special.put(iso3, iso2);
 		}
 	}
-	
+
 	public static String iso(String someIso,int wantedIso) {
-		if(someIso.length()==wantedIso) 
+		if(someIso.length()==wantedIso)
 			return someIso;
 		return special.get(someIso);
 	}
-	
+
 	public static boolean equal(String a,String b) {
 		return a.equals(iso(b,a.length()));
 	}
-	
-	
+
+
 }

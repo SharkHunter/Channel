@@ -4,68 +4,62 @@ import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
-import java.io.FileReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
 import java.net.MalformedURLException;
-import java.net.Proxy;
-import java.net.URLConnection;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
-import java.util.regex.Pattern;
-
 import org.apache.commons.io.FileUtils;
-
-import net.pms.PMS;
+import org.slf4j.LoggerFactory;
 import net.pms.dlna.DLNAResource;
 import net.pms.dlna.virtual.VirtualFolder;
-import net.pms.dlna.virtual.VirtualVideoAction;
 import net.pms.formats.Format;
 import net.pms.formats.v2.SubtitleType;
 import net.pms.network.HTTPResource;
 
 public class Channel extends VirtualFolder {
-	
+
+	private static org.slf4j.Logger LOGGER = LoggerFactory.getLogger(Channel.class);
 	public boolean Ok;
 	private String name;
 	private int format;
-	
+
 	private ArrayList<ChannelFolder> folders;
 	private ArrayList<ChannelMacro> macros;
 	private ArrayList<ChannelFolder> actions;
-	
+
 	private ChannelCred cred;
 	private ChannelLogin logObj;
-	
+
 	private int searchId;
 	private HashMap<String,SearchObj> searchFolders;
-	
+
 	private String[] subScript;
-	
+
 	private String[] proxies;
 	private ChannelProxy activeProxy;
-	
+
 	private String[] prop;
-	
+
 	private HashMap<String,String> hdrs;
-	
+
 	private ChannelFolder favorite;
 	private String videoFormat;
-	
+
 	private HashMap<String,ChannelVar> vars;
 	private HashMap<String,String[]> trashVars;
-	
+
 	private ChannelStreamVars streamVars;
-	
+
 	private SubtitleType embedSubType;
 	private ChannelMatcher subConv;
 	private boolean subConvTimeMs;
-	
+
 	private ArrayList<ChannelSwitch> urlResolve;
-	
+
 	public Channel(String name) {
 		super(name,null);
 		Ok=false;
@@ -89,7 +83,7 @@ public class Channel extends VirtualFolder {
 		urlResolve=new ArrayList<ChannelSwitch>();
 		Ok=true;
 	}
-	
+
 	public void parse(ArrayList<String> data,ArrayList<ChannelMacro> macros) {
 		folders.clear();
 		vars.clear();
@@ -138,7 +132,7 @@ public class Channel extends VirtualFolder {
 				if(m!=null)
 					parse(m.getMacro(),macros);
 				else
-					PMS.debug("unknown macro "+keyval[1]);
+					LOGGER.debug("{Channel} Unknown macro {}", keyval[1]);
 			}
 			if(keyval[0].equalsIgnoreCase("format")) {
 				format=ChannelUtil.getFormat(keyval[1],format);
@@ -173,7 +167,7 @@ public class Channel extends VirtualFolder {
 		}
 		mkFavFolder();
 	}
-	
+
 	private void mkFavFolder() {
 		if(noFavorite())
 			return;
@@ -185,7 +179,7 @@ public class Channel extends VirtualFolder {
 			favorite=f;
 		}
 	}
-	
+
 	public void addFavorite(ArrayList<String> data) {
 		if(data.size()<3)
 			return;
@@ -208,14 +202,14 @@ public class Channel extends VirtualFolder {
 			}
 		}
 	}
-	
+
 	public void addFavorite(ChannelFolder cf) {
 		if(cf.Ok) {
 			cf.setIgnoreFav();
 			favorite.addSubFolder(cf);
 		}
 	}
-	
+
 	public boolean isFavorized(String name) {
 		for(ChannelFolder f : favorite.subfolders()) {
 			if(name.equals(f.getName()))
@@ -223,38 +217,38 @@ public class Channel extends VirtualFolder {
 		}
 		return false;
 	}
-	
+
 	public String nxtSearchId() {
 		return String.valueOf(searchId++);
 	}
-	
+
 	public ChannelMacro getMacro(String macro) {
 		return ChannelUtil.findMacro(macros, macro);
 	}
-	
+
 	public int getMediaFormat() {
 		return format;
 	}
-	
+
 	public String getThumb() {
 		return thumbnailIcon;
 	}
-	
+
 	public HashMap<String,String> getHdrs() {
 		return hdrs;
 	}
-	
+
 	public void resolve() {
 //		this.getChildren().clear();
 	}
-	
+
 	public void discoverChildren(String s) {
 		discoverChildren();
 	}
 	public void discoverChildren() {
 		discoverChildren(this);
 	}
-	
+
 	public void discoverChildren(DLNAResource res) {
 		final Channel me=this;
 		addChild(new VirtualFolder("Variables",null) {
@@ -275,7 +269,7 @@ public class Channel extends VirtualFolder {
 			ChannelFolder cf=folders.get(i);
 			if(cf.isActionOnly())
 				continue;
-			if(cf.isATZ()) 
+			if(cf.isATZ())
 				addChild(new ChannelATZ(cf));
 			else if(cf.isSearch())
 				addChild(new SearchFolder(cf.getName(),cf));
@@ -286,11 +280,11 @@ public class Channel extends VirtualFolder {
 				}
 		}
 	}
-	
+
 	public boolean isRefreshNeeded() {
 		return true;
 	}
-	
+
 	public InputStream getThumbnailInputStream() {
 		try {
 			return downloadAndSend(thumbnailIcon,true);
@@ -299,37 +293,37 @@ public class Channel extends VirtualFolder {
 			return super.getThumbnailInputStream();
 		}
 	}
-	
+
 	public void debug(String msg) {
 		Channels.debug(msg);
 	}
-	
+
 	public String name() {
 		return name;
 	}
-	
+
 	public boolean login() {
 		return (logObj!=null);
 	}
-	
+
 	public void addCred(ChannelCred c) {
 		cred=c;
 		if(logObj!=null)
 			logObj.reset();
 	}
-	
+
 	public String user() {
 		if(cred!=null)
 			return cred.user;
 		return null;
 	}
-	
+
 	public String pwd() {
 		if(cred!=null)
 			return cred.pwd;
 		return null;
 	}
-	
+
 	private ChannelAuth getAuth(ChannelProxy p) {
 		ChannelAuth a=new ChannelAuth();
 		a.proxy=p;
@@ -338,7 +332,7 @@ public class Channel extends VirtualFolder {
 			return a;
 		return logObj.getAuthStr(user(),pwd(),a);
 	}
-	
+
 	public ChannelAuth prepareCom() {
 		Channels.setProxyDNS(ChannelUtil.getProperty(prop, "proxy_dns"));
 		if(proxies==null) // no proxy, just regular login
@@ -357,13 +351,13 @@ public class Channel extends VirtualFolder {
 			activeProxy=p;
 			return getAuth(p);
 		}
-		return getAuth(ChannelProxy.NULL_PROXY);		
+		return getAuth(ChannelProxy.NULL_PROXY);
 	}
-	
+
 	public void addSearcher(String id,SearchObj obj) {
 		searchFolders.put(id, obj);
 	}
-	
+
 	public void research(String str,String id,DLNAResource res) {
 		if(id.startsWith("navix:")) {
 			id=id.substring(6);
@@ -383,7 +377,7 @@ public class Channel extends VirtualFolder {
 		if(obj==null)
 			return;
 		obj.search(str, res);
-	}	
+	}
 	public void searchAll(String str, DLNAResource res) {
 		for(String id : searchFolders.keySet()) {
 			SearchObj sobj = searchFolders.get(id);
@@ -391,7 +385,7 @@ public class Channel extends VirtualFolder {
 				sobj.search(str,res);
 		}
 	}
-	
+
 	public HashMap<String,String> getSubMap(String realName,int id) {
 		HashMap<String,String> res=new HashMap<String,String>();
 		res.put("url", realName);
@@ -407,24 +401,24 @@ public class Channel extends VirtualFolder {
 				return null;
 		return ChannelNaviXProc.lite(realName,s,res);
 	}
-	
+
 	public boolean noFavorite() {
 		return ChannelUtil.getProperty(prop, "no_favorite")||Channels.noFavorite();
 	}
-	
+
 	public ChannelFolder favorite() {
 		return favorite;
 	}
-	
+
 	///////////////////////////////////////////////
 	// Action handling
 	///////////////////////////////////////////////
-	
+
 	public void addAction(ChannelFolder cf) {
 		debug("adding action "+cf.actionName());
 		actions.add(cf);
 	}
-	
+
 	public ChannelFolder action(ChannelSwitch swi,String name,String url,String thumb,DLNAResource res,int form) {
 		String action=swi.getAction();
 		String rUrl=swi.runScript(url);
@@ -445,7 +439,7 @@ public class Channel extends VirtualFolder {
 		}
 		return null;
 	}
-	
+
 	public ChannelFolder getAction(String action) {
 		for(int i=0;i<actions.size();i++) {
 			ChannelFolder cf=actions.get(i);
@@ -454,7 +448,7 @@ public class Channel extends VirtualFolder {
 		}
 		return null;
 	}
-	
+
 	private void open(DLNAResource res,String[] names,int pos,DLNAResource child) {
 		List<DLNAResource> children=child.getChildren();
 		for(int j=0;j<children.size();j++) {
@@ -469,21 +463,21 @@ public class Channel extends VirtualFolder {
 			return;
 		}
 	}
-	
+
 	public void open(DLNAResource res,String[] names) {
 		DLNAResource tmp=new VirtualFolder("",null);
 		discoverChildren(tmp);
 		open(res,names,0,tmp);
 	}
-	
+
 	public String fallBackVideoFormat() {
 		return videoFormat;
 	}
-	
+
 	public void setVar(String var,String val) {
 		setVar("",var,val);
 	}
-	
+
 	public void setVar(String inst,String var,String val) {
 		Channels.debug("set var "+var+" to val "+val+" for inst "+inst);
 		ChannelVar v=vars.get(var);
@@ -497,34 +491,34 @@ public class Channel extends VirtualFolder {
 			trashVars.put(var, tmp);
 		}
 	}
-	
+
 	public String resolveVars(String str) {
 		for(String key : vars.keySet()) {
 			str=vars.get(key).resolve(str);
 		}
 		return str;
 	}
-	
+
 	public HashMap<String,ChannelVar> vars() {
 		return vars;
 	}
-	
+
 	public String[] trashVar(String var) {
 		return trashVars.get(var);
 	}
-	
+
 	public ChannelStreamVars defStreamVars() {
 		return streamVars;
 	}
-	
+
 	public String embSubExt() {
 		return embedSubType.getExtension();
 	}
-	
+
 	public SubtitleType getEmbSub() {
 		return embedSubType;
 	}
-	
+
 	public String convSub(String subFile,boolean braviaFix) {
 		if(subConv==null) {
 			if(braviaFix)
@@ -537,7 +531,7 @@ public class Channel extends VirtualFolder {
 			return subFile;
 		}
 	}
-	
+
 	private String convSub_i(String subFile,boolean braviaFix) throws IOException {
 		File src=new File(subFile);
 		String oFile=Channels.dataEntry(src.getName()+".srt"+(braviaFix?".bravia":""));
@@ -557,7 +551,7 @@ public class Channel extends VirtualFolder {
 				continue;
 			if(braviaFix) {
 				// real odd ball trick
-				// we add a line to the end of each text to pull up the 
+				// we add a line to the end of each text to pull up the
 				// text (and only on  BRAVIA)
 				text=ChannelUtil.append(text, "\n", DOTS+"\n");
 			}
@@ -573,7 +567,7 @@ public class Channel extends VirtualFolder {
 			return "";
 		}
 	}
-	
+
 	private void parseSubConv(ArrayList<String> data) {
 		for(int i=0;i<data.size();i++) {
 			String line=data.get(i).trim();
@@ -616,9 +610,9 @@ public class Channel extends VirtualFolder {
 			}
 		}
 	}
-	
-	private static final String DOTS = "..."; 
-	
+
+	private static final String DOTS = "...";
+
 	private String braviafySubs(String subFile) {
 		try {
 			File outFile=new File(subFile+".bravia");
@@ -626,7 +620,7 @@ public class Channel extends VirtualFolder {
 				return outFile.getAbsolutePath();
 			String cp=ChannelUtil.getCodePage();
 			BufferedReader in=new BufferedReader(new InputStreamReader(
-												 new FileInputStream(subFile),cp));	
+												 new FileInputStream(subFile),cp));
 			String str;
 			StringBuffer sb=new StringBuffer();
 			while ((str = in.readLine()) != null) {
@@ -645,15 +639,15 @@ public class Channel extends VirtualFolder {
 		}
     	return subFile;
 	}
-	
+
 	/////////////////////////////////////////////////////////
-	
+
 	private String resolved(DLNAResource r) {
 		ChannelMediaStream cms=(ChannelMediaStream)r;
 		cms.scrape(null);
 		return cms.urlResolve();
 	}
-	
+
 	public String urlResolve(String url,boolean dummyOnly) {
 		for(ChannelSwitch resolver : urlResolve) {
 			boolean dummy_match=ChannelUtil.getProperty(resolver.getProps(), "dummy_match");

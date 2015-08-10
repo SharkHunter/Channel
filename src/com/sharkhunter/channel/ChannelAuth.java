@@ -1,16 +1,14 @@
 package com.sharkhunter.channel;
 
-import java.net.Proxy;
-
 public class ChannelAuth {
 	public int method;
 	public String authStr;
 	public long ttd;
 	public ChannelProxy proxy;
-	
+
 	public ChannelAuth() {
 	}
-	
+
 	public ChannelAuth(ChannelAuth a) {
 		method=a.method;
 		authStr=a.authStr;

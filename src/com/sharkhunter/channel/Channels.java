@@ -2,15 +2,11 @@ package com.sharkhunter.channel;
 
 import java.io.BufferedReader;
 import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.net.MalformedURLException;
 import java.net.URL;
@@ -24,14 +20,12 @@ import java.util.GregorianCalendar;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
-
 import org.apache.commons.configuration.ConfigurationException;
 import org.apache.commons.configuration.PropertiesConfiguration;
 import org.apache.commons.io.FileUtils;
-
+import org.slf4j.LoggerFactory;
 import net.pms.PMS;
 import net.pms.dlna.DLNAResource;
-import net.pms.dlna.PlaylistFolder;
 import net.pms.dlna.virtual.VirtualFolder;
 import net.pms.dlna.virtual.VirtualVideoAction;
 import no.geosoft.cc.io.FileListener;
@@ -39,21 +33,23 @@ import no.geosoft.cc.io.FileMonitor;
 
 public class Channels extends VirtualFolder implements FileListener {
 
+	private static org.slf4j.Logger LOGGER = LoggerFactory.getLogger(Channels.class);
+
 	// Version string
 	public static final String VERSION="2.25";
 	public static final String ZIP_VER="211";
-	
+
 	// Constants for RTMP string constructions
 	public static final int RTMP_MAGIC_TOKEN=1;
 	public static final int RTMP_DUMP=2;
 	public int rtmp;
-	
+
 	public static final int DeafultContLim=5;
 	public static final int ContSafetyVal=-100;
-	
+
 	// Define keywords
 	private static final String[] defWords={"macrodef","scriptdef","subdef","proxydef"};
-	
+
     private File file;
     private FileMonitor fileMonitor;
     private ArrayList<File> chFiles;
@@ -85,7 +81,7 @@ public class Channels extends VirtualFolder implements FileListener {
     private VirtualFolder monitor;
     private ChannelMonitorMgr monMgr;
     private PropertiesConfiguration credConf;
-    
+
     public Channels(String path,String name,String img) {
     	super(name,img);
     	// First the simple fields
@@ -115,7 +111,7 @@ public class Channels extends VirtualFolder implements FileListener {
     	searchDb=new ChannelSearch(new File(dataPath()+File.separator+"search.txt"));
     	//rtmp=Channels.RTMP_MAGIC_TOKEN;
     	rtmp=Channels.RTMP_DUMP;
-    	PMS.minimal("Start channel "+VERSION);
+    	LOGGER.info("{Channel} Starting channel {}", VERSION);
     	dbg=new ChannelDbg(new File(path+File.separator+"channel.log"));
     	dbg.start();
     	stash.put("default", new HashMap<String,String>());
@@ -131,7 +127,7 @@ public class Channels extends VirtualFolder implements FileListener {
 			addChild(local);
 		} catch (MalformedURLException e) {
 		}
-    	
+
     	addChild(cache);
     	addChild(searchDb);
     	addChild(new ChannelPMSCode("Unlock All",null,true));
@@ -139,7 +135,7 @@ public class Channels extends VirtualFolder implements FileListener {
     	allUnlocked=false;
     	setOpenSubs(true);
     }
-    
+
     private void addMonitor() {
     	if(!cfg.monitor())
     		return;
@@ -148,7 +144,7 @@ public class Channels extends VirtualFolder implements FileListener {
     	addChild(monitor);
     	clearMonitor();
     }
-    
+
     public void start(long poll) {
     	addMonitor();
     	// Move any work favorites first
@@ -187,7 +183,7 @@ public class Channels extends VirtualFolder implements FileListener {
 		} catch (IOException e) {
 		}
     }
-    
+
     private void dumpEmptyCreds() throws IOException {
     	for(Channel ch : getChannels()) {
     		if(!ch.login())
@@ -204,7 +200,7 @@ public class Channels extends VirtualFolder implements FileListener {
 			debug("error saving creds");
 		}
     }
-    
+
     private void initNaviXUploader() {
     	try { // must do this last we need some credentials first
     		if(ChannelUtil.empty(cfg.getNaviXUpload())) {
@@ -228,30 +224,30 @@ public class Channels extends VirtualFolder implements FileListener {
 			debug("error navix up startup "+e);
 		}
     }
-    
+
     public static void initNaviX() {
     	inst.initNaviXUploader();
     }
-    
+
     public static void debug(String msg) {
     	inst.dbg.debug("[Channel] "+msg);
     }
-    
+
     public static void debug(boolean start) {
     	if(start)
     		inst.dbg.start();
     	else
     		inst.dbg.stop();
     }
-    
+
     public static boolean debugStatus() {
     	return inst.dbg.status();
     }
-    
+
     public static File dbgFile() {
     	return inst.dbg.logFile();
     }
-    
+
 	private Channel find(String name) {
     	for(DLNAResource f:getChildren()) {
     		if((f instanceof Channel)&&(f.getDisplayName().trim().equals(name.trim())))
@@ -259,13 +255,13 @@ public class Channels extends VirtualFolder implements FileListener {
     	}
     	return null;
     }
-    
+
     public static Channel findChannel(String name) {
     	if(inst==null)
     		new CH_plugin();
     	return inst.find(name);
     }
-    
+
     public static ArrayList<Channel> getChannels() {
     	ArrayList<Channel> res=new ArrayList<Channel>();
     	for(DLNAResource f:inst.getChildren())
@@ -274,7 +270,7 @@ public class Channels extends VirtualFolder implements FileListener {
     		}
     	return res;
     }
-    
+
     private void addFavorites() {
     	if(noFavorite())
     		return;
@@ -291,7 +287,7 @@ public class Channels extends VirtualFolder implements FileListener {
     		}
     	}
     }
-    
+
     private void readChannel(String data)  throws Exception {
     	String str;
     	String[] lines=data.split("\n");
@@ -317,15 +313,15 @@ public class Channels extends VirtualFolder implements FileListener {
     					ch.parse(chData,macros);
     					initVar(chName,ch);
     					addChild(ch);
-    				}	
+    				}
     				else {
-    					PMS.minimal("channel "+chName+" was not parsed ok");
+    					LOGGER.warn("{Channel} Channel {} was not parsed ok", chName);
     				}
     			}
     		}
     	}
     }
-    
+
     private void parseDefines(String data) {
     	String str;
     	String[] lines=data.split("\n");
@@ -406,13 +402,13 @@ public class Channels extends VirtualFolder implements FileListener {
     	    }
     	}
     }
-    
+
     public void parseChannels(File f)  throws Exception {
     	BufferedReader in=new BufferedReader(new FileReader(f));
     	String str;
     	boolean defines=false;
     	StringBuilder sb=new StringBuilder();
-    	String ver="unknown";    	
+    	String ver="unknown";
     	while ((str = in.readLine()) != null) {
     		str=str.trim();
     		if(ChannelUtil.ignoreLine(str))
@@ -433,18 +429,18 @@ public class Channels extends VirtualFolder implements FileListener {
     	    		continue;
     	    	ver=v[1];
     	    	continue; // don't append these
-    	    }	
-    	    if(str.trim().startsWith("favorite")) 
+    	    }
+    	    if(str.trim().startsWith("favorite"))
     	    	defines=true;
-    	    if(str.trim().startsWith("illegal")) 
+    	    if(str.trim().startsWith("illegal"))
     	    	defines=true;
-    	    if(str.trim().startsWith("code")) 
+    	    if(str.trim().startsWith("code"))
     	    	defines=true;
     	    sb.append(str);
     	    sb.append("\n");
     	}
     	in.close();
-    	PMS.minimal("parsing channel file "+f.toString()+" version "+ver);
+    	LOGGER.info("{Channel} Parsing channel file {} version {}", f.toString(), ver);
     	debug("parsing channel file "+f.toString()+" version "+ver);
     	String s=sb.toString();
     	if(defines)
@@ -453,8 +449,8 @@ public class Channels extends VirtualFolder implements FileListener {
     	addCred();
     	addFavorites();
     }
-    
-    
+
+
     private void addCred() {
     	for(int i=0;i<cred.size();i++) {
     		ChannelCred cr=cred.get(i);
@@ -465,12 +461,12 @@ public class Channels extends VirtualFolder implements FileListener {
     		debug("adding cred to channel "+cr.channelName);
     		ch.addCred(cr);
     	}
-    		
+
     }
-    
+
     @SuppressWarnings("unchecked")
 	private void handleCred(File f)  {
-    	if (!f.isFile()) 	
+    	if (!f.isFile())
     		return;
 		try {
 	    	credConf.load(f);
@@ -517,12 +513,13 @@ public class Channels extends VirtualFolder implements FileListener {
 		}
     	catch (Exception e) {
     		debug("handle cred exe "+e);
-    	} 
+    	}
     }
-    
+
     private void handleVCR(File f) throws IOException {
-    		BufferedReader in = new BufferedReader(new FileReader(f));
-    		SimpleDateFormat sdfDate = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss");
+		BufferedReader in = new BufferedReader(new FileReader(f));
+		try {
+			SimpleDateFormat sdfDate = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss");
 			String str;
 			GregorianCalendar now=new GregorianCalendar();
 			while ((str = in.readLine()) != null) {
@@ -551,8 +548,11 @@ public class Channels extends VirtualFolder implements FileListener {
 					name=data[3];
 				ChannelVCR.start(d,data[1],proc,name);
 			}
+    	} finally {
+    		in.close();
+    	}
     }
-    
+
     private void handleDirChange(File dir) throws Exception {
     	if(!dir.exists()) // file (or dir is gone) ignore
 			return;
@@ -568,16 +568,16 @@ public class Channels extends VirtualFolder implements FileListener {
 							fileMonitor.addFile(f);
 					} catch (Exception e) {
 						debug("Error parsing file "+f.toString()+" ("+e.toString()+")");
-					}	
+					}
 				}
 			}
 			else if(f.getAbsolutePath().endsWith(".cred"))
 				handleCred(f);
 			else if(f.getAbsolutePath().endsWith(".vcr"))
 				handleVCR(f);
-			else if(f.getAbsolutePath().contains("stream.var")) 
+			else if(f.getAbsolutePath().contains("stream.var"))
 				defStreamVar.parse(f);
-		}	
+		}
     }
 
 	@Override
@@ -594,17 +594,17 @@ public class Channels extends VirtualFolder implements FileListener {
 					handleCred(f);
 				else if(f.getAbsolutePath().endsWith(".vcr"))
 					handleVCR(f);
-				else if(f.getAbsolutePath().contains("stream.var")) 
+				else if(f.getAbsolutePath().contains("stream.var"))
 					defStreamVar.parse(f);
 				else
 					if(f.exists())
 						parseChannels(f);
 			} catch (Exception e) {
-				PMS.minimal("Error parsing file "+f.toString()+" ("+e.toString()+")");
-			}	
+				LOGGER.warn("{Channel} Error parsing file {} ({})", f.toString(), e.getLocalizedMessage());
+			}
 		}
 	}
-	
+
 	//////////////////////////////////////
 
 	private void startOffHour() {
@@ -627,40 +627,40 @@ public class Channels extends VirtualFolder implements FileListener {
 		oh=new ChannelOffHour(max,dur,s[0],new File(ohDb),cache);
 		oh.init();
 	}
-	
+
 	////////////////////////////////////
 	// Save handling
 	////////////////////////////////////
-	
+
 	public void setSave(String sPath) {
 		setSave(sPath,null);
-		
+
 	}
-	
+
 	public void setSave(String sPath,String ts) {
 		savePath=sPath;
 		appendTS=(ChannelUtil.empty(ts)?false:true);
 		cache.savePath(sPath);
-		if(oh==null) 
+		if(oh==null)
 			startOffHour();
-		PMS.debug("[Channel]: using save path "+sPath);
+		LOGGER.debug("{Channel} Using save path {}", sPath);
 		debug("using save path "+sPath);
 	}
-	
+
 	public static boolean save() {
 		return !ChannelUtil.empty(inst.savePath);
 	}
-	
+
 	public static String fileName(String name,boolean cache) {
 		return fileName(name,cache,null);
 	}
-	
+
 	public static String fileName(String name,boolean cache,String imdb) {
 		name=name.trim();
 		name=ChannelPMSSaveFolder.washName(name);
-		String ext=ChannelUtil.extension(name);			
+		String ext=ChannelUtil.extension(name);
 		String fName=name;
-		if(inst.appendTS) { 
+		if(inst.appendTS) {
 			// if we got an extension we move it to the end of the filename
 			String ts="_"+String.valueOf(System.currentTimeMillis());
 			fName=ChannelUtil.append(name, null, ts);
@@ -682,7 +682,7 @@ public class Channels extends VirtualFolder implements FileListener {
 		else
 			return getPath()+File.separator+"data"+File.separator+fName;
 	}
-	
+
 	public InputStream getThumbnailInputStream() {
 		try {
 			return downloadAndSend(thumbnailIcon,true);
@@ -691,36 +691,36 @@ public class Channels extends VirtualFolder implements FileListener {
 			return super.getThumbnailInputStream();
 		}
 	}
-	
+
 	///////////////////////////////////////////
 	// Path handling
 	///////////////////////////////////////////
-	
+
 	public static String getSavePath() {
 		return inst.savePath;
 	}
-	
+
 	public static String getPath() {
 		return inst.file.getAbsolutePath();
 	}
-	
+
 	public void setPath(String path) {
 		debug("Set chanelpath to "+path);
 		file=new File(path);
 	}
-	
+
 	public static String dataPath() {
 		return getPath()+File.separator+"data";
 	}
-	
+
 	public static String dataEntry(String str) {
 		return dataPath()+File.separator+str;
 	}
-	
+
 	////////////////////////////////////////////
 	// Script functions
 	////////////////////////////////////////////
-	
+
 	public static ArrayList<String> getScript(String name) {
 		if(ChannelUtil.empty(name))
 			return null;
@@ -730,53 +730,53 @@ public class Channels extends VirtualFolder implements FileListener {
 		}
 		return null;
 	}
-	
+
 	public static ChannelSubs getSubs(String name) {
 		if(inst.openSubs!=null&&name.equals(inst.openSubs.getName()))
 			return inst.openSubs;
 		return inst.subtitles.get(name);
 	}
-	
+
 	/////////////////////////////////
 	// RtmpMethod change
 	/////////////////////////////////
-	
+
 	public static void rtmpMethod(int newVal) {
 		inst.rtmp=newVal;
 	}
-	
+
 	public static int rtmpMethod() {
 		return inst.rtmp;
 	}
-	
+
 	public static void setSubs(boolean b) {
 		inst.subs=b;
 	}
-	
+
 	public static boolean doSubs() {
 		return inst.subs;
 	}
-	
+
 	public static boolean cache() {
 		return inst.doCache;
 	}
-	
+
 	public static void setCache(boolean b) {
 		inst.doCache=true;
 	}
-	
+
 	public static String cacheFile() {
 		return inst.file.getAbsolutePath()+File.separator+"data"+File.separator+"cache";
 	}
-	
+
 	public static ChannelOffHour getOffHour() {
 		return inst.oh;
 	}
-	
+
 	public static ChannelCfg cfg() {
 		return inst.cfg;
 	}
-	
+
 	public void setCfg(ChannelCfg c) {
 		cfg=c;
 		if(!ChannelUtil.empty(cfg.getCredPath())&&!cfg.getCredPath().equals(file)) {
@@ -796,65 +796,70 @@ public class Channels extends VirtualFolder implements FileListener {
 				writeCookieFile(cfg.getCookiePath());
 		}
 	}
-	
+
 	//////////////////////////////////////////
 	// Cookie mgmt
 	//////////////////////////////////////////
-	
+
 	public static boolean readCookieFile(String file) {
 		return readCookieFile(file,inst.cookies);
 	}
-	
+
 	public static boolean readCookieFile(String file,HashMap<String,ArrayList<ChannelAuth>> map) {
 		boolean skipped=false;
 		try {
 			BufferedReader in=new BufferedReader(new FileReader(file));
-			String str;
-	    	while ((str = in.readLine()) != null) {
-	    		if(ChannelUtil.ignoreLine(str)) 
-	    			continue;
-	    		str=str.trim();
-	    		String[] line=str.split("\t");
-	    		if(line.length<7) // bad line skip it
-	    			continue;
-	    		String url=line[0];
-	    		String ttd0=line[4];
-	    		String key=line[5];
-	    		String val=line[6];
-	    		long ttd=0;
-	    		try {
-	    			ttd=Long.parseLong(ttd0);
-	    		}
-	    		catch (NumberFormatException e1) {
-	    		}
-	    		if(ttd<System.currentTimeMillis()) { // ignore old cookies
-	    			skipped=true;
-	    			continue;
-	    		}
-	    		ChannelAuth a=new ChannelAuth();
-	    		a.authStr=key+"="+val;
-	    		a.method=ChannelLogin.COOKIE;
-	    		a.ttd=ttd;
-	    		a.proxy=null;
-	    		ArrayList<ChannelAuth> old=map.get(url);
-	    		if(old==null) {
-	    			old=new ArrayList<ChannelAuth>();
-	    		}
-	    		old.add(a);
-	    		map.put(url, old);
-	    			
-	    	}	
+			try {
+				String str;
+		    	while ((str = in.readLine()) != null) {
+		    		if(ChannelUtil.ignoreLine(str))
+		    			continue;
+		    		str=str.trim();
+		    		String[] line=str.split("\t");
+		    		if(line.length<7) // bad line skip it
+		    			continue;
+		    		String url=line[0];
+		    		String ttd0=line[4];
+		    		String key=line[5];
+		    		String val=line[6];
+		    		long ttd=0;
+		    		try {
+		    			ttd=Long.parseLong(ttd0);
+		    		}
+		    		catch (NumberFormatException e1) {
+		    		}
+		    		if(ttd<System.currentTimeMillis()) { // ignore old cookies
+		    			skipped=true;
+		    			continue;
+		    		}
+		    		ChannelAuth a=new ChannelAuth();
+		    		a.authStr=key+"="+val;
+		    		a.method=ChannelLogin.COOKIE;
+		    		a.ttd=ttd;
+		    		a.proxy=null;
+		    		ArrayList<ChannelAuth> old=map.get(url);
+		    		if(old==null) {
+		    			old=new ArrayList<ChannelAuth>();
+		    		}
+		    		old.add(a);
+		    		map.put(url, old);
+
+		    	}
+			} finally {
+				in.close();
+			}
 		} catch (Exception e) {
-		}	
+			LOGGER.debug("{Channel} Exception caught in readCookieFile: {}", e);
+		}
 		return skipped;
 	}
-	
+
 	private static void writeCookieFile(String file) {
 		try {
 			FileOutputStream out=new FileOutputStream(file);
 			// write a dummy line to make sure the file exists
 			Date now=new Date();
-			String data="# Cookie file generated "+ now.toString() +"\n"; 
+			String data="# Cookie file generated "+ now.toString() +"\n";
 			out.write(data.getBytes(), 0, data.length());
 			for(String key : inst.cookies.keySet()) {
 				ArrayList<ChannelAuth> list= inst.cookies.get(key);
@@ -864,7 +869,7 @@ public class Channels extends VirtualFolder implements FileListener {
 					"\n";
 					out.write(data.getBytes(), 0, data.length());
 				}
-			}	
+			}
 			out.flush();
 			out.close();
 		}
@@ -872,7 +877,7 @@ public class Channels extends VirtualFolder implements FileListener {
 			debug("Error writing cookie file "+e);
 		}
 	}
-	
+
 	public static void mkCookieFile() {
 		String file=cfg().getCookiePath();
 		if(ChannelUtil.empty(file))
@@ -912,7 +917,7 @@ public class Channels extends VirtualFolder implements FileListener {
 		f.delete(); // clear the file and the rewrite it
 		writeCookieFile(file);
 	}
-	
+
 	private static void mergeChannelAuths(ChannelAuth old,ArrayList<ChannelAuth> list) {
 		String cookie=old.authStr.split("=")[0];
 		ChannelAuth tmp=null;
@@ -934,7 +939,7 @@ public class Channels extends VirtualFolder implements FileListener {
 			list.add(tmp);
 		}
 	}
-	 
+
 	private static boolean findCookie(ArrayList<ChannelAuth> l,ChannelAuth a) {
 		String cookie=a.authStr.split("=")[0];
 		for(int i=0;i<l.size();i++) {
@@ -948,17 +953,17 @@ public class Channels extends VirtualFolder implements FileListener {
 		}
 		return false;
 	}
-	
+
 	public static boolean addCookie(String url,ChannelAuth a) {
 		ArrayList<ChannelAuth> l=inst.cookies.get(url);
-		if(l==null) 
+		if(l==null)
 			l=new ArrayList<ChannelAuth>();
 		if(!findCookie(l,a))
 			l.add(a);
 		inst.cookies.put(url, l);
 		return true;
 	}
-	
+
 	public static ChannelAuth getCookie(String url) {
 		ArrayList<ChannelAuth> l=inst.cookies.get(url);
 		if(l==null)
@@ -969,18 +974,18 @@ public class Channels extends VirtualFolder implements FileListener {
 		}
 		return a;
 	}
-	
+
 	////////////////////////////////////////////////
 	// Handle search db
 	/////////////////////////////////////////////////
-	
+
 	private void initSearch(File f) throws Exception {
 		if(!f.exists())
 			return;
 		BufferedReader in=new BufferedReader(new FileReader(f));
     	String str;
     	while ((str = in.readLine()) != null) {
-    		if(ChannelUtil.ignoreLine(str)) 
+    		if(ChannelUtil.ignoreLine(str))
     			continue;
     		str=str.trim();
     		String[] line=str.split(",");
@@ -997,33 +1002,33 @@ public class Channels extends VirtualFolder implements FileListener {
     	in.close();
     	searchDb.dump();
 	}
-	
+
 	public static void addSearch(Channel ch,String id,String str) {
 		debug("add search entry "+ch.name()+" "+id+" "+str);
 		inst.searchDb.addSearch(ch, id, str);
 		inst.searchDb.dump();
 	}
-	
+
 	////////////////////////////////////////////////////
 	// Proxy handling
 	////////////////////////////////////////////////////
-	
+
 	public static ChannelProxy getProxy(String name) {
 		return inst.proxies.get(name);
 	}
-	
+
 	//////////////////////////////////////////////
 	// Find stuff in the stash
 	/////////////////////////////////////////////
-	
+
 	public static HashMap<String,String> getStash(String key) {
 		return inst.stash.get(key);
 	}
-	
+
 	public static String getStashData(String key,String stashKey) {
 		return getStashData(key,stashKey,null);
-	}	
-	
+	}
+
 	public static String getStashData(String key,String stashKey,String def) {
 		HashMap<String,String> s=getStash(key);
 		if(s==null)
@@ -1033,11 +1038,11 @@ public class Channels extends VirtualFolder implements FileListener {
 			return def;
 		return res;
 	}
-	
+
 	public static void putStash(String stash,String key,String val) {
 		putStash(stash,key,val,false);
 	}
-	
+
 	public static void putStash(String stash,String key,String val,boolean create) {
 		HashMap<String,String> s=getStash(stash);
 		if(s!=null)
@@ -1046,25 +1051,25 @@ public class Channels extends VirtualFolder implements FileListener {
 			s=new HashMap<String,String>();
 			s.put(key, val);
 			inst.stash.put(stash, s);
-		}		
+		}
 	}
-	
+
 	/////////////////////////////////
 	// Groupfolder
 	/////////////////////////////////
-	
+
 	public static void setGroup(boolean b) {
 		inst.groupFolder=b;
 	}
-	
+
 	public static boolean useGroupFolder() {
 		return inst.groupFolder;
 	}
-	
+
 	///////////////////////////////////
 	// MovieInfo
 	///////////////////////////////////
-	
+
 	public static void setMovieInfo(boolean b) {
 		if(b) {
 			inst.movieInfo=null;
@@ -1092,56 +1097,56 @@ public class Channels extends VirtualFolder implements FileListener {
 		else
 			inst.movieInfo=null;
 	}
-	
+
 	public static boolean useMovieInfo() {
 		return (inst.movieInfo!=null);
 	}
-	
+
 	public static ChannelMovieInfo movieInfo() {
 		return inst.movieInfo;
 	}
-	
+
 	/////////////////////////////////////////////////
 	// Favorite handling methods
 	/////////////////////////////////////////////////
-	
+
 	public static File workFavFile() {
 		return new File(getPath()+File.separator+"000favorite.work");
 	}
-	
+
 	public static File favFile() {
 		return new File(getPath()+File.separator+"000favorite.ch");
 	}
-	
+
 	public static boolean noFavorite() {
 		return !cfg().favorite();
 	}
-	
+
 	public static boolean noPlay() {
 		return cfg().noPlay();
 	}
-	
+
 	//////////////////////////////////////////////////////////////
 	// ChannelVars handling
 	//////////////////////////////////////////////////////////////
-	
+
 	public void initVar(String channel,Channel ch) {
 		cfg().chVars(channel,ch);
 	}
-	
+
 	public static void setChVar(String ch,String inst,String var,String val) {
 		cfg().putChVars(ch,inst,var,val);
 	}
-	
+
 	////////////////////////////////////////////////////////////////
 	// ProxyDNS
 	////////////////////////////////////////////////////////////////
-	
+
 	private static boolean useProxyDNS(boolean channel) {
 		int mode=cfg().proxyDNSMode();
 		return (mode==ChannelCfg.PROXY_DNS_CHANNEL)&&channel;
 	}
-	
+
 	public static void setProxyDNS(boolean channel) {
 		if(!useProxyDNS(channel))
 			return;
@@ -1150,42 +1155,42 @@ public class Channels extends VirtualFolder implements FileListener {
 			return;
 		setProxyDNS(p);
 	}
-	
+
 	public static void setProxyDNS(String server) {
 		debug("set DNS server to "+server);
 		System.setProperty("sun.net.spi.nameservice.nameservers", server);
 		System.setProperty("sun.net.spi.nameservice.provider.1", "dns,dnsjava");
 	}
-	
+
 	public static void restoreProxyDNS() {
 		// trick here, if mode!=channel this is always false and we dont swap
 		// the DNS back and forth
-		if(!useProxyDNS(true)) 
+		if(!useProxyDNS(true))
 			return;
 		System.clearProperty("sun.net.spi.nameservice.nameservers");
 		System.clearProperty("sun.net.spi.nameservice.provider.1");
 	}
-	
+
 	//////////////////////////////////////////////////////////////////////
-	
+
 	public static ChannelStreamVars defStreamVar() {
 		return inst.defStreamVar;
 	}
-	
+
 	///////////////////////////////////////////////////////////////////////
-	
+
 	private static boolean isIllegal(ArrayList<ChannelIllegal> list,String str,int type) {
 		for(ChannelIllegal ill : list) {
-			if(ill.isIllegal(str, type)) 
+			if(ill.isIllegal(str, type))
 				return true;
 		}
 		return false;
 	}
-	
+
 	public static boolean isIllegal(String str,int type) {
 		return isIllegal(inst.illegals,str,type);
 	}
-	
+
 	public static boolean isCode(String str,int type) {
 		if(allUnlocked())
 			return false;
@@ -1193,27 +1198,27 @@ public class Channels extends VirtualFolder implements FileListener {
 			return false;
 		return isIllegal(inst.codes,str,type);
 	}
-	
+
 	public static String getCode() {
 		if(cfg().stdAlone())
 			return "";
 		return (String) PMS.getConfiguration().getCustomProperty("channels.code");
 	}
-	
+
 	public static void unlockAll() {
 		inst.allUnlocked=true;
 	}
-	
+
 	public static boolean allUnlocked() {
 		return inst.allUnlocked;
 	}
-	
+
 	//////////////////////////////////////////////////////////////////////////
-	
+
 	public static File localPLX() {
 		return new File(dataPath()+File.separator+"navix_local.plx");
 	}
-	
+
 	public static void addToPLX(Channel ch,String name,String url,String proc,int format,
 			String thumb,String imdb) throws IOException {
 		FileWriter out=new FileWriter(localPLX(),true);
@@ -1245,13 +1250,13 @@ public class Channels extends VirtualFolder implements FileListener {
 		out.write(sb.toString());
 		out.close();
 	}
-	
+
 	//////////////////////////////////////////////////////
-	
+
 	public static ChannelSubs openSubs() {
 		return inst.openSubs;
 	}
-	
+
 	public static void setOpenSubs(boolean b) {
 		if(b) {
 			try {
@@ -1265,28 +1270,28 @@ public class Channels extends VirtualFolder implements FileListener {
 		else
 			inst.openSubs=null;
 	}
-	
+
 	////////////////////////////////////////////////////////////////
 	// Monitor stuff
 	////////////////////////////////////////////////////////////////
-	
+
 	private class ChannelPlainFolder extends VirtualFolder {
 		public ChannelPlainFolder(String name) {
 			super(name,null);
 		}
 	}
-	
+
 	private static File monitorFile() {
 		return new File(dataPath()+File.separator+"monitor");
 	}
-	
+
 	private void parseMonitorFile() {
 		File f=monitorFile();
 		if(!cfg.monitor()||!f.exists())
 			return;
 		try {
 			BufferedReader in=new BufferedReader(new FileReader(f));
-			String str;    	
+			String str;
 			ArrayList<String> entries=null;
 			String name="";
 			Channel owner=null;
@@ -1375,9 +1380,9 @@ public class Channels extends VirtualFolder implements FileListener {
 			in.close();
 		} catch (Exception e) {
 			debug("mon file parse error "+e);
-		}				
+		}
 	}
-	
+
 	private static String templWash(String name,String templ) {
 		if(ChannelUtil.empty(templ))
 			return name;
@@ -1385,8 +1390,8 @@ public class Channels extends VirtualFolder implements FileListener {
 		vars.put("__wash__", "1");
 		return ChannelNaviXProc.simple(name, templ, vars);
 	}
-	
-	
+
+
 	private static String monNameWash(String name,String templ,String searched,
 									  String nameProp) {
 		if(!ChannelUtil.empty(nameProp)&&
@@ -1396,18 +1401,18 @@ public class Channels extends VirtualFolder implements FileListener {
 		}
 		return templWash(name,templ);
 	}
-	
-	
+
+
 	public static void monitor(DLNAResource res,ChannelFolder cf,
 			   String data) throws IOException {
 		monitor(res,cf,data,null);
 	}
-		
+
 	public static void monitor(DLNAResource res,ChannelFolder cf,
 							   String data,String templ) throws IOException {
 		if(!inst.cfg.monitor())
 			return;
-		if(inst.monMgr.monitored(res.getName())) 
+		if(inst.monMgr.monitored(res.getName()))
 			return;
 		File f=monitorFile();
 		boolean newFile=!f.exists();
@@ -1470,7 +1475,7 @@ public class Channels extends VirtualFolder implements FileListener {
     	    }
     	}
 	}
-	
+
 	public static void updateMonitor(String monName,String newEntry) {
 		try {
 			if(!inst.monMgr.update(monName, newEntry)) // weird?
@@ -1492,7 +1497,7 @@ public class Channels extends VirtualFolder implements FileListener {
 			debug("update mon file error "+e);
 		}
 	}
-	
+
 	private void allPlayed(DLNAResource res,String name) {
 		for(DLNAResource r : res.getChildren()) {
 			if(r instanceof VirtualVideoAction)
@@ -1500,7 +1505,7 @@ public class Channels extends VirtualFolder implements FileListener {
 			updateMonitor(name,r.getName());
 		}
 	}
-	
+
 	private static DLNAResource findMonitorFolder(DLNAResource start,String name) {
 		for(DLNAResource r : start.getChildren()) {
 			if(name.equals(r.getName()))
@@ -1508,7 +1513,7 @@ public class Channels extends VirtualFolder implements FileListener {
 		}
 		return null;
 	}
-	
+
 	private void addNewMonitoredMedia_i(final DLNAResource r,final String folder) {
 		DLNAResource f=findMonitorFolder(monitor,folder);
 		if(f==null) {
@@ -1523,23 +1528,23 @@ public class Channels extends VirtualFolder implements FileListener {
 				}
 			});
 		}
-		f.addChild(r);	
+		f.addChild(r);
 	}
 
 	public static void addNewMonitoredMedia(DLNAResource r,String folder) {
 		inst.addNewMonitoredMedia_i(r, folder);
 	}
-	
+
 	public static void clearNewMediaFolder(String folder) {
 		DLNAResource f=findMonitorFolder(inst.monitor,folder);
 		if(f!=null)
 			inst.monitor.getChildren().remove(f);
 	}
-	
+
 	public static boolean monitoredPlay(DLNAResource res) {
 		return (inst.monitor==res);
-	}	
-	
+	}
+
 	public static void clearMonitor() {
 		inst.monitor.getChildren().clear();
 		inst.monitor.addChild(new VirtualVideoAction("Rescan",true) {
@@ -1551,11 +1556,11 @@ public class Channels extends VirtualFolder implements FileListener {
 			}
     	});
 	}
-	
+
 	///////////////////////////////////////////////////////
 	// URL Resolving
 	///////////////////////////////////////////////////////
-	
+
 	public String urlResolve(String url,boolean dummyOnly) {
 		for(Channel ch : getChannels()) {
 			String u = ch.urlResolve(url,dummyOnly);

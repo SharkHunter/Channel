@@ -3,23 +3,18 @@ import java.io.BufferedOutputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
-
 import javax.swing.JComponent;
-
 import org.apache.commons.configuration.ConfigurationException;
-
+import org.slf4j.LoggerFactory;
 import com.sun.jna.Platform;
-
 import net.pms.PMS;
 import net.pms.configuration.PmsConfiguration;
 import net.pms.dlna.DLNAMediaInfo;
 import net.pms.dlna.DLNAResource;
-import net.pms.dlna.WebStream;
 import net.pms.dlna.virtual.VirtualFolder;
 import net.pms.encoders.Player;
 import net.pms.external.AdditionalFolderAtRoot;
@@ -29,9 +24,10 @@ import net.pms.external.URLResolver;
 import net.pms.external.StartStopListener;
 import net.pms.io.OutputParams;
 
-public class CH_plugin implements AdditionalFolderAtRoot, StartStopListener, 
+public class CH_plugin implements AdditionalFolderAtRoot, StartStopListener,
 								  FinalizeTranscoderArgsListener, URLResolver {
 
+	private static org.slf4j.Logger LOGGER = LoggerFactory.getLogger(CH_plugin.class);
 	private static final long DEFAULT_POLL_INTERVAL=20000;
 	private static boolean initFetchPending=false;
 	private Channels chRoot;
@@ -53,7 +49,7 @@ public class CH_plugin implements AdditionalFolderAtRoot, StartStopListener,
 				chFolder.mkdir();
 				path=chFolder.toString();
 			}
-			else 
+			else
 				path=confPath;
 			String save=(String)PMS.getConfiguration().getCustomProperty("channels.save");
 			chRoot=new Channels(path,pluginName,img);
@@ -83,7 +79,7 @@ public class CH_plugin implements AdditionalFolderAtRoot, StartStopListener,
 		}
 		catch (Exception e) {
 			chRoot.debug("init exp "+e);
-			PMS.debug("exp "+e)	;
+			LOGGER.debug("{Channel} Exception: {}", e);
 		}
 	}
 
@@ -95,7 +91,7 @@ public class CH_plugin implements AdditionalFolderAtRoot, StartStopListener,
 				return l.longValue();
 			}
 			catch (Exception e) {
-				PMS.minimal("Illegal interval value "+e.toString());
+				LOGGER.warn("{Channel} Illegal interval value \"{}\": {}", interval, e);
 			}
 		}
 		return CH_plugin.DEFAULT_POLL_INTERVAL;
@@ -129,12 +125,12 @@ public class CH_plugin implements AdditionalFolderAtRoot, StartStopListener,
 		if(arg1 instanceof ChannelMediaStream)
 			((ChannelMediaStream)arg1).nowPlaying();
 	}
-	
+
 	private static String linuxPath(String program) {
 		ProcessBuilder pb=new ProcessBuilder("which",program);
 		return ChannelUtil.execute(pb);
 	}
-	
+
 	public static void unzip(String path,File f) {
 		try {
 			ZipInputStream zis = new ZipInputStream(new FileInputStream(f));
@@ -157,10 +153,10 @@ public class CH_plugin implements AdditionalFolderAtRoot, StartStopListener,
 			 }
 			 zis.close();
 		 } catch (Exception e) {
-			 PMS.info("unzip error "+e);
+			 LOGGER.info("{Channel} Unzip error: {}", e);
 		 }
 	}
-	
+
 	public static void postInstall() {
 		initFetchPending=true;
 		PMS.getConfiguration().setCustomProperty("channels.path", "extras\\channels");
@@ -200,11 +196,11 @@ public class CH_plugin implements AdditionalFolderAtRoot, StartStopListener,
 		} catch (ConfigurationException e) {
 		}
 	}
-	
+
 	private void removeArg(List<String> list,String arg) {
 		removeArg(list,arg,false);
 	}
-	
+
 	private void removeArg(List<String> list,String arg,boolean boolOp) {
 		int pos;
 		if((pos=list.indexOf(arg))!=-1) {
@@ -216,7 +212,7 @@ public class CH_plugin implements AdditionalFolderAtRoot, StartStopListener,
 			list.set(pos+1,"copy");
 		}
 	}
-	
+
 	private void dbgArg(List<String> cmdList) {
 		for(int i=0;i<cmdList.size();i++)
 			Channels.debug("arg "+i+":"+cmdList.get(i));
@@ -234,7 +230,7 @@ public class CH_plugin implements AdditionalFolderAtRoot, StartStopListener,
 		ChannelMediaStream cms=(ChannelMediaStream)res;
 		return cms.addStreamvars(cmdList,params);
 	}
-	
+
 	/*public DLNAResource fromPlaylist(String name,String uri,String thumb,
 									 String extra,String className) {
 		Channels.debug("call from pl "+name+" "+uri+" "+extra);
@@ -253,9 +249,9 @@ public class CH_plugin implements AdditionalFolderAtRoot, StartStopListener,
 			type=ChannelUtil.getFormat(es[1]);
 		if(ChannelUtil.empty(name))
 			name="Unknown";
-		return (new ChannelMediaStream(ch,name,uri,thumb,proc,type,asx,(ChannelScraper)null)); 	
+		return (new ChannelMediaStream(ch,name,uri,thumb,proc,type,asx,(ChannelScraper)null));
 	}*/
-	
+
 	public static void main(String[] args) {
 		try {
 			PMS.setConfiguration(new PmsConfiguration());
@@ -311,7 +307,7 @@ public class CH_plugin implements AdditionalFolderAtRoot, StartStopListener,
 			if(ChannelUtil.empty(ChannelUtil.extension(outFile)))
 				outFile=outFile+Channels.cfg().getCrawlFormat();
 		}
-		
+
 		Thread t=ChannelUtil.newBackgroundDownload(outFile,url);
 		t.start();
 		threads.add(t);
@@ -325,7 +321,7 @@ public class CH_plugin implements AdditionalFolderAtRoot, StartStopListener,
 		System.out.println("Done");
 		System.exit(0);
 	}
-	
+
 	private static final String DUMMY_URL = "http://dummy_url.dummy.dummy/";
 
 	public DLNAResource create(String arg0) {
@@ -351,7 +347,7 @@ public class CH_plugin implements AdditionalFolderAtRoot, StartStopListener,
 		return new ChannelMediaStream(tmp[2],tmp[0],ch,format,thumb);
 	}
 
-	
+
 	public URLResult urlResolve(String url) {
 		URLResult res = new URLResult();
 		boolean dummyOnly=url.contains(DUMMY_URL);
@@ -373,5 +369,5 @@ public class CH_plugin implements AdditionalFolderAtRoot, StartStopListener,
 		}
 		return res;
 	}
-	
+
 }

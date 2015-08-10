@@ -2,29 +2,24 @@ package com.sharkhunter.channel;
 
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.List;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
-
 import org.apache.commons.lang.StringEscapeUtils;
-import net.pms.PMS;
+import org.slf4j.LoggerFactory;
 import net.pms.configuration.RendererConfiguration;
 import net.pms.dlna.DLNAResource;
-import net.pms.dlna.virtual.VirtualVideoAction;
-import net.pms.formats.Format;
 
 public class ChannelMedia implements ChannelProps,ChannelScraper {
+	private static org.slf4j.Logger LOGGER = LoggerFactory.getLogger(ChannelMedia.class);
 	public static final int TYPE_NORMAL=0;
 	public static final int TYPE_ASX=1;
-	
+
 	public static final int SAVE_OPT_NONE=0;
 	public static final int SAVE_OPT_SAVE=1;
 	public static final int SAVE_OPT_PLAY=2;
-	
+
 	public static final int SCRIPT_LOCAL=0;
 	public static final int SCRIPT_NET=1;
 	public static final int SCRIPT_EXT=2;
-	
+
 	public boolean Ok;
 	private ChannelMatcher matcher;
 	private String name;
@@ -42,7 +37,7 @@ public class ChannelMedia implements ChannelProps,ChannelScraper {
 	private HashMap<String,String> hdrs;
 	private String videoFormat;
 	private ChannelMatcher formatMatcher;
-	
+
 	public ChannelMedia(ArrayList<String> data,Channel parent) {
 		Ok=false;
 		matcher=null;
@@ -54,14 +49,14 @@ public class ChannelMedia implements ChannelProps,ChannelScraper {
 		params=new HashMap<String,String>();
 		format=-1;
 		proxy=null;
-		hdrs=new HashMap<String,String>();	
+		hdrs=new HashMap<String,String>();
 		hdrs.putAll(parent.getHdrs());
 		videoFormat=null;
 		formatMatcher=null;
 		parse(data);
 		Ok=true;
 	}
-	
+
 	public void parse(ArrayList<String> data) {
 		for(int i=0;i<data.size();i++) {
 			String line=data.get(i).trim();
@@ -75,8 +70,8 @@ public class ChannelMedia implements ChannelProps,ChannelScraper {
 				if(m!=null)
 					parse(m.getMacro());
 				else
-					PMS.debug("unknown macro "+keyval[1]);
-			}	
+					LOGGER.debug("{Channel} Unknown macro {}", keyval[1]);
+			}
 			if(keyval[0].equalsIgnoreCase("matcher")) {
 					if(matcher==null)
 						matcher=new ChannelMatcher(keyval[1],null,this);
@@ -117,7 +112,7 @@ public class ChannelMedia implements ChannelProps,ChannelScraper {
 			}
 			if(keyval[0].equalsIgnoreCase("name"))
 				name=keyval[1];
-			if(keyval[0].equalsIgnoreCase("prop"))	
+			if(keyval[0].equalsIgnoreCase("prop"))
 				prop=keyval[1].trim().split(",");
 			if(keyval[0].equalsIgnoreCase("img"))
 				thumbURL=keyval[1];
@@ -154,23 +149,23 @@ public class ChannelMedia implements ChannelProps,ChannelScraper {
 		if(matcher!=null)
 			matcher.processProps(prop);
 	}
-	
+
 	public void setFallBackFormat(String s) {
 		videoFormat=s;
 	}
-	
+
 	public ChannelMatcher getMatcher() {
 		return matcher;
 	}
-	
+
 	public ChannelMatcher getFormatMatcher() {
 		return formatMatcher;
 	}
-	
+
 	public boolean onlyFirst() {
 		return ChannelUtil.getProperty(prop, "only_first");
 	}
-	
+
 	public void stash(String key,String val) {
 		if(ChannelUtil.empty(val))
 			return;
@@ -183,16 +178,16 @@ public class ChannelMedia implements ChannelProps,ChannelScraper {
 	public void add(DLNAResource res,String nName,String url,String thumb,boolean autoASX,int sOpt) {
 		add(res,nName,url,thumb,autoASX,null,-1,sOpt,null, null);
 	}
-	
+
 	public void add(DLNAResource res,String nName,String url,String thumb,boolean autoASX,String imdb) {
 		add(res,nName,url,thumb,autoASX,imdb,-1,ChannelMedia.SAVE_OPT_NONE,null, null);
 	}
-	
+
 	public void add(DLNAResource res,String nName,String url,String thumb,
 			boolean autoASX,String imdb,int f,String subs) {
 		add(res,nName,url,thumb,autoASX,imdb,f,ChannelMedia.SAVE_OPT_NONE,subs, null);
 	}
-	
+
 	public void add(final DLNAResource res,String nName,String url,String thumb,
 			boolean autoASX,String imdb,int f,int sOpt,String subs, HashMap<String, String> rtmpStash) {
 		if(!ChannelUtil.empty(thumbURL)) {
@@ -271,11 +266,11 @@ public class ChannelMedia implements ChannelProps,ChannelScraper {
 			res.addChild(cms);
 		}
 	}
-	
+
 	public String separator(String base) {
 		return ChannelUtil.separatorToken(ChannelUtil.getPropertyValue(prop, base+"_separator"));
 	}
-	
+
 	@Override
 	public String scrape(Channel ch, String url, String scriptName,int format,DLNAResource start
 			             ,boolean noSub,String imdb,Object embedSubs,
@@ -303,18 +298,18 @@ public class ChannelMedia implements ChannelProps,ChannelScraper {
 				vars.put("subtitle", subFile);
 			}
 			Channels.debug("subFile "+subFile);
-		}	
+		}
 		Channels.debug("scrape script name "+scriptName);
 		if(ChannelUtil.empty(scriptName)) { // no script just return what we got
 			vars.put("url", ChannelUtil.parseASX(url,asx));
 			if(extraMap!=null)
 				vars.putAll(extraMap);
 			if(live)
-				vars.put("live", "true");	
+				vars.put("live", "true");
 			return ChannelUtil.createMediaUrl(vars,format,ch,render);
 		}
 		ch.debug("media scrape type "+scriptType+" name "+scriptName);
-		if(scriptType==ChannelMedia.SCRIPT_NET) 
+		if(scriptType==ChannelMedia.SCRIPT_NET)
 			return ChannelNaviXProc.parse(url,scriptName,format,subFile,parent);
 		if(scriptType==ChannelMedia.SCRIPT_EXT) {
 			/*String f=ChannelUtil.format2str(format);
@@ -335,7 +330,7 @@ public class ChannelMedia implements ChannelProps,ChannelScraper {
 			}
 			vars.put("url",  ChannelUtil.parseASX(rUrl,asx));
 			return ChannelUtil.createMediaUrl(vars, format,ch,render);
-		}	
+		}
 		ArrayList<String> sData=Channels.getScript(scriptName);
 		if(sData==null) { // weird no script found, log and bail out
 			ch.debug("no script "+scriptName+" defined");
@@ -353,18 +348,18 @@ public class ChannelMedia implements ChannelProps,ChannelScraper {
 		res.put("__type__", "normal");
 		return ChannelUtil.createMediaUrl(res,format,ch,render);
 	}
-	
+
 	public boolean scriptOnly() {
 		return !ChannelUtil.empty(script)&&(matcher==null);
 	}
-	
+
 	public String append(String base) {
 		return ChannelUtil.getPropertyValue(prop,"append_"+base);
 	}
 	public String prepend(String base) {
 		return ChannelUtil.getPropertyValue(prop,"prepend_"+base);
 	}
-	
+
 	public String rawEntry() {
 		StringBuilder sb=new StringBuilder();
 		sb.append("media {");
@@ -415,7 +410,7 @@ public class ChannelMedia implements ChannelProps,ChannelScraper {
 		sb.append("\n}\n");
 		return sb.toString();
 	}
-	
+
 	public long delay() {
 		String x=ChannelUtil.getPropertyValue(prop, "delay");
 		if(ChannelUtil.empty(x))
@@ -429,7 +424,7 @@ public class ChannelMedia implements ChannelProps,ChannelScraper {
 			return 0;
 		}
 	}
-	
+
 	public String backtrackedName(DLNAResource start) {
 		return ChannelSubUtil.backtrackedName(start, prop);
 	}
@@ -444,17 +439,17 @@ public class ChannelMedia implements ChannelProps,ChannelScraper {
 	public boolean unescape(String base) {
 		return ChannelUtil.getProperty(prop, base+"_unescape");
 	}
-	
+
 	public String mangle(String base) {
 		return ChannelUtil.getPropertyValue(prop, base+"_mangle");
 	}
-	
+
 	public String subScrape(DLNAResource start,String imdb) {
 		return subScrape(start,imdb,false);
 	}
-	
+
 	public String subScrape(DLNAResource start,String imdb,boolean select) {
-		if(subtitle==null) 
+		if(subtitle==null)
 			return null;
 		String subFile=null;
 		for(int i=0;i<subtitle.length;i++) {
@@ -479,19 +474,19 @@ public class ChannelMedia implements ChannelProps,ChannelScraper {
 		}
 		return null;
 	}
-	
+
 	public ArrayList<String> subSites() {
 		return ChannelSubUtil.subSites(subtitle);
 	}
-	
+
 	public HashMap<String,Object> subSelect(DLNAResource start,String imdb) {
 		return ChannelSubUtil.subSelect(start, imdb, subtitle, parent, backtrackedName(start));
 	}
-	
+
 	public HashMap<String,Object> subSelect(DLNAResource start,String imdb,String subSite) {
 		return ChannelSubUtil.subSelect(start, imdb, subSite, subtitle, parent, backtrackedName(start));
 	}
-	
+
 	public String relativeURL() {
 		return ChannelUtil.getPropertyValue(prop, "relative_url");
 	}

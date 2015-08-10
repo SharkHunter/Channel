@@ -9,7 +9,7 @@ import net.pms.dlna.virtual.VirtualVideoAction;
 import net.pms.formats.Format;
 
 public class ChannelPMSSaveFolder extends VirtualFolder {
-	
+
 	private Channel ch;
 	private String url;
 	private String name;
@@ -25,7 +25,7 @@ public class ChannelPMSSaveFolder extends VirtualFolder {
 	private String videoFormat;
 	private String embedSub;
 	private HashMap<String,String> stash;
-	
+
 	private static final String P="PLAY";
 	private static final String SP="PLAY&SAVE";
 	private static final String NS=" - No Subs";
@@ -34,9 +34,9 @@ public class ChannelPMSSaveFolder extends VirtualFolder {
 	private static final String SNS=SP+NS;
 	private static final String PES=P+ES;
 	private static final String SES=SP+ES;
-	
+
 	private static final long AUTO_PLAY_FACTOR=(1000*15);
-	
+
 	public ChannelPMSSaveFolder(Channel ch,String name,String url,String thumb,
 								String proc,int asx,int type,
 								ChannelScraper scraper) {
@@ -56,7 +56,7 @@ public class ChannelPMSSaveFolder extends VirtualFolder {
 		videoFormat=null;
 		embedSub=null;
 	}
-	
+
 	public static String washName(String str) {
 		String[] strs={SNS,PNS,SP,P,PES,SES};
 		for(String s : strs) {
@@ -65,34 +65,34 @@ public class ChannelPMSSaveFolder extends VirtualFolder {
 		}
 		return str;
 	}
-	
+
 	public void setImdb(String i) {
 		imdb=i;
 	}
-	
+
 	public void setDoSubs(boolean b) {
 		subs=b;
 	}
-	
+
 	public void setSaveMode(boolean raw) {
 		rawSave=raw;
 	}
-	
+
 	public void setEmbedSub(String str) {
 		embedSub=str;
 	}
-	
+
 	public void setStash(HashMap<String,String> map) {
 		stash=map;
 	}
-	
+
 	private String displayName(String n) {
 		if(Channels.cfg().longSaveName())
 			return ChannelUtil.append(n, " ", name);
 		else
 			return n;
 	}
-		
+
 	public void discoverChildren() {
 		final ChannelPMSSaveFolder me=this;
 		final ChannelOffHour oh=Channels.getOffHour();
@@ -170,7 +170,7 @@ public class ChannelPMSSaveFolder extends VirtualFolder {
 												   thumb,proc,f,asx,scraper,name,name);
 						cms.setEmbedSub(embedSub);
 						cms.setImdb(imdb);
-						cms.setRender(this.defaultRenderer);
+						cms.setRender(getDefaultRenderer());
 						cms.setSaveMode(rawSave);
 						cms.setFallbackFormat(videoFormat);
 						cms.setStreamVars(streamVars);
@@ -181,7 +181,7 @@ public class ChannelPMSSaveFolder extends VirtualFolder {
 										       proc,f,asx,scraper,name,null);
 					cms.setEmbedSub(embedSub);
 					cms.setImdb(imdb);
-					cms.setRender(this.defaultRenderer);
+					cms.setRender(getDefaultRenderer());
 					cms.setSaveMode(rawSave);
 					cms.setFallbackFormat(videoFormat);
 					cms.setStreamVars(streamVars);
@@ -203,14 +203,14 @@ public class ChannelPMSSaveFolder extends VirtualFolder {
 					subSel.setStreamVars(streamVars);
 					addChild(subSel);
 				}
-			}				
+			}
 		}
 		// add the no subs variants
 		if(save) {
 			cms=new ChannelMediaStream(ch,displayName(SNS),url,
 					   thumb,proc,f,asx,scraper,name,name);
 			cms.setImdb(imdb);
-			cms.setRender(this.defaultRenderer);
+			cms.setRender(getDefaultRenderer());
 			cms.setSaveMode(rawSave);
 			cms.setFallbackFormat(videoFormat);
 			cms.setStreamVars(streamVars);
@@ -221,7 +221,7 @@ public class ChannelPMSSaveFolder extends VirtualFolder {
 		cms=new ChannelMediaStream(ch,displayName(PNS),url,thumb,
 				proc,f,asx,scraper,name,null);
 		cms.setImdb(imdb);
-		cms.setRender(this.defaultRenderer);
+		cms.setRender(getDefaultRenderer());
 		cms.setSaveMode(rawSave);
 		cms.setFallbackFormat(videoFormat);
 		cms.setStreamVars(streamVars);
@@ -230,7 +230,7 @@ public class ChannelPMSSaveFolder extends VirtualFolder {
 		addChild(cms);
 	}
 
-	
+
 	public InputStream getThumbnailInputStream() {
 		try {
 			return downloadAndSend(thumbnailIcon,true);
@@ -239,30 +239,30 @@ public class ChannelPMSSaveFolder extends VirtualFolder {
 			return super.getThumbnailInputStream();
 		}
 	}
-	
+
 	public void childDone() {
 		//childDone=System.currentTimeMillis();
 	}
-	
+
 	public boolean preventAutoPlay() {
 		// Normally childDone is 0 and 0+15000 is never larger
 		// then now.
 		return (childDone+AUTO_PLAY_FACTOR)>System.currentTimeMillis();
 	}
-	
+
 	public void setFallbackFormat(String s) {
 		videoFormat=s;
 	}
-	
+
 	public boolean isRefreshNeeded() {
 		return true;
 	}
-    
+
     public boolean refreshChildren() {
     	refreshChildren(null);
     	return true;
     }
-	
+
 	public boolean refreshChildren(String str) {
 		if(str==null)
 			return false;
@@ -270,11 +270,11 @@ public class ChannelPMSSaveFolder extends VirtualFolder {
 		//discoverChildren(str);
 		return true;
 	}
-	
+
 	public void resolve() {
 		setDiscovered(false);
 	}
-	
+
 	public void addChild(DLNAResource child) {
 		if(Channels.cfg().stdAlone()) {
 			// be brutal

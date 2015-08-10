@@ -5,11 +5,9 @@ import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import net.pms.PMS;
 import net.pms.configuration.RendererConfiguration;
 import net.pms.dlna.DLNAResource;
 import net.pms.dlna.Feed;
@@ -27,7 +25,7 @@ public class ChannelNaviX extends VirtualFolder implements ChannelScraper {
 	private String imdbId;
 	private boolean ignoreFav;
 	private boolean ignoreSave;
-	
+
 	public ChannelNaviX(Channel ch,String name,String thumb,String url,
 			String[] props,String[] sub) {
 		super(name,ChannelUtil.getThumb(thumb,null,ch));
@@ -42,24 +40,24 @@ public class ChannelNaviX extends VirtualFolder implements ChannelScraper {
 		ignoreFav=false;
 		ignoreSave=false;
 	}
-	
+
 	private boolean favFolder() {
 		return !(ignoreFav||parent.noFavorite());
 	}
-	
+
 	public void setIgnoreFav() {
 		ignoreFav=true;
 	}
-	
+
 	public void setIgnoreSave() {
 		ignoreSave=true;
 	}
-	
+
 	private String washName(String name) {
 		name=name.replaceAll("\\[[^]]*\\]","");
 		return name;
 	}
-	
+
 	private void doAdd(DLNAResource upper,DLNAResource res,String name,String url) {
 		if(Channels.isCode(name, ChannelIllegal.TYPE_NAME)||
  		   Channels.isCode(url, ChannelIllegal.TYPE_URL)) {
@@ -70,7 +68,7 @@ public class ChannelNaviX extends VirtualFolder implements ChannelScraper {
 		else
 			upper.addChild(res);
 	}
-	
+
 	private void addMedia(String name,String nextUrl,String thumb,String proc,String type,String pp,
 			DLNAResource res,String imdb,Channel ch) {
 		if(type!=null) {
@@ -122,7 +120,7 @@ public class ChannelNaviX extends VirtualFolder implements ChannelScraper {
 			else {
 				int f=ChannelUtil.getFormat(type);
 				Channels.debug("add media "+f+" name "+name+" url "+nextUrl);
-				if(f==-1) 
+				if(f==-1)
 					return;
 				int asx;
 				if(ChannelUtil.getProperty(props,"auto_asx"))
@@ -141,7 +139,7 @@ public class ChannelNaviX extends VirtualFolder implements ChannelScraper {
 					ChannelMediaStream cms=new ChannelMediaStream(ch,name,nextUrl,thumb,proc,
 							f,asx,this);
 					cms.setImdb(imdb);
-					cms.setRender(this.defaultRenderer);
+					cms.setRender(this.getDefaultRenderer());
 					if(Channels.cfg().useStreamVar()) {
 						ChannelStreamVars streamVars=new ChannelStreamVars(Channels.defStreamVar());
 						streamVars.add(this, parent);
@@ -151,8 +149,8 @@ public class ChannelNaviX extends VirtualFolder implements ChannelScraper {
 				}
 			}
 		}
-	} 
-	
+	}
+
 	public void readPlx(String str,DLNAResource res) {
 		// The URL found in the cf points to a NaviX playlist
 		// (or similar) fetch and parse
@@ -203,7 +201,7 @@ public class ChannelNaviX extends VirtualFolder implements ChannelScraper {
 			else if(line.startsWith("processor="))
 				proc=line.substring(10);
 			else if(line.startsWith("type="))
-				type=line.substring(5);	
+				type=line.substring(5);
 			else if(line.startsWith("playpath="))
 				playpath=line.substring(9);
 			else if(line.startsWith("channel=")) {
@@ -224,7 +222,7 @@ public class ChannelNaviX extends VirtualFolder implements ChannelScraper {
 		// add last item
 		addMedia(name,nextUrl,thumb,proc,type,playpath,res,imdb,ch);
 	}
-	
+
 	public void discoverChildren() {
 		if(favFolder()) {
 			// Add bookmark action
@@ -240,7 +238,7 @@ public class ChannelNaviX extends VirtualFolder implements ChannelScraper {
 		}
 		readPlx(url,this);
 	}
-	
+
 	public String subCb(String realName) {
 		String imdb=imdbId;
 		imdbId=null; // clear this always
@@ -263,7 +261,7 @@ public class ChannelNaviX extends VirtualFolder implements ChannelScraper {
 			Channels.debug("subs "+subFile);
 			if(ChannelUtil.empty(subFile))
 				continue;
-			
+
 			return subFile;
 		}
 		return null;
@@ -279,15 +277,15 @@ public class ChannelNaviX extends VirtualFolder implements ChannelScraper {
 			return ChannelUtil.badResource();
 		return res;
 	}
-	
+
 	public Channel getChannel() {
 		return parent;
 	}
-	
+
 	public boolean isTranscodeFolderAvailable() {
 		return false;
 	}
-	
+
 	public InputStream getThumbnailInputStream() {
 		try {
 			return downloadAndSend(thumbnailIcon,true);
@@ -296,7 +294,7 @@ public class ChannelNaviX extends VirtualFolder implements ChannelScraper {
 			return super.getThumbnailInputStream();
 		}
 	}
-	
+
 	public String rawEntry() {
 		StringBuilder sb=new StringBuilder();
 		sb.append("folder {\n");
@@ -326,7 +324,7 @@ public class ChannelNaviX extends VirtualFolder implements ChannelScraper {
 		sb.append("\n}\n");
 		return sb.toString();
 	}
-	
+
 	public void bookmark(String name,String url,String thumb) {
 		if(!favFolder()||parent==null) // weird but better safe than sorry
 			return;
@@ -359,15 +357,15 @@ public class ChannelNaviX extends VirtualFolder implements ChannelScraper {
 	public String backtrackedName(DLNAResource start) {
 		return ChannelSubUtil.backtrackedName(start, props);
 	}
-	
+
 	public ArrayList<String> subSites() {
 		return ChannelSubUtil.subSites(subtitle);
 	}
-	
+
 	public HashMap<String,Object> subSelect(DLNAResource start,String imdb) {
 		return ChannelSubUtil.subSelect(start, imdb, subtitle, parent);
 	}
-	
+
 	public HashMap<String,Object> subSelect(DLNAResource start,String imdb,String subSite) {
 		return ChannelSubUtil.subSelect(start, imdb, subSite, subtitle, parent);
 	}
@@ -384,5 +382,5 @@ public class ChannelNaviX extends VirtualFolder implements ChannelScraper {
 		// TODO Auto-generated method stub
 		return null;
 	}
-	
+
 }

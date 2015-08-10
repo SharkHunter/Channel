@@ -1,35 +1,32 @@
 package com.sharkhunter.channel;
 
-import java.io.UnsupportedEncodingException;
 import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.Proxy;
 import java.net.URL;
 import java.net.URLConnection;
-import java.net.URLDecoder;
-import java.net.URLEncoder;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-
-import net.pms.PMS;
+import org.slf4j.LoggerFactory;
 import net.pms.configuration.RendererConfiguration;
 import net.pms.dlna.DLNAResource;
 
 
 public class ChannelNaviXProc {
-	
+
+	private static org.slf4j.Logger LOGGER = LoggerFactory.getLogger(ChannelNaviXProc.class);
 	private static HashMap<String,String> vars=new HashMap<String,String>();
 	private static HashMap<String,String> rvars=new HashMap<String,String>();
 	public static HashMap<String,String> nookies=new HashMap<String,String>();
 	private static long lastExpire=0;
-	
+
 	private static void debug(String msg) {
 		if(ChannelUtil.empty(vars.get("nodebug")))
 			Channels.debug(msg);
 	}
-	
+
 	private static String escapeChars(String str) {
 		StringBuilder sb=new StringBuilder();
 	//	str=str.replaceAll("\\(", "\\\\\\(");
@@ -65,7 +62,7 @@ public class ChannelNaviXProc {
 			return storedVal;
 		}
 	}
-	
+
 	private static boolean eqOp(String op) {
 		if(op.equals("<=")) // lte
 			return true;
@@ -75,7 +72,7 @@ public class ChannelNaviXProc {
 			return true;
 		return false;
 	}
-	
+
 	private static boolean boolOp(String var,String op,String comp) {
 		if(var==null)
 			var="";
@@ -95,7 +92,7 @@ public class ChannelNaviXProc {
 			return (var.compareTo(comp)>=0);
 		return false;
 	}
-	
+
 	private static String getVar(String key) {
 		if(key.startsWith("pms_stash.")) {
 			// special PMS stash
@@ -112,7 +109,7 @@ public class ChannelNaviXProc {
 		}
 		return vars.get(key);
 	}
-	
+
 	private static void putVar(String key,String val) {
 		if(key.startsWith("pms_stash.")) {
 			// special PMS stash
@@ -129,18 +126,18 @@ public class ChannelNaviXProc {
 		}
 		vars.put(key, val);
 	}
-	
+
 	private static void clearVs(int maxV) {
 		for(int j=1;j<=maxV;j++) {
 			vars.remove("v"+String.valueOf(j));
 			rvars.remove("v"+String.valueOf(j));
 		}
 	}
-	
+
 	private static boolean parseV2(String[] lines,int start,String url) throws Exception {
 		return parseV2(lines,start,url,null);
 	}
-	
+
 	private static boolean parseV2(String[] lines,int start,String url,ChannelAuth a) throws Exception {
 		Pattern ifparse=Pattern.compile("^([^<>=!]+)\\s*([!<>=]+)\\s*(.*)");
 		boolean if_skip=false;
@@ -166,7 +163,7 @@ public class ChannelNaviXProc {
 			if(if_skip&&!line.startsWith("else")&&!line.startsWith("elseif")&&!line.startsWith("endif"))
 				continue;
 			if_skip=false;
-			
+
 			if(line.startsWith("print")) {
 				String var=line.substring(6).trim();
 				String msg;
@@ -174,17 +171,17 @@ public class ChannelNaviXProc {
 					msg = var.substring(1);
 				else
 					msg = var + "=" + getVar(var);
-				PMS.debug(msg);
+				LOGGER.debug(msg);
 				Channels.debug(msg);
 				continue;
 			}
-			
+
 			if(line.equalsIgnoreCase("scrape")) { // scrape, fetch page...
 				String sUrl=vars.get((String)"s_url");
 				URLConnection u=null;
 				String action=vars.get("s_action");
 				Proxy p=ChannelUtil.proxy(a);
-				if(action!=null&&action.equalsIgnoreCase("geturl")) { 
+				if(action!=null&&action.equalsIgnoreCase("geturl")) {
 					// YUCK!! this sucks, we need to get the location out of the redirect...
 					debug("geturl called "+sUrl);
 					HttpURLConnection h=(HttpURLConnection)new URL(sUrl).openConnection(p);
@@ -217,7 +214,7 @@ public class ChannelNaviXProc {
 					hdr.put("Referer", vars.get("s_referer"));
 				}
 				if(method!=null&&method.equalsIgnoreCase("post")) {
-					String q=vars.get("s_postdata");					
+					String q=vars.get("s_postdata");
 					sPage=ChannelUtil.postPage(u,(q==null?"":q),vars.get("s_cookie"),hdr);
 				}
 				else {
@@ -233,7 +230,7 @@ public class ChannelNaviXProc {
 				// get headers and cookies
 				String hName="";
 				for (int j=1; (hName = u.getHeaderFieldKey(j))!=null; j++) {
-				 	if (hName.equals("Set-Cookie")) {                  
+				 	if (hName.equals("Set-Cookie")) {
 				 		String[] fields = u.getHeaderField(j).split(";\\s*");
 				 		String cookie=fields[0];
 				 		String[] cf=cookie.split("=",2);
@@ -253,7 +250,7 @@ public class ChannelNaviXProc {
 				Matcher m=re.matcher(sPage);
 				clearVs(maxV);
 				maxV=0;
-				if(m.find()) {			
+				if(m.find()) {
 					for(int j=1;j<=m.groupCount();j++) {
 						vars.put("v"+String.valueOf(j), m.group(j));
 						rvars.put("v"+String.valueOf(j), m.group(j));
@@ -266,17 +263,17 @@ public class ChannelNaviXProc {
 				if_true=false;
 				continue;
 			}
-			
+
 			if(line.startsWith("if ")) { // if block
 				String cond=line.substring(3);
-				debug("if "+cond+" pattern "+ifparse.pattern());	
+				debug("if "+cond+" pattern "+ifparse.pattern());
 				Matcher im=ifparse.matcher(cond);
 				String var;
 				String op=null;
 				String comp=null;
 				if(!im.find()) {
 					var=getVar(cond);
-				}	
+				}
 				else {
 					var=getVar(im.group(1));
 					debug("gc "+im.groupCount()+" "+var);
@@ -303,7 +300,7 @@ public class ChannelNaviXProc {
 					if_skip=true;
 				continue;
 			}
-			
+
 			if(line.startsWith("elseif ")) {
 				String cond=line.substring(7);
 				Matcher im=ifparse.matcher(cond);
@@ -312,7 +309,7 @@ public class ChannelNaviXProc {
 				String comp=null;
 				if(!im.find()) {
 					var=getVar(cond);
-				}	
+				}
 				else {
 					var=getVar(im.group(1));
 					Channels.debug("gc "+im.groupCount()+" "+var);
@@ -342,13 +339,13 @@ public class ChannelNaviXProc {
 				if_true=true;
 				continue;
 			}
-			
+
 			if(line.startsWith("error ")) {
 				Channels.debug("Error "+line.substring(6));
 				throw new Exception("NIPL error");
 			}
-			
-			
+
+
 			if(line.startsWith("concat ")) {
 				String[] ops=line.substring(7).split(" ",2);
 				String res=ChannelUtil.append(getVar(ops[0].trim()),"",
@@ -357,7 +354,7 @@ public class ChannelNaviXProc {
 				debug("concat "+ops[0]+" res "+res);
 				continue;
 			}
-			
+
 			if(line.startsWith("match ")) {
 				String var=line.substring(6).trim();
 				Pattern re=Pattern.compile(escapeChars(vars.get("regex")));
@@ -379,7 +376,7 @@ public class ChannelNaviXProc {
 				}
 				continue;
 			}
-			
+
 			if(line.startsWith("replace ")) {
 				String[] ops=line.substring(8).split(" ",2);
 				Pattern re=Pattern.compile(vars.get("regex"));
@@ -388,21 +385,21 @@ public class ChannelNaviXProc {
 				putVar(ops[0], res);
 				continue;
 			}
-			
+
 			if(line.startsWith("unescape ")) {
 				String var=line.substring(9).trim();
 				String res=ChannelUtil.unescape(getVar(var));
 				putVar(var, res);
 				continue;
 			}
-			
+
 			if(line.startsWith("escape ")) {
 				String var=line.substring(7).trim();
 				String res=ChannelUtil.escape(getVar(var));
 				putVar(var, res);
 				continue;
 			}
-			
+
 			String[] vLine=line.split("=",2);
 			if(vLine.length==2) { // variable
 				String key=vLine[0].trim();
@@ -414,7 +411,7 @@ public class ChannelNaviXProc {
 				}
 				else {
 					String realVal=fixVar(val,vars.get(val));
-					if(key.startsWith("nookies.")) {						
+					if(key.startsWith("nookies.")) {
 						nookies.put(key.substring(8), realVal);
 						ChannelNaviXNookie.store(key.substring(8),realVal,vars.get("nookie_expires"));
 					}
@@ -436,11 +433,11 @@ public class ChannelNaviXProc {
 				}
 				continue;
 			}
-			
+
 			//////////////////////////////////////
 			// These ones are channel specific
 			//////////////////////////////////////
-			
+
 			if(line.startsWith("prepend ")) {
 				String[] ops=line.substring(8).split(" ",2);
 				String res=ChannelUtil.append(fixVar(ops[1],getVar(ops[1])),"",
@@ -449,7 +446,7 @@ public class ChannelNaviXProc {
 				debug("prepend "+ops[0]+" res "+res);
 				continue;
 			}
-			
+
 			if(line.startsWith("call ")) {
 				String nScript=line.substring(5).trim();
 				nScript=fixVar(nScript,getVar(nScript));
@@ -472,10 +469,10 @@ public class ChannelNaviXProc {
 						putVar("v1",ChannelUtil.unescape(tmp));
 						break;
 					}
-				}					
+				}
 				continue;
 			}
-			
+
 			if(line.startsWith("stripExt ")) {
 				String[] ops=line.substring(9).split(" ");
 				String var=ops[0].trim();
@@ -495,32 +492,32 @@ public class ChannelNaviXProc {
 				putVar(var, res);
 				continue;
 			}
-			
+
 			if(line.startsWith("sleep ")) {
 				String time=line.substring(6).trim();
 				time=fixVar(time,getVar(time));
 				ChannelUtil.sleep(time);
 				continue;
 			}
-			
+
 			//////////////////////
 			// Exit form here
 			//////////////////////
-			
+
 			if(line.startsWith("report")) {
 				Channels.debug("report found take another spin");
 				return true;
 			}
-			
+
 			if(line.trim().equals("play"))
 				return false;
-			
+
 		}
 		// This is weird no play statement?? throw error
 		Channels.debug("no play found");
 		throw new Exception("NIPL error no play");
 	}
-	
+
 	private static boolean parseV1(String[] lines,int start,String url) throws Exception {
 		String nextUrl=lines[start];
 		int modLen=lines.length-start;
@@ -541,7 +538,7 @@ public class ChannelNaviXProc {
 			cookie=lines[start+3];
 		URLConnection u=new URL(nextUrl).openConnection();
 		String sPage=ChannelUtil.fetchPage(u, null, cookie,null);
-		if(ChannelUtil.empty(sPage)) 
+		if(ChannelUtil.empty(sPage))
 			throw new Exception("Empty scrap page");
 		Channels.debug("v1 scrap page "+sPage);
 		Pattern re=Pattern.compile(escapeChars(filt));
@@ -563,16 +560,16 @@ public class ChannelNaviXProc {
 			if(l[0].contains("error"))
 				throw new Exception("Empty scrap page");
 			vars.put("url", l[0]);
-			if(l.length>1) 
+			if(l.length>1)
 				vars.put("swfplayer", l[1]);
 			if(l.length>2)
 				vars.put("playpath",l[2]);
 			if(l.length>3)
-				vars.put("pageurl", l[3]);	
+				vars.put("pageurl", l[3]);
 		}
 		return false;
 	}
-	
+
 	private static void addSpecials(Channel ch) {
 		if(ch!=null) {
 			vars.put("user", ch.user());
@@ -584,15 +581,15 @@ public class ChannelNaviXProc {
 			}
 		}
 	}
-	
+
 	public static String parse(String url,String pUrl,int format) {
 		return parse(url,pUrl,format,null,null,null,null,null);
 	}
-	
+
 	public static String parse(String url,String pUrl,int format,String subFile,Channel ch) {
 		return parse(url,pUrl,format,null,null,subFile,ch,null);
 	}
-	
+
 	public static String parse(String url,String pUrl,int format,ChannelNaviX caller,
 							   DLNAResource start,RendererConfiguration render) {
 		return parse(url,pUrl,format,caller,start,null,null,render);
@@ -620,7 +617,7 @@ public class ChannelNaviXProc {
 		} catch (MalformedURLException e) {
 			Channels.debug("error fetching page "+e);
 			return null;
-		}	
+		}
 		int phase=0;
 		boolean loop=true;
 		String lastPage="";
@@ -632,7 +629,7 @@ public class ChannelNaviXProc {
 			}
 			vars.put("nookies."+key, nookies.get(key));
 		}
-		
+
 		while(loop) {
 			if(phase>0) {
 				String res="phase="+String.valueOf(phase);
@@ -663,7 +660,7 @@ public class ChannelNaviXProc {
 				procPage="";
 			}
 			Channels.debug("processor page "+procPage);
-			if(ChannelUtil.empty(procPage)) 
+			if(ChannelUtil.empty(procPage))
 				return null;
 			if(phase>0&&lastPage.equals(procPage)) {
 				Channels.debug("processor loop");
@@ -672,7 +669,7 @@ public class ChannelNaviXProc {
 			lastPage=procPage;
 			String[] lines=procPage.split("\n");
 			int i=0;
-			while(ChannelUtil.ignoreLine(lines[i])) 
+			while(ChannelUtil.ignoreLine(lines[i]))
 				i++;
 			try {
 				if(lines[i].equalsIgnoreCase("v2"))
@@ -711,57 +708,57 @@ public class ChannelNaviXProc {
 		Channels.debug("navix return media url "+rUrl);
 		return rUrl;
 	}
-	
+
 	//////////////////////////////////////
-	// lite versions 
+	// lite versions
 	//////////////////////////////////////
-	
+
 	// lite with ArrayList as line arg
-	
+
 	public static HashMap<String,String> lite(String url,ArrayList<String> lines,int asx,
 			      HashMap<String,String> initStash,Channel ch) {
 		String[] arr=lines.toArray(new String[lines.size()]);
 		return lite(url,arr,asx,initStash,ch);
 	}
-	
+
 	public static HashMap<String,String> lite(String url,ArrayList<String> lines,int asx) {
 		return lite(url,lines,asx,null);
 	}
-	
+
 	public static HashMap<String,String> lite(String url,ArrayList<String> lines,int asx,Channel ch) {
 		return lite(url,lines,asx,null,ch);
 	}
-	
+
 	public static HashMap<String,String> lite(String url,ArrayList<String> lines) {
 		return lite(url,lines,ChannelUtil.ASXTYPE_AUTO);
 	}
-	
+
 	public static HashMap<String,String> lite(String url,ArrayList<String> lines,
 			      HashMap<String,String> initStash) {
 		return lite(url,lines,ChannelUtil.ASXTYPE_AUTO,initStash,null);
 	}
-	
+
 	public static HashMap<String,String> lite(String url,ArrayList<String> lines,
 		      HashMap<String,String> initStash,Channel ch) {
 		return lite(url,lines,ChannelUtil.ASXTYPE_AUTO,initStash,ch);
 	}
-	
+
 	// Lite with array as line arg
 	public static HashMap<String,String> lite(String url,String[] lines) {
 		return lite(url,lines,ChannelUtil.ASXTYPE_AUTO,null);
 	}
-	
+
 	public static HashMap<String,String> lite(String url,String[] lines,int asx,Channel ch) {
 		return lite(url,lines,asx,null,ch);
 	}
-	
+
 	public static HashMap<String,String> lite(String url,String[] lines,
 			HashMap<String,String> initStash) {
 		return lite(url,lines,ChannelUtil.ASXTYPE_AUTO,initStash,null);
 	}
-	
+
 	// The actual work of lite is done here
-	
+
 	public static HashMap<String,String> lite(String url,String[] lines,int asx,
 			                  HashMap<String,String> initStash,Channel ch) {
 		try {
@@ -770,7 +767,7 @@ public class ChannelNaviXProc {
 			if(initStash!=null)
 				vars.putAll(initStash);
 			ChannelAuth a=null;
-			if(ch!=null) { 
+			if(ch!=null) {
 				a=ch.prepareCom();
 				debug("a "+a+" cookie "+a.authStr);
 				if(a!=null&&a.method==ChannelLogin.COOKIE)
@@ -789,25 +786,25 @@ public class ChannelNaviXProc {
 			return null;
 		}
 	}
-	
+
 //////////////////////////////////
-	// simple versions 
+	// simple versions
 	//////////////////////////////////
-	
+
 	public static String simple(String str,ArrayList<String> script) {
 		return simple(str,script,null,null);
 	}
-	
+
 	public static String simple(String str,String script,HashMap<String,String> initStash) {
 		ArrayList<String> sData=Channels.getScript(script);
 		return simple(str,sData,initStash,null);
 	}
-	
+
 	public static String simple(String str,String script) {
 		ArrayList<String> sData=Channels.getScript(script);
 		return simple(str,sData);
 	}
-	
+
 	public static String simple(String str,ArrayList<String> script,HashMap<String,String> initStash,Channel ch) {
 		if(script==null)
 			return str;

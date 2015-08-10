@@ -14,25 +14,25 @@ public class SearchAction extends VirtualFolder {
 	public SearchAction(Search sobj,char ch) {
 		this(sobj,ch,String.valueOf(ch));
 	}
-	
+
 	public SearchAction(Search sobj,char ch,String name) {
 		super(name,"images/Play1Hot_120.jpg");
 		this.sobj=sobj;
 		this.ch=ch;
 		this.name=name;
 	}
-	
+
 	public InputStream getThumbnailInputStream() {
         return getResourceInputStream("images/Play1Hot_120.jpg");
 	}
-	
+
 	public void resolve() {
-		discovered=false;  // we can't clear this enough
+		setDiscovered(false);  // we can't clear this enough
 	}
-	
+
 	public void discoverChildren() {
 		sobj.append(ch);
-		discovered=false;
+		setDiscovered(false);
 	}
 
 	@Override
@@ -54,7 +54,7 @@ public class SearchAction extends VirtualFolder {
 	public long lastModified() {
 		return 0;
 	}
-	
+
 	 public String getThumbnailContentType() {
          return HTTPResource.JPEG_TYPEMIME;
 	 }

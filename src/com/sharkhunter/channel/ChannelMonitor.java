@@ -6,10 +6,9 @@ import java.util.HashMap;
 
 import net.pms.dlna.DLNAResource;
 import net.pms.dlna.virtual.VirtualFolder;
-import net.pms.dlna.virtual.VirtualVideoAction;
 
 public class ChannelMonitor {
-	
+
 	private ChannelFolder cf;
 	private ArrayList<String> oldEntries;
 	private String name;
@@ -27,17 +26,17 @@ public class ChannelMonitor {
 		scanning=false;
 		try_search = false;
 	}
-	
+
 	public void setTemplate(String t) {
 		templ=t;
 	}
-	
+
 	public void setSearch(String s) {
 		search=s;
 	}
 
 	public void setTrySearch(boolean b) { try_search = b; }
-	
+
 	public void scan() {
 		if(scanning)
 			return;
@@ -62,7 +61,7 @@ public class ChannelMonitor {
 		for(DLNAResource r : dummy.getChildren()) {
 			if(ChannelUtil.empty(templ)) {
 				// standard simple matching
-				if(oldEntries.contains(r.getName().trim())) 
+				if(oldEntries.contains(r.getName().trim()))
 					continue;
 			}
 			else {
@@ -76,7 +75,7 @@ public class ChannelMonitor {
 			doCrawl(crawl,getName().trim());
 		scanning=false;
 	}
-	
+
 	private void doCrawl(ArrayList<DLNAResource> res,String folder) {
 		if(res.isEmpty())
 			return;
@@ -99,7 +98,7 @@ public class ChannelMonitor {
 			rescan(folder);
 		cms.donePlaying();
 	}
-	
+
 	private void rescan(String folder) {
 		Channels.clearNewMediaFolder(folder);
 		Runnable r=new Runnable() {
@@ -110,11 +109,11 @@ public class ChannelMonitor {
     	};
     	new Thread(r).start();
 	}
-	
+
 	public String getName() {
 		return name;
 	}
-	
+
 	public boolean addEntry(String newEntry) {
 		Channels.debug("add entry "+newEntry+" old "+oldEntries.contains(newEntry));
 		if(!oldEntries.contains(newEntry)) {
@@ -123,7 +122,7 @@ public class ChannelMonitor {
 		}
 		return false;
 	}
-	
+
 	private boolean templateMatch(String entry) {
 		HashMap<String,String> vars=new HashMap<String,String>();
 		vars.put("entry", entry);
@@ -137,5 +136,5 @@ public class ChannelMonitor {
 		}
 		return res;
 	}
-	
+
 }

@@ -8,19 +8,15 @@ import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
-import java.util.Date;
 import java.util.TimeZone;
 
 import javax.net.ssl.HttpsURLConnection;
 import javax.net.ssl.SSLSession;
 
-import com.sun.net.ssl.HostnameVerifier;
 import com.sun.syndication.io.impl.Base64;
 
-import net.pms.PMS;
-
 public class ChannelLogin {
-	
+
 	public static final int STD=0;
 	public static final int COOKIE=1;
 	public static final int APIKEY=2;
@@ -44,7 +40,7 @@ public class ChannelLogin {
 	private ChannelSimple pre_fetch;
 	private boolean preFetched;
 	private String activeParams;
-	
+
 	public ChannelLogin(ArrayList<String> data,Channel parent) {
 		this.parent=parent;
 		this.loggedOn=false;
@@ -58,7 +54,7 @@ public class ChannelLogin {
 		activeParams="";
 		parse(data);
 	}
-	
+
 	public void parse(ArrayList<String> data) {
 		for(int i=0;i<data.size();i++) {
 			String line=data.get(i).trim();
@@ -111,13 +107,13 @@ public class ChannelLogin {
 			}
 		}
 	}
-	
+
 	private String mkQueryString(String usr,String pass) {
 		String usr_pwd=user+"="+ChannelUtil.escape(usr)+
 		"&"+pwd+"="+ChannelUtil.escape(pass);
 		return ChannelUtil.append(activeParams, "&", usr_pwd);
 	}
-	
+
 	private ChannelAuth mkResult(ChannelAuth a) {
 		if(a==null)
 			a=new ChannelAuth();
@@ -126,7 +122,7 @@ public class ChannelLogin {
 		a.ttd=ttd;
 		return a;
 	}
-	
+
 	private ChannelAuth stdLogin(String usr,String pass,ChannelAuth a) throws Exception {
 		String query=mkQueryString(usr,pass);
 		//Channels.debug("url "+url+" query "+query);
@@ -136,14 +132,14 @@ public class ChannelLogin {
 			connection = (HttpsURLConnection) u.openConnection();
 			HttpsURLConnection.setFollowRedirects(true);
 			 HttpsURLConnection.setDefaultHostnameVerifier(new NullHostnameVerifier());
-			((HttpURLConnection) connection).setInstanceFollowRedirects(true);   
+			((HttpURLConnection) connection).setInstanceFollowRedirects(true);
 			((HttpURLConnection) connection).setRequestMethod("POST");
 		}
 		else {
 			connection = (HttpURLConnection) u.openConnection();
 			HttpURLConnection.setFollowRedirects(true);
-			((HttpURLConnection) connection).setInstanceFollowRedirects(true);   
-			((HttpURLConnection) connection).setRequestMethod("POST");  
+			((HttpURLConnection) connection).setInstanceFollowRedirects(true);
+			((HttpURLConnection) connection).setRequestMethod("POST");
 		}
 		String page=ChannelUtil.postPage(connection, query);
 		//PMS.debug("got page after post "+page);
@@ -159,7 +155,7 @@ public class ChannelLogin {
 		}
 		return null;
 	}
-	
+
 	private ChannelAuth updateCookieDb(String cookie,ChannelAuth a) {
 		String u=ChannelUtil.trimURL(url);
 		Channels.debug("update cookie db "+u);
@@ -175,7 +171,7 @@ public class ChannelLogin {
 			Channels.mkCookieFile();
 		return a;
 	}
-	
+
 	private long parseTTD(String expStr,SimpleDateFormat sdfDate) throws ParseException {
 		java.util.Date d;
 		String[] tmp=expStr.trim().split(" ");
@@ -194,9 +190,9 @@ public class ChannelLogin {
 		c.setTime(d);
 		c.setTimeZone(TimeZone.getDefault());
 		c.get(Calendar.DATE);
-		return c.getTimeInMillis();		
+		return c.getTimeInMillis();
 	}
-	
+
 	private long parseTTD(String expStr) {
 		SimpleDateFormat sdfDate = new SimpleDateFormat("dd-MMM-yyyy HH:mm:ss");
 		SimpleDateFormat sdfDate1 = new SimpleDateFormat("dd-MMM-yyyy HH:mm:ss z");
@@ -211,14 +207,14 @@ public class ChannelLogin {
 		}
 		return ttd;
 	}
-	
-	
+
+
 	private ChannelAuth getCookie(URLConnection connection,ChannelAuth a) throws Exception {
 		String hName="";
 		for (int j=1; (hName = connection.getHeaderFieldKey(j))!=null; j++) {
 		 	String cStr=connection.getHeaderField(j);
 			Channels.debug("hdr "+hName);
-		 	if (!hName.equalsIgnoreCase("Set-Cookie")) 
+		 	if (!hName.equalsIgnoreCase("Set-Cookie"))
 		 		continue;
 		 	String[] fields = cStr.split(";\\s*");
 	 		String cookie=fields[0];
@@ -250,7 +246,7 @@ public class ChannelLogin {
 	        return mkResult(a);
 		return null;
 	}
-	
+
 	private ChannelAuth cookieLogin(String usr,String pass,ChannelAuth a) throws Exception {
 		ChannelAuth a1=Channels.getCookie(ChannelUtil.trimURL(url));
 		if(a1!=null) { // found some in hash
@@ -281,7 +277,7 @@ public class ChannelLogin {
 			HttpsURLConnection connection = (HttpsURLConnection) u.openConnection(p);
 			 HttpsURLConnection.setFollowRedirects(true);
 			 HttpsURLConnection.setDefaultHostnameVerifier(new NullHostnameVerifier());
-			((HttpsURLConnection) connection).setInstanceFollowRedirects(true);   
+			((HttpsURLConnection) connection).setInstanceFollowRedirects(true);
 			((HttpsURLConnection) connection).setRequestMethod(method);
 			String page=ChannelUtil.postPage(connection, query);
 			//Channels.debug("login res page "+page);
@@ -291,8 +287,8 @@ public class ChannelLogin {
 		}
 		else {
 			HttpURLConnection connection = (HttpURLConnection) u.openConnection();
-			HttpURLConnection.setFollowRedirects(true);   
-			connection.setInstanceFollowRedirects(true);   
+			HttpURLConnection.setFollowRedirects(true);
+			connection.setInstanceFollowRedirects(true);
 			connection.setRequestMethod(method);
 			String page=ChannelUtil.postPage(connection, query);
 			//Channels.debug("login page "+page);
@@ -301,7 +297,7 @@ public class ChannelLogin {
 			return getCookie(connection,a);
 		}
 	}
-	
+
 	private ChannelAuth basicLogin(String usr,String pass,ChannelAuth a) {
 		String tmp=usr+":"+pass;
 		tokenStr=Base64.encode(tmp);
@@ -309,11 +305,11 @@ public class ChannelLogin {
 		type=ChannelLogin.STD;
 		return mkResult(a);
 	}
-	
+
 	public ChannelAuth getAuthStr(String usr,String pass,ChannelAuth a) {
 		return getAuthStr(usr,pass,false,a);
 	}
-	
+
 	public ChannelAuth getAuthStr(String usr,String pass,boolean media,ChannelAuth a) {
 		Channels.debug("login on channel "+parent.getName()+" type "+type+" on "+loggedOn);
 		/*Date d=new Date(ttd);
@@ -368,13 +364,13 @@ public class ChannelLogin {
 			return a;
 		}
 	}
-	
+
 	public void reset() {
 		tokenStr="";
 		loggedOn=false;
 		ttd=0;
 	}
-	
+
 	private static class NullHostnameVerifier implements javax.net.ssl.HostnameVerifier {
 	    public boolean verify(String hostname, SSLSession session) {
 	        return true;

@@ -5,14 +5,13 @@ import java.util.HashMap;
 import java.util.TreeMap;
 import java.util.TreeSet;
 
-import net.pms.dlna.DLNAMediaSubtitle;
 import org.apache.commons.lang.StringUtils;
 
 import net.pms.dlna.DLNAResource;
 import net.pms.dlna.virtual.VirtualFolder;
 
 public class ChannelPMSSubSelector extends VirtualFolder {
-	
+
 	private Channel ch;
 	private String name;
 	private String url;
@@ -28,18 +27,18 @@ public class ChannelPMSSubSelector extends VirtualFolder {
 
 	private String matchName;
 	private String site;
-	
+
 	private ChannelStreamVars streamVars;
-	
+
 	private static final String PNS="PLAY (no subs match)";
-	
+
 	public ChannelPMSSubSelector(Channel ch,String name,String nextUrl,
 				 String thumb,String proc,int type,int asx,
 				 ChannelScraper scraper,String dispName,
 				 String saveName,String imdb) {
 		this(ch,name,nextUrl,thumb,proc,type,asx,scraper,dispName,saveName,imdb,null);
 	}
-	
+
 	public ChannelPMSSubSelector(Channel ch,String name,String nextUrl,
 			  					 String thumb,String proc,int type,int asx,
 			  					 ChannelScraper scraper,String dispName,
@@ -61,14 +60,14 @@ public class ChannelPMSSubSelector extends VirtualFolder {
 		site=null;
 		streamVars=null;
 	}
-	
+
 	public void setSite(String s) {
 		site=s;
 		ChannelSubs subs=Channels.getSubs(site);
 		if(!ChannelUtil.empty(subs.getImg()))
 			thumbnailIcon=subs.getImg();
 	}
-	
+
 	public void setStreamVars(ChannelStreamVars vars) {
 		streamVars=vars;
 	}
@@ -120,7 +119,7 @@ public class ChannelPMSSubSelector extends VirtualFolder {
 		cms.setStreamVars(streamVars);
 		addChild(cms);
 	}
-	
+
 	public InputStream getThumbnailInputStream() {
 		try {
 			return downloadAndSend(thumbnailIcon,true);
@@ -128,8 +127,8 @@ public class ChannelPMSSubSelector extends VirtualFolder {
 		catch (Exception e) {
 			return super.getThumbnailInputStream();
 		}
-	}	
-	
+	}
+
 	private TreeMap<Integer,TreeSet<String>> sortMap(HashMap<String,Object> map) {
 		if(ChannelUtil.empty(matchName)) // make matchName ain't null
 			matchName="";
