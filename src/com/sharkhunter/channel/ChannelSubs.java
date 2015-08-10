@@ -1,37 +1,25 @@
 package com.sharkhunter.channel;
 
-import java.io.BufferedInputStream;
 import java.io.BufferedOutputStream;
 import java.io.File;
 import java.io.FileInputStream;
-import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
-import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.URL;
-import java.net.URLConnection;
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.Locale;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
-import java.util.zip.GZIPInputStream;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
 
 import net.pms.PMS;
-import net.pms.dlna.DLNAResource;
-import net.pms.formats.Format;
-import net.pms.formats.v2.SubtitleType;
 
 public class ChannelSubs implements ChannelProps {
-	
+
 	private String name;
 	private String url;
 	private ChannelMatcher matcher;
 	private int best;
-	private int pathCnt;
 	private String[] prop;
 	private File dPath;
 	private String script;
@@ -39,7 +27,7 @@ public class ChannelSubs implements ChannelProps {
 	private String[] lang;
 	private ChannelMatcher select;
 	protected String img;
-	
+
 	public ChannelSubs() {
 		prop=null;
 		dPath=new File(Channels.dataPath());
@@ -93,14 +81,14 @@ public class ChannelSubs implements ChannelProps {
 				if(best<1)
 					best=1;
 			}
-			if(keyval[0].equalsIgnoreCase("prop"))	
-				prop=keyval[1].trim().split(",");	
+			if(keyval[0].equalsIgnoreCase("prop"))
+				prop=keyval[1].trim().split(",");
 			if(keyval[0].equalsIgnoreCase("name_script")) {
 				nameScript=keyval[1].split(",");
 			}
 			if(keyval[0].equalsIgnoreCase("script")) {
 				script=keyval[1];
-			}	
+			}
 			if(keyval[0].equalsIgnoreCase("lang")) {
 				lang=keyval[1].trim().split(",");
 			}
@@ -113,19 +101,19 @@ public class ChannelSubs implements ChannelProps {
 		if(matcher!=null)
 			matcher.processProps(prop);
 	}
-	
+
 	public String getName() {
 		return name;
 	}
-	
+
 	public void setName(String name) {
 		this.name=name;
 	}
-	
+
 	public String getImg() {
 		return img;
 	}
-	
+
 	private String rarFile(File f) {
 		boolean concat=ChannelUtil.getProperty(prop, "rar_concat");
 		boolean keep=ChannelUtil.getProperty(prop, "rar_keep");
@@ -150,7 +138,7 @@ public class ChannelSubs implements ChannelProps {
 				if(concat) {
 					if(first) {
 						fName=(f.getAbsolutePath()+".srt").replace(".rar", "");
-						fos = new FileOutputStream(fName);		
+						fos = new FileOutputStream(fName);
 					}
 				}
 				else {
@@ -179,7 +167,7 @@ public class ChannelSubs implements ChannelProps {
 			return null;
 		return cacheFile(new File(firstName));
 	}
-	
+
 	private String zipFile(File f) {
 		boolean concat=ChannelUtil.getProperty(prop, "zip_concat");
 		boolean keep=ChannelUtil.getProperty(prop, "zip_keep");
@@ -208,12 +196,12 @@ public class ChannelSubs implements ChannelProps {
 					continue;
 				if(rename) {
 					String i=first?"":"_"+String.valueOf(id++);
-					fName=dPath+File.separator+i+entry.getName();		
+					fName=dPath+File.separator+i+entry.getName();
 				}
 				if(concat) {
 					if(first) {
 						fName=(f.getAbsolutePath()+".srt").replace(".zip", "");
-						FileOutputStream fos1 = new FileOutputStream(fName);		
+						FileOutputStream fos1 = new FileOutputStream(fName);
 						dest = new BufferedOutputStream(fos1, BUFFER);
 					}
 				}
@@ -231,7 +219,7 @@ public class ChannelSubs implements ChannelProps {
 				if(!concat) {
 					dest.flush();
 					dest.close();
-				}	
+				}
 			}
 			if(concat) {
 				dest.flush();
@@ -241,24 +229,24 @@ public class ChannelSubs implements ChannelProps {
 			if(!keep)
 				f.delete();
 			return cacheFile(new File(firstName)); // return the first name no matter what
-		} 
+		}
 		catch (Exception e) {
 			Channels.debug("error "+e+" reading zipped subtile");
 			return null;
 		}
 	}
-	
+
 	private String cacheFile(File f) {
 		ChannelUtil.cacheFile(f,"sub");
 		return f.getAbsolutePath();
 	}
-	
+
 	public String getSubs(String mediaName) {
 		HashMap<String,String> map=new HashMap<String,String>();
 		map.put("url", mediaName);
 		return getSubs(map);
 	}
-	
+
 	public String getSubs(HashMap<String,String> map) {
 		String mediaName=map.get("url");
 		Channels.debug("get subs "+mediaName);
@@ -290,7 +278,7 @@ public class ChannelSubs implements ChannelProps {
 		boolean rar=ChannelUtil.getProperty(prop, "rar_force");
 		return downloadSubs(subUrl,path,zip,rar);
 	}
-	
+
 	public static String downloadSubs(String subUrl) {
 		int pos=subUrl.lastIndexOf('/');
 		String name="sub_"+System.currentTimeMillis();
@@ -298,16 +286,16 @@ public class ChannelSubs implements ChannelProps {
 			name=subUrl.substring(pos+1);
 		return downloadSubs(subUrl,name);
 	}
-	
+
 	public static String downloadSubs(String subUrl,String name) {
 		name=name.replaceAll("[\\?&=;,]", "").replace('/', '_').replace('\\', '_');
 		String path=Channels.dataPath()+File.separator+name+".srt";
 		ChannelSubs nullSub=new ChannelSubs();
 		return nullSub.downloadSubs(subUrl,path,false,false);
-		
+
 	}
-	
-	
+
+
 	private String downloadSubs(String subUrl,String path, boolean zip,boolean rar) {
 		File f=new File(path);
 		if(f.exists())
@@ -327,7 +315,7 @@ public class ChannelSubs implements ChannelProps {
 			return rarFile(f);
 		return cacheFile(f);
 	}
-	
+
 	private String getMediaName(String mediaName,HashMap<String,String> map) {
 		if(nameScript!=null) {
 			String nScript=nameScript[0];
@@ -343,12 +331,12 @@ public class ChannelSubs implements ChannelProps {
 			}
 			else
 				mediaName=ChannelUtil.escape(mediaName);
-		}	
+		}
 		else
 			mediaName=ChannelUtil.escape(mediaName);
 		return mediaName;
 	}
-	
+
 	public String fetchSubsUrl(HashMap<String,String> map) {
 		String mediaName=map.get("url").trim();
 		mediaName=getMediaName(mediaName,map);
@@ -362,7 +350,7 @@ public class ChannelSubs implements ChannelProps {
 			Channels.debug("subs page "+page);
 			if(ChannelUtil.empty(page))
 				return null;
-			if(!ChannelUtil.empty(script)) { // we got a script, we'll use it 
+			if(!ChannelUtil.empty(script)) { // we got a script, we'll use it
 				ArrayList<String> s=Channels.getScript(script);
 				if(s!=null) {
 					HashMap<String,String> res=ChannelNaviXProc.lite(page, s,map);
@@ -386,7 +374,7 @@ public class ChannelSubs implements ChannelProps {
 		}
 		return null;
 	}
-	
+
 	public HashMap<String,Object> select(HashMap<String,String> map) {
 		if(select==null)
 			return null;
@@ -434,15 +422,15 @@ public class ChannelSubs implements ChannelProps {
 		if(obj instanceof String)
 			return icon;
 		ChannelSubSelected css=(ChannelSubSelected)obj;
-		if(ChannelUtil.empty(css.lang)) 
+		if(ChannelUtil.empty(css.lang))
 			return icon;
 		return "/resource/images/codes/"+ChannelISO.iso(css.lang, 3)+".png";
 	}
-	
+
 	public String resolve(ChannelSubSelected css) {
 		return "";
 	}
-	
+
 	public static String resolve(Object obj) {
 		if(obj instanceof String)
 			return downloadSubs((String)obj);
@@ -459,7 +447,7 @@ public class ChannelSubs implements ChannelProps {
 			else
 				return downloadSubs(css.url,css.name);
 		ArrayList<String> s=Channels.getScript(css.script);
-		if(s==null) 
+		if(s==null)
 			return null;
 		HashMap<String,String> map=new HashMap<String,String>();
 		map.put("select", "true");
@@ -474,25 +462,25 @@ public class ChannelSubs implements ChannelProps {
 		else
 			return downloadSubs(subUrl,css.name);
 	}
-	
+
 	public boolean langSupported() {
 		return !ChannelUtil.empty(langPrefered());
 	}
-	
+
 	public String langPrefered() {
 		if(lang==null)
 			return null;
 		String[] langCode=PMS.getConfiguration().getSubtitlesLanguages().split(",");
 		if(lang[0].equals("all"))
 			return langCode[0];
-		for(int j=0;j<langCode.length;j++) 
-			for(int i=0;i<lang.length;i++) 
+		for(int j=0;j<langCode.length;j++)
+			for(int i=0;i<lang.length;i++)
 				if(ChannelISO.equal(langCode[j],lang[i]))
 					return lang[i];
 		return null;
 	}
-	
-	
+
+
 	@Override
 	public boolean onlyFirst() {
 		return false;
@@ -512,7 +500,7 @@ public class ChannelSubs implements ChannelProps {
 	public String prepend(String base) {
 		return null;
 	}
-	
+
 	@Override
 	public boolean escape(String base) {
 		return false;
@@ -523,11 +511,11 @@ public class ChannelSubs implements ChannelProps {
 	public boolean unescape(String base) {
 		return false;
 	}
-	
+
 	public String mangle(String base) {
 		return ChannelUtil.getPropertyValue(prop, base+"_mangle");
 	}
-	
+
 	public boolean selectable() {
 		return (select!=null);
 	}

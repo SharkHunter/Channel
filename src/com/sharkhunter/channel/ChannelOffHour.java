@@ -1,13 +1,9 @@
 package com.sharkhunter.channel;
 
-import java.io.BufferedOutputStream;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.FileReader;
-import java.io.InputStream;
-import java.io.OutputStream;
-import java.net.URL;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -15,33 +11,29 @@ import java.util.Calendar;
 import java.util.Date;
 import java.util.GregorianCalendar;
 import java.util.HashMap;
-import java.util.Set;
 import java.util.Timer;
 import java.util.TimerTask;
 
-import net.pms.PMS;
 import net.pms.encoders.Player;
 import net.pms.encoders.PlayerFactory;
-import net.pms.io.OutputParams;
-import net.pms.io.ProcessWrapper;
 
 public class ChannelOffHour {
-	
+
 	private HashMap<String,String> urls2fetch;
 	private ArrayList<Thread> threads;
 	private long startedAt;
-	
+
 	// Values of when to fetch etc.
 	private int maxParralell;
 	private int duration;
 	private GregorianCalendar nextTime;
 	private File file;
 	private boolean cache;
-	
+
 	// Constants
 	public static final int DEFAULT_MAX_THREAD=2;
 	public static final int DEFAULT_MAX_DURATION=60;
-	
+
 	public ChannelOffHour(int max,int dur,String start,File f,boolean cache) {
 		maxParralell=max;
 		duration=dur;
@@ -53,7 +45,7 @@ public class ChannelOffHour {
 		setStartTime(start);
 		schedule(true);
 	}
-	
+
 	public void schedule(boolean first) {
 		final ChannelOffHour inst=this;
 		TimerTask task = new TimerTask() {
@@ -74,7 +66,7 @@ public class ChannelOffHour {
 		Timer time=new Timer();
 		time.schedule(task, nextTime.getTime());
 	}
-	
+
 	private void setStartTime(String start) {
 		SimpleDateFormat sdfHour = new SimpleDateFormat("HH:mm");
 		try {
@@ -95,12 +87,12 @@ public class ChannelOffHour {
 		if(now.after(nextTime.getTime())) // already missed first trigger, schedule tomorrow
 			nextTime.add(Calendar.DATE, 1);
 	}
-	
+
 	private Date getNextTime() {
 		nextTime.add(Calendar.DATE, 1);
 		return nextTime.getTime();
 	}
-	
+
 	public void update(String url,String name,boolean add) {
 		if(add)
 			urls2fetch.put(name,url);
@@ -109,15 +101,15 @@ public class ChannelOffHour {
 		Channels.debug((add?"Added":"Removed")+" "+name+"("+url+") to off hour schedule");
 		storeDb();
 	}
-	
+
 	public boolean scheduled(String name) {
 		return urls2fetch.containsKey(name);
 	}
-	
+
 	public void init() {
 		if(!file.exists()) // no file, bail out early
 			return;
-		try {	
+		try {
 			BufferedReader in=new BufferedReader(new FileReader(file));
 			String str;
 			while ((str = in.readLine()) != null) {
@@ -134,7 +126,7 @@ public class ChannelOffHour {
 			Channels.debug("Error reading offhour file "+e);
 		}
 	}
-	
+
 	public void monitorThread() {
 		if(threads.size()==0) // no threads, no idea to monitor
 			return;
@@ -145,8 +137,8 @@ public class ChannelOffHour {
 				long now=System.currentTimeMillis();
 				// time to quit, leave all threads running
 				// until they're done
-				if(now>stop) 
-					return;			
+				if(now>stop)
+					return;
 				ArrayList<Thread> tmp=new ArrayList<Thread>(threads);
 				for(int i=0;i<tmp.size();i++) {
 					Thread t1=tmp.get(i);
@@ -174,7 +166,7 @@ public class ChannelOffHour {
 		Timer t=new Timer();
 		t.schedule(task, gc.getTime());
 	}
-	
+
 	public void startThread(String name,String url) {
 		Thread t=ChannelUtil.backgroundDownload(name,url,cache);
 		if(t==null)
@@ -182,7 +174,7 @@ public class ChannelOffHour {
 		threads.add(t);
 		t.start();
 	}
-	
+
 	public void startFetch() {
 		if(urls2fetch.size()==0) // nothing to do
 			return;
@@ -201,7 +193,7 @@ public class ChannelOffHour {
 			urls2fetch.remove(starts.get(i));
 		storeDb();
 	}
-	
+
 	private String[] getKeyVal() {
 		for(String name : urls2fetch.keySet()) {
 			String v=urls2fetch.get(name);
@@ -213,7 +205,7 @@ public class ChannelOffHour {
 		}
 		return null;
 	}
-	
+
 	private Player getPMSEnc() {
 		ArrayList<Player> pls=PlayerFactory.getPlayers();
 		for(int i=0;i<pls.size();i++) {
@@ -222,7 +214,7 @@ public class ChannelOffHour {
 		}
 		return null;
 	}
-	
+
 	private void storeDb() {
 		try {
 			FileOutputStream out=new FileOutputStream(file);

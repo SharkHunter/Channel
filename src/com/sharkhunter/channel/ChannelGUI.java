@@ -9,8 +9,6 @@ import java.awt.event.ItemEvent;
 import java.awt.event.ItemListener;
 import java.io.File;
 import java.io.IOException;
-import java.util.ArrayList;
-
 import javax.swing.JButton;
 import javax.swing.JCheckBox;
 import javax.swing.JComponent;
@@ -18,18 +16,13 @@ import javax.swing.JFileChooser;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
-import javax.swing.JScrollPane;
 import javax.swing.JSeparator;
-import javax.swing.JSplitPane;
-import javax.swing.JTable;
 import javax.swing.JTextField;
-import javax.swing.Popup;
-import javax.swing.table.DefaultTableModel;
-
-import net.pms.PMS;
+import org.slf4j.LoggerFactory;
 
 public class ChannelGUI implements  ActionListener, ItemListener{
-	
+
+	private static org.slf4j.Logger LOGGER = LoggerFactory.getLogger(ChannelGUI.class);
 	private ChannelCfg cfg;
 	private Channels root;
 	private JTextField chPath;
@@ -48,12 +41,12 @@ public class ChannelGUI implements  ActionListener, ItemListener{
 	private JCheckBox subs;
 	private JCheckBox favorite;
 	private JComponent topComp;
-	
+
 	public ChannelGUI(ChannelCfg cfg,Channels root) {
 		this.cfg=cfg;
 		this.root=root;
 	}
-	
+
 	public JComponent draw() {
 		JPanel top=new JPanel(new BorderLayout(10,10));
 		JPanel top1=new JPanel(new BorderLayout(10,10));
@@ -132,7 +125,7 @@ public class ChannelGUI implements  ActionListener, ItemListener{
 		favorite.addItemListener(this);
 		commit.setActionCommand("other_commit");
 		commit.addActionListener(this);
-		
+
 		GridBagConstraints c = new GridBagConstraints();
 		// 1st the channels path
 		c.fill = GridBagConstraints.BOTH;
@@ -158,7 +151,7 @@ public class ChannelGUI implements  ActionListener, ItemListener{
 		c.gridx++;
 		c.weightx=1.0;
 		pathPanel.add(sBrowse,c);
-		
+
 		// 3rd the cred path
 		c.gridx = 0;
 		c.gridy = 2;
@@ -170,7 +163,7 @@ public class ChannelGUI implements  ActionListener, ItemListener{
 		c.gridx++;
 		c.weightx=1.0;
 		pathPanel.add(credBrowse,c);
-		
+
 		// NaviXList
 		c.gridx = 0;
 		c.gridy = 3;
@@ -179,7 +172,7 @@ public class ChannelGUI implements  ActionListener, ItemListener{
 		c.gridx++;
 		c.weightx=2.0;
 		pathPanel.add(naviText,c);
-		
+
 		// Debug
 		c.gridx = 0;
 		c.gridy = 4;
@@ -195,7 +188,7 @@ public class ChannelGUI implements  ActionListener, ItemListener{
 		c.gridy = 6;
 		c.weightx=1.0;
 		pathPanel.add(favorite,c);
-		
+
 		// Sopcast
 		c.gridx = 0;
 		c.gridy = 1;
@@ -207,7 +200,7 @@ public class ChannelGUI implements  ActionListener, ItemListener{
 		c.gridx++;
 		c.weightx=1.0;
 		pmsenc.add(sopBrowse,c);
-		
+
 		// PPLive
 		c.gridx = 0;
 		c.gridy = 2;
@@ -219,7 +212,7 @@ public class ChannelGUI implements  ActionListener, ItemListener{
 		c.gridx++;
 		c.weightx=1.0;
 		pmsenc.add(ppBrowse,c);
-		
+
 		// Add installation buttons
 		// Channels
 		c.fill = GridBagConstraints.BOTH;
@@ -236,7 +229,7 @@ public class ChannelGUI implements  ActionListener, ItemListener{
 		topComp=top;
 		return top;
 	}
-	
+
 	private JFrame cw;
 
 	@Override
@@ -275,7 +268,7 @@ public class ChannelGUI implements  ActionListener, ItemListener{
 						else if(text.equals("navix")) {
 							String t=naviText.getText();
 							if(!ChannelUtil.empty(t)&&!t.equals(cfg.getNaviXUpload()))
-								cfg.setNaviXUpload(t);	
+								cfg.setNaviXUpload(t);
 						}
 						update();
 						cfg.commit();
@@ -286,7 +279,7 @@ public class ChannelGUI implements  ActionListener, ItemListener{
 		}
 		else  {
 			if(text.equals("other_commit")||text.equals("other_channels")) {
-				PMS.debug("update channels files");
+				LOGGER.debug("{Channel} Update channels files");
 				pushPaths();
 				cfg.commit();
 				if(text.equals("other_channels")) {
@@ -302,7 +295,7 @@ public class ChannelGUI implements  ActionListener, ItemListener{
 	public void itemStateChanged(ItemEvent e) {
 		boolean val=true;
 		Object source = e.getItemSelectable();
-		if (e.getStateChange() == ItemEvent.DESELECTED) 
+		if (e.getStateChange() == ItemEvent.DESELECTED)
 			val=false;
 		if(source==dbg)
 			Channels.debug(val);
@@ -312,7 +305,7 @@ public class ChannelGUI implements  ActionListener, ItemListener{
 			cfg.setFavorite(val);
 		cfg.commit();
 	}
-	
+
 	private void update() {
 		chPath.setText(cfg.getPath());
 		saPath.setText(cfg.getSavePath());
@@ -326,7 +319,7 @@ public class ChannelGUI implements  ActionListener, ItemListener{
 		yt.setText(cfg.getYouTubePath());
 		credText.setText(cfg.getCredPath());
 	}
-	
+
 	private void pushPaths() {
 		cfg.setPath(chPath.getText());
 		cfg.setRtmpPath(rtmp.getText());
@@ -345,5 +338,5 @@ public class ChannelGUI implements  ActionListener, ItemListener{
 			Channels.initNaviX();
 		}
 	}
-	
+
 }

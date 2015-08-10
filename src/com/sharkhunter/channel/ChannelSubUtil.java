@@ -2,15 +2,13 @@ package com.sharkhunter.channel;
 
 import java.io.IOException;
 import java.io.OutputStreamWriter;
-import java.text.SimpleDateFormat;
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.HashMap;
 
 import net.pms.dlna.DLNAResource;
 
 public class ChannelSubUtil {
-	
+
 	private final static String ARROW =" --> ";
 
 	public static String backtrackedName(DLNAResource start,String[] prop) {
@@ -24,7 +22,7 @@ public class ChannelSubUtil {
 
 	public static HashMap<String,Object> subSelect(DLNAResource start,String imdb,
 			String[] subtitle,Channel ch,String realName) {
-		if(subtitle==null) 
+		if(subtitle==null)
 			return null;
 		for(int i=0;i<subtitle.length;i++) {
 			ChannelSubs subs=Channels.getSubs(subtitle[i]);
@@ -83,7 +81,7 @@ public class ChannelSubUtil {
 	}
 
 	public static ArrayList<String> subSites(String[] subtitle) {
-		if(subtitle==null) 
+		if(subtitle==null)
 			return null;
 		ArrayList<String> res=new ArrayList<String>();
 		for(int i=0;i<subtitle.length;i++) {
@@ -98,7 +96,7 @@ public class ChannelSubUtil {
 			res.add(Channels.openSubs().getName());
 		return res;
 	}
-	
+
 	private static String fixTimeNormal(String str) {
 		int pos=str.lastIndexOf(':');
 		if(pos==-1)
@@ -107,7 +105,7 @@ public class ChannelSubUtil {
 		sb.setCharAt(pos, ',');
 		return sb.toString();
 	}
-	
+
 	private static String fixTimeMs(String str) {
 		long millis=Long.parseLong(str);
 		long sec,min,hour;
@@ -119,18 +117,18 @@ public class ChannelSubUtil {
 		millis = millis % 1000;
 		return String.format("%02d:%02d:%02d,%03d", hour,min,sec,millis);
 	}
-	
+
 	private static String fixTime(String str,boolean ms) {
 		if(ms)
 			return fixTimeMs(str);
 		else
 			return fixTimeNormal(str);
 	}
-	
+
 	public static void writeSRT(OutputStreamWriter out,int id,String start,String stop,String text) throws IOException {
 		writeSRT(out,id,start,stop,text,false);
 	}
-	
+
 	public static void writeSRT(OutputStreamWriter out,int id,String start,String stop,String text,boolean ms) throws IOException {
 		text=text.trim().replaceAll("\\\\n", "\n");
 		out.write(String.valueOf(id));

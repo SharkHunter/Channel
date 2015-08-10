@@ -1,10 +1,7 @@
 package com.sharkhunter.channel;
 
-import java.io.BufferedReader;
 import java.io.File;
-import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
-import java.io.FileReader;
 import java.util.ArrayList;
 
 import net.pms.dlna.virtual.VirtualFolder;
@@ -16,7 +13,7 @@ public class ChannelSearch extends VirtualFolder {
 	private File file;
 	private boolean all;
 	ChannelSearchItem last;
-	
+
 	public ChannelSearch(File f) {
 		super("Recent Searches",null);
 		searchList=new ArrayList<ChannelSearchItem>();
@@ -24,7 +21,7 @@ public class ChannelSearch extends VirtualFolder {
 		all=true;
 		last=null;
 	}
-	
+
 	public void dump() {
 		if(all) {
 			try {
@@ -55,7 +52,7 @@ public class ChannelSearch extends VirtualFolder {
 		all=false;
 		last=null;
 	}
-	
+
 	private ChannelSearchItem findItem(Channel ch,String id,String str) {
 		ChannelSearchItem old=null;
 		for(int i=0;i<searchList.size();i++) {
@@ -72,13 +69,13 @@ public class ChannelSearch extends VirtualFolder {
 		}
 		return old;
 	}
-	
+
 	private void addItem(Channel ch,String id,String str) {
 		ChannelSearchItem item=new ChannelSearchItem(id,str,ch);
 		last=item;
 		searchList.add(item);
 	}
-	
+
 	public void addSearch(Channel ch,String id,String str) {
 		if(ChannelUtil.empty(id)) // no id give up early
 			return;
@@ -99,7 +96,7 @@ public class ChannelSearch extends VirtualFolder {
 		// time to create new item
 		addItem(ch,id,str);
 	}
-	
+
 	public void discoverChildren() {
 		for(int i=0;i<searchList.size();i++) {
 			addChild(searchList.get(i));

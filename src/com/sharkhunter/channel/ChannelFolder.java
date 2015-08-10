@@ -1,11 +1,8 @@
 package com.sharkhunter.channel;
 
-import java.io.BufferedReader;
 import java.io.ByteArrayInputStream;
 import java.io.File;
-import java.io.FileInputStream;
 import java.io.IOException;
-import java.io.InputStreamReader;
 import java.net.MalformedURLException;
 import java.net.Proxy;
 import java.net.URL;
@@ -14,16 +11,13 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Calendar;
 import java.util.HashMap;
-
 import org.apache.commons.lang.StringEscapeUtils;
-
-import net.pms.PMS;
+import org.slf4j.LoggerFactory;
 import net.pms.dlna.DLNAResource;
-import net.pms.dlna.virtual.VirtualFolder;
 import net.pms.dlna.virtual.VirtualVideoAction;
-import net.pms.movieinfo.MovieInfoVirtualFolder;
 
 public class ChannelFolder implements ChannelProps, SearchObj{
+	private static org.slf4j.Logger LOGGER = LoggerFactory.getLogger(ChannelFolder.class);
 	public static final int TYPE_NORMAL=0;
 	public static final int TYPE_ATZ=1;
 	public static final int TYPE_EMPTY=2;
@@ -33,58 +27,58 @@ public class ChannelFolder implements ChannelProps, SearchObj{
 	public static final int TYPE_RECURSE=6;
 	public static final int TYPE_SEARCH=7;
 	public static final int TYPE_NAVIX_SEARCH=8;
-	public static final int TYPE_ACTION=9;	
+	public static final int TYPE_ACTION=9;
 	public static final int TYPE_REMATCH=10;
 	public static final int TYPE_EXEC=11;
-	
+
 	public boolean Ok;
-	
+
 	private String name;
 	private String url;
 	private int format;
 	private int type;
 	private String[] prop;
-	
+
 	private ChannelMatcher matcher;
-	
+
 	private ArrayList<ChannelFolder> subfolders;
 	private Channel parent;
 	private ChannelFolder parentFolder;
 	private ArrayList<ChannelItem> items;
-	private ArrayList<ChannelMedia> medias; 
+	private ArrayList<ChannelMedia> medias;
 	private ArrayList<ChannelSwitch> switches;
-	
+
 	private int continues;
 	private boolean contAll;
-	
+
 	private String[] sub;
-	
+
 	private String searchId;
 	private String pre_script;
 	private String post_script;
 	private String thumb_script;
-	
+
 	private String hook;
 	private String tag;
-	
+
 	private String proxy;
-	
+
 	private HashMap<String,String> hdrs;
-	
+
 	private String group;
 	private String imdbId;
 	private String staticThumb;
-	
+
 	private boolean ignoreFav;
-	
+
 	private String actionName;
 	private String[] action_prop;
 	private String videoFormat;
-	
+
 	public ChannelFolder(ArrayList<String> data,Channel parent) {
 		this(data,parent,null);
 	}
-	
+
 	public ChannelFolder(ChannelFolder cf) {
 		Ok=true;
 		type=ChannelFolder.TYPE_NORMAL;
@@ -112,7 +106,7 @@ public class ChannelFolder implements ChannelProps, SearchObj{
 		action_prop=cf.action_prop;
 		videoFormat=cf.videoFormat;
 	}
-	
+
 	public ChannelFolder(ArrayList<String> data,Channel parent,ChannelFolder pf) {
 		Ok=false;
 		type=ChannelFolder.TYPE_NORMAL;
@@ -154,14 +148,14 @@ public class ChannelFolder implements ChannelProps, SearchObj{
 		}
 		Ok=true;
 	}
-	
+
 	private void setSearchId() {
 		searchId=ChannelUtil.getPropertyValue(prop, "search_id");
 		if(ChannelUtil.empty(searchId))
 			searchId=parent.nxtSearchId();
 		parent.addSearcher(searchId, this);
 	}
-	
+
 	public void parse(ArrayList<String> data) {
 		for(int i=0;i<data.size();i++) {
 			String line=data.get(i).trim();
@@ -208,18 +202,18 @@ public class ChannelFolder implements ChannelProps, SearchObj{
 				if(m!=null)
 					parse(m.getMacro());
 				else
-					PMS.debug("unknown macro "+keyval[1]);
-			}	
+					LOGGER.debug("{Channel} Unknown macro {}", keyval[1]);
+			}
 			if(keyval[0].equalsIgnoreCase("name"))
 				name=keyval[1];
-			if(keyval[0].equalsIgnoreCase("type")) 	
+			if(keyval[0].equalsIgnoreCase("type"))
 				type=parseType(keyval[1]);
 			if(keyval[0].equalsIgnoreCase("url"))
 				url=keyval[1];
 			if(keyval[0].equalsIgnoreCase("format")) {
 				format=ChannelUtil.getFormat(keyval[1],format);
-			}				
-			if(keyval[0].equalsIgnoreCase("prop"))	
+			}
+			if(keyval[0].equalsIgnoreCase("prop"))
 				prop=keyval[1].trim().split(",");
 			if(keyval[0].equalsIgnoreCase("matcher")) {
 				if(matcher==null)
@@ -268,7 +262,7 @@ public class ChannelFolder implements ChannelProps, SearchObj{
 				imdbId=keyval[1];
 			if(keyval[0].equalsIgnoreCase("action_name"))
 				actionName=keyval[1];
-			if(keyval[0].equalsIgnoreCase("action_prop"))	
+			if(keyval[0].equalsIgnoreCase("action_prop"))
 				action_prop=keyval[1].trim().split(",");
 			if(keyval[0].equalsIgnoreCase("fallback_video"))
 				videoFormat=ChannelUtil.ensureDot(keyval[1].trim());
@@ -276,80 +270,80 @@ public class ChannelFolder implements ChannelProps, SearchObj{
 		if(matcher!=null)
 			matcher.processProps(prop);
 	}
-	
+
 	public void setType(int t) {
 		type=t;
 	}
-	
+
 	public int getType() {
 		return type;
 	}
-	
+
 	public String getName() {
 		return name;
 	}
-	
+
 	public String getURL() {
 		return url;
 	}
-	
+
 	public boolean isATZ() {
 		return ((type==ChannelFolder.TYPE_ATZ)||(type==ChannelFolder.TYPE_ATZ_LINK));
 	}
-	
+
 	public boolean isNaviX() {
 		return (type==ChannelFolder.TYPE_NAVIX)||(type==ChannelFolder.TYPE_NAVIX_SEARCH);
 	}
-	
+
 	public boolean isSearch() {
 		return (type==ChannelFolder.TYPE_SEARCH);
 	}
-	
+
 	public boolean isActionOnly() {
 		return (type==ChannelFolder.TYPE_ACTION);
 	}
-	
+
 	public boolean isFavorized(String name) {
 		return (isFavItem()||parent.isFavorized(name));
 	}
-	
+
 	public String getProp(String p) {
 		return ChannelUtil.getPropertyValue(prop, p);
 	}
-	
+
 	public boolean getProperty(String p) {
 		return ChannelUtil.getProperty(prop, p);
 	}
-	
+
 	public String[] getPropList() {
 		return prop;
 	}
-	
+
 	public String[] getSubs() {
 		return sub;
 	}
-	
+
 	public String actionName() {
 		return actionName;
 	}
-	
+
 	public void addSubFolder(ChannelFolder f) {
 		subfolders.add(f);
 		f.parentFolder = this;
 	}
-	
+
 	public void setIgnoreFav() {
 		ignoreFav=true;
 	}
-	
+
 	public boolean ignoreFav() {
 		return ignoreFav||parent.noFavorite();
 	}
-	
+
 	public int getFormat() {
 		return format;
 	}
-	
+
 	private int parseType(String t) {
 		if(t.compareToIgnoreCase("atz")==0)
 			return ChannelFolder.TYPE_ATZ;
@@ -373,7 +367,7 @@ public class ChannelFolder implements ChannelProps, SearchObj{
 			return ChannelFolder.TYPE_EXEC;
 		return ChannelFolder.TYPE_NORMAL;
 	}
-	
+
 	private boolean doContinue(String name,String realUrl) {
 		String cn=ChannelUtil.getPropertyValue(prop, "continue_name");
 		String cu=ChannelUtil.getPropertyValue(prop, "continue_url");
@@ -396,23 +390,23 @@ public class ChannelFolder implements ChannelProps, SearchObj{
 		}
 		return false;
 	}
-	
+
 	private class PeekRes {
 		boolean res;
 		String thumbUrl;
 	}
-	
+
 	private PeekRes mkPeekRes(boolean b) {
 		return mkPeekRes(b,"");
 	}
-	
+
 	private PeekRes mkPeekRes(boolean b,String url) {
 		PeekRes r=new PeekRes();
 		r.res=b;
 		r.thumbUrl=url;
 		return r;
 	}
-	
+
 	private PeekRes peek(String urlEnd,String[] props) {
 		if((type!=ChannelFolder.TYPE_NORMAL)&&
 		   (type!=ChannelFolder.TYPE_EMPTY)) // non normal folders are not peekable
@@ -448,7 +442,7 @@ public class ChannelFolder implements ChannelProps, SearchObj{
 	    	ChannelItem item=items.get(i);
 	    	ChannelMatcher m=item.getMatcher();
 	    	m.startMatch(page);
-	    	if(m.match()) 
+	    	if(m.match())
 	    	{ // match found
 	    		String thumb=m.getMatch("thumb",false);
 	    		return mkPeekRes(true,thumb);
@@ -457,9 +451,9 @@ public class ChannelFolder implements ChannelProps, SearchObj{
 		for(int i=0;i<subfolders.size();i++) {
 	    	ChannelFolder cf=subfolders.get(i);
 	    	ChannelMatcher m=cf.matcher;
-	    	if(cf.isATZ()) 
+	    	if(cf.isATZ())
 	    		return mkPeekRes(true);
-	    	if(m==null) 
+	    	if(m==null)
 	    		return mkPeekRes(true);
 	    	m.startMatch(page);
 	    	if(m.match()) { // match found
@@ -470,21 +464,21 @@ public class ChannelFolder implements ChannelProps, SearchObj{
 		// if we made it here there are no matches so we say peek failed
 		return mkPeekRes(false);
 	}
-	
+
 	public void match(DLNAResource res) throws MalformedURLException {
 		match(res,null,"",null,null,null,null);
 	}
-	
+
 	public void match(DLNAResource res,ChannelFilter filter,String urlEnd,
 			String pThumb,String nName) throws MalformedURLException {
 		match(res,filter,urlEnd,pThumb,nName,null,null);
 	}
-	
+
 	public void match(DLNAResource res,ChannelFilter filter,String urlEnd,
 			String pThumb,String nName,String imdb) throws MalformedURLException {
 		match(res,filter,urlEnd,pThumb,nName,imdb,null);
 	}
-	
+
 	public void match(DLNAResource res,ChannelFilter filter,String urlEnd,
 			String pThumb,String nName,String imdb,String embSubs) throws MalformedURLException {
 		String page="";
@@ -509,9 +503,9 @@ public class ChannelFolder implements ChannelProps, SearchObj{
 		String methodProp=ChannelUtil.getPropertyValue(prop, "http_method");
 		if(methodProp!=null&&methodProp.equalsIgnoreCase("post"))
 			post=true;
-		String realUrl=url;		
+		String realUrl=url;
 		if(isNaviX()) { // i'm navix special handling
-			realUrl=ChannelUtil.concatURL(url,urlEnd);	
+			realUrl=ChannelUtil.concatURL(url,urlEnd);
 			ChannelNaviX nx=new ChannelNaviX(parent,name,ChannelUtil.getThumb(null,pThumb, parent),
 					  realUrl,prop,sub);
 			if(ignoreFav)
@@ -555,7 +549,7 @@ public class ChannelFolder implements ChannelProps, SearchObj{
 				Proxy p=ChannelUtil.proxy(a);
 				URLConnection conn=urlobj.openConnection(p);
 				if(post) {
-					String q=ChannelUtil.append(urlEnd, "&", 
+					String q=ChannelUtil.append(urlEnd, "&",
 							ChannelUtil.getPropertyValue(prop, "post_data"));
 					page=ChannelUtil.postPage(conn, q,"",hdrs);
 				}
@@ -589,7 +583,7 @@ public class ChannelFolder implements ChannelProps, SearchObj{
 				} catch (Exception e) {
 				}
 			}
-			else if(oldCache) 
+			else if(oldCache)
 				cFile.delete();
 		}
 		int form=format;
@@ -732,7 +726,7 @@ public class ChannelFolder implements ChannelProps, SearchObj{
 	    		if(m1.onlyFirst())
 	    			break;
 	    	}
-	    } 
+	    }
 	    // 2nd items
 		// PMS.debug("items "+items.size());
 	    for(int i=0;i<ite.size();i++) {
@@ -750,7 +744,7 @@ public class ChannelFolder implements ChannelProps, SearchObj{
 	    		   continue;
 	    		String thumb=m.getMatch("thumb",false);
 	    		thumb=ChannelUtil.getThumb(thumb, pThumb, parent);
-	    		PMS.debug("found item "+someName+" url "+iUrl);
+	    		LOGGER.debug("{Channel} Found item {} url {}", someName, iUrl);
 	    		if(ChannelUtil.empty(someName))
 	    			someName=nName;
 	    		//iUrl=ChannelUtil.appendData(iUrl,prop,"url");
@@ -761,7 +755,7 @@ public class ChannelFolder implements ChannelProps, SearchObj{
 	    		if(item.onlyFirst())
 	    			break;
 	    	}
-	    } 
+	    }
 	    // 3rd channel switches
 	    for(int i=0;i<swi.size();i++) {
 	    	ChannelSwitch sw=swi.get(i);
@@ -804,7 +798,7 @@ public class ChannelFolder implements ChannelProps, SearchObj{
 	    		continue;
 	    	}
 	    	if(cf.isNaviX()) { // i'm navix special handling
-				realUrl=ChannelUtil.concatURL(cf.url,urlEnd);	
+				realUrl=ChannelUtil.concatURL(cf.url,urlEnd);
 				ChannelNaviX nx=new ChannelNaviX(parent,cf.name,ChannelUtil.getThumb(null,pThumb, parent),
 						  realUrl,cf.prop,cf.sub);
 				if(ignoreFav)
@@ -818,7 +812,7 @@ public class ChannelFolder implements ChannelProps, SearchObj{
 				cpf.setImdb(ChannelUtil.empty(imdb)?cf.imdbId:imdb);
 				res.addChild(cpf);
 	    		continue;
-	    	}	
+	    	}
 	    	m.startMatch(page);
 	    	parent.debug("folder matching using expr "+m.getRegexp().pattern());
 	    	HashMap<String,ArrayList<ChannelPMSFolder>> groups=new HashMap<String,ArrayList<ChannelPMSFolder>>();
@@ -850,7 +844,7 @@ public class ChannelFolder implements ChannelProps, SearchObj{
 	    		}
 	    		else {
 	    			thumb=ChannelUtil.getThumb(thumb, pThumb, parent);
-	    			
+
 	    		}
 	    		parent.debug("matching "+someName+" url "+fUrl+" thumb "+thumb+" group "+group+" imdb "+imdbId);
 	    		if(ignoreMatch)
@@ -878,7 +872,7 @@ public class ChannelFolder implements ChannelProps, SearchObj{
 	    		if (discardDuplicates && !ignoreMatch) {
 	    			if (uniqueNames.containsKey(someName)) {
 	    				String uniqueURL = uniqueNames.get(someName);
-	    				if (uniqueURL.equalsIgnoreCase(fUrl)) 
+	    				if (uniqueURL.equalsIgnoreCase(fUrl))
 	    					continue;
 	    			}
 	    			uniqueNames.put(someName, fUrl);
@@ -893,7 +887,7 @@ public class ChannelFolder implements ChannelProps, SearchObj{
 	    		if(!ChannelUtil.empty(cf.group)&&Channels.useGroupFolder()) {
 	    			ChannelPMSFolder cpf=new ChannelPMSFolder(cf,someName,null,fUrl,thumb);
 	    			ArrayList<ChannelPMSFolder> groupData=groups.get(cf.group);
-	    			if(groupData==null) 
+	    			if(groupData==null)
 	    				groupData=new ArrayList<ChannelPMSFolder>();
 	    			groupData.add(cpf);
 	    			groups.put(group, groupData);
@@ -955,8 +949,8 @@ public class ChannelFolder implements ChannelProps, SearchObj{
 	    	}
 	    	if(!groups.isEmpty()) { // we got groups
 	    		Object[] keySet=groups.keySet().toArray();
-	    		Arrays.sort(keySet);  
-	            for(int j=0;j<keySet.length;j++)   {  
+	    		Arrays.sort(keySet);
+	            for(int j=0;j<keySet.length;j++)   {
 	            	String key=(String) keySet[j];
 	    			ArrayList<ChannelPMSFolder> groupData=groups.get(key);
 	    			ChannelPMSFolder pfold=groupData.get(0);
@@ -966,14 +960,14 @@ public class ChannelFolder implements ChannelProps, SearchObj{
 	    				cf1.group=null; // clear group
 	    				res.addChild(pfold);
 	    			}
-	    			else 
+	    			else
 	    				res.addChild(new ChannelGroupFolder(nName+" #"+key,groupData,thumb));
 	    		}
 	    	}
 	    }
 	    format=form;
 	}
-	
+
 	public String getThumb() { // relic method just return parents thumb
 		if(!ChannelUtil.empty(staticThumb))
 			return staticThumb;
@@ -981,15 +975,15 @@ public class ChannelFolder implements ChannelProps, SearchObj{
 			return parent.getThumb();
 		return null;
 	}
-	
+
 	public String separator(String base) {
 		return ChannelUtil.getPropertyValue(prop, base+"_separator");
 	}
-	
+
 	public boolean onlyFirst() {
 		return ChannelUtil.getProperty(prop, "only_first");
 	}
-	
+
 	public String append(String base) {
 		return ChannelUtil.getPropertyValue(prop,"append_"+base);
 	}
@@ -1009,17 +1003,17 @@ public class ChannelFolder implements ChannelProps, SearchObj{
 		} catch (MalformedURLException e) {
 		}
 	}
-	
-	 
-	
+
+
+
 	public String thumbScript() {
 		return thumb_script;
 	}
-	
+
 	public Channel getChannel() {
 		return parent;
 	}
-	
+
 	public boolean otherChar(char c) {
 		String p=getProp("locals");
 		if(!ChannelUtil.empty(p)) {
@@ -1029,7 +1023,7 @@ public class ChannelFolder implements ChannelProps, SearchObj{
 		}
 		return !((c >= 'A' && c <= 'Z')||(c >= 'a' && c <= 'z'));
 	}
-	
+
 	public void addMovieInfo(DLNAResource res,String imdb,String thumb) {
 		if(Channels.useMovieInfo()&&
 		   !ChannelUtil.empty(imdb)&&
@@ -1037,7 +1031,7 @@ public class ChannelFolder implements ChannelProps, SearchObj{
 			res.addChild(new ChannelMovieInfoFolder(imdb,thumb));
 		}
 	}
-	
+
 	public String rawEntry() {
 		StringBuilder sb=new StringBuilder();
 		sb.append("folder {\n");
@@ -1054,7 +1048,7 @@ public class ChannelFolder implements ChannelProps, SearchObj{
 		sb.append("type=");
 		sb.append(ChannelUtil.type2str(type));
 		sb.append("\n");
-		
+
 		if(matcher!=null) {
 			sb.append("matcher=");
 			sb.append(matcher.regString());
@@ -1099,7 +1093,7 @@ public class ChannelFolder implements ChannelProps, SearchObj{
 		}
 		return sb.toString();
 	}
-	
+
 	private String mkFavEntry(String urlEnd,String name,String thumb,String imdb) {
 		StringBuilder sb=new StringBuilder();
 		String realUrl=ChannelUtil.concatURL(url,urlEnd);
@@ -1161,9 +1155,9 @@ public class ChannelFolder implements ChannelProps, SearchObj{
 		}
 		sb.append("\n}\n");
 		sb.append("\n}\r\n");
-		return sb.toString();	
+		return sb.toString();
 	}
-	
+
 	public String mkFav(String urlEnd,String name,String thumb,String imdb) {
 		ChannelFolder copy=new ChannelFolder(this);
 		copy.matcher=null;
@@ -1174,7 +1168,7 @@ public class ChannelFolder implements ChannelProps, SearchObj{
 		parent.addFavorite(copy);
 		return mkFavEntry(urlEnd,name,thumb,imdb);
 	}
-	
+
 	public Boolean isFavItem() {
 		return parentFolder != null && parentFolder == parent.favorite();
 	}
@@ -1187,7 +1181,7 @@ public class ChannelFolder implements ChannelProps, SearchObj{
 		if(parentFolder != null)
 			parentFolder.subfolders().remove(this);
 	}
-	
+
 	public void action(DLNAResource res,ChannelFilter filter,String urlEnd,
 			String pThumb,String nName,String imdb,int f) throws MalformedURLException {
 		String[] old_prop=prop;
@@ -1201,11 +1195,11 @@ public class ChannelFolder implements ChannelProps, SearchObj{
 		prop=old_prop;
 		format=old_format;
 	}
-	
+
 	public String fallBackVideoFormat() {
 		return videoFormat;
 	}
-	
+
 	@Override
 	public boolean escape(String base) {
 		return ChannelUtil.getProperty(prop, base+"_escape");
@@ -1216,26 +1210,26 @@ public class ChannelFolder implements ChannelProps, SearchObj{
 	public boolean unescape(String base) {
 		return ChannelUtil.getProperty(prop, base+"_unescape");
 	}
-	
+
 	public String mangle(String base) {
 		return ChannelUtil.getPropertyValue(prop, base+"_mangle");
 	}
-	
+
 	////////////////////////////////////////////////////////////////
 	// Cahceing folders
 	////////////////////////////////////////////////////////////////
-	
+
 	private File cacheFile() {
 		String n=name;
 		if(url!=null)
 			n=""+url.hashCode();
 		return new File(Channels.dataPath()+File.separator+parent.name()+"_"+n);
 	}
-	
+
 	public void addCacheClear(DLNAResource res) {
 		addCacheClear(res,cacheFile());
 	}
-	
+
 	private void addCacheClear(DLNAResource res,final File f) {
 		res.addChild(new VirtualVideoAction("Force update", true) {
 			public boolean enable() {
@@ -1244,14 +1238,14 @@ public class ChannelFolder implements ChannelProps, SearchObj{
 			}
 		});
 	}
-	
+
 	private boolean oldCache(String time,File f) {
 		if(time.equals("0")) // never age this entry
 			return false;
 		int t;
 		try {
 			t=Integer.parseInt(time);
-			
+
 		} catch (Exception e) {
 			t=7;
 		}
@@ -1261,17 +1255,17 @@ public class ChannelFolder implements ChannelProps, SearchObj{
 		d.add(Calendar.DATE, t);
 		return c.after(d);
 	}
-	
+
 	private ChannelPMSAllPlay findAllPlay(DLNAResource res,String name) {
 		for(DLNAResource tmp : res.getChildren()) {
 			if(tmp instanceof ChannelPMSAllPlay) {
 				if(tmp.getName().startsWith(name))
 					return (ChannelPMSAllPlay) tmp;
-			}				
+			}
 		}
 		return null;
 	}
-	
+
 	private int numberOfMedia(DLNAResource res) {
 		int cnt=0;
 		for(DLNAResource tmp : res.getChildren()) {

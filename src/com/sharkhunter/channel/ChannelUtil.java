@@ -1,20 +1,13 @@
 package com.sharkhunter.channel;
 
-import java.io.BufferedInputStream;
-import java.io.BufferedOutputStream;
 import java.io.BufferedReader;
 import java.io.DataOutputStream;
 import java.io.File;
 import java.io.FileInputStream;
-import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
-import java.io.FileReader;
-import java.io.FileWriter;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
-import java.io.UnsupportedEncodingException;
-import java.net.HttpURLConnection;
 import java.net.Proxy;
 import java.net.URI;
 import java.net.URL;
@@ -26,9 +19,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-import java.util.zip.ZipEntry;
-import java.util.zip.ZipInputStream;
-
 import org.apache.commons.io.FileUtils;
 import net.pms.PMS;
 import net.pms.configuration.PmsConfiguration;
@@ -39,36 +29,36 @@ import net.pms.formats.Format;
 import net.pms.io.OutputParams;
 
 public class ChannelUtil {
-	
+
 	// Misc constants
-	
+
 	public static final String defAgentString="Mozilla/5.0 (Windows; U; Windows NT 6.1; sv-SE; rv:1.9.2.3) Gecko/20100409 Firefox/3.7.3";
-	
+
 	// ASX types
 	public static final int ASXTYPE_NONE=0;
 	public static final int ASXTYPE_AUTO=1;
 	public static final int ASXTYPE_FORCE=2;
 
-	
+
 	public static String postPage(URLConnection connection,String query) {
 		return postPage(connection,query,"",null);
 	}
-	
+
 	public static String postPage(URLConnection connection,String query,String cookie,
-								  HashMap<String,String> hdr) {   
+								  HashMap<String,String> hdr) {
 		URL url=connection.getURL();
-		connection.setDoOutput(true);   
-		connection.setDoInput(true);   
-		connection.setUseCaches(false);   
-		connection.setDefaultUseCaches(false);   
-		//connection.setAllowUserInteraction(true);   
+		connection.setDoOutput(true);
+		connection.setDoInput(true);
+		connection.setUseCaches(false);
+		connection.setDefaultUseCaches(false);
+		//connection.setAllowUserInteraction(true);
 
 		connection.setRequestProperty ("Content-Type", "application/x-www-form-urlencoded");
 		connection.setRequestProperty("User-Agent",defAgentString);
 		if(query==null)
 			query="";
-		connection.setRequestProperty("Content-Length", "" + query.length());  
-		
+		connection.setRequestProperty("Content-Length", "" + query.length());
+
 		try {
 			String c1=ChannelCookie.getCookie(url.toString());
 			if(!empty(c1)) {
@@ -78,7 +68,7 @@ public class ChannelUtil {
 			if(!empty(cookie))
 				connection.setRequestProperty("Cookie",cookie);
 			if(hdr!=null&&hdr.size()!=0) {
-				for(String key : hdr.keySet()) 
+				for(String key : hdr.keySet())
 					connection.setRequestProperty(key,hdr.get(key));
 			}
 			connection.setConnectTimeout(10000);
@@ -87,8 +77,8 @@ public class ChannelUtil {
 			// open up the output stream of the connection
 			if(!empty(query)) {
 				DataOutputStream output = new DataOutputStream(connection.getOutputStream());
-				output.writeBytes(query);   
-				output.flush ();   
+				output.writeBytes(query);
+				output.flush ();
 				output.close();
 			}
 
@@ -110,15 +100,15 @@ public class ChannelUtil {
 			return "";
 		}
 	}
-	
+
 	public static String fetchPage(URLConnection connection) {
 		return fetchPage(connection,null,"",null);
 	}
-	
+
 	public static String fetchPage(URLConnection connection,ChannelAuth auth,String cookie) {
 		return fetchPage(connection,auth,cookie,null);
 	}
-	
+
 	public static String fetchPage(URLConnection connection,ChannelAuth auth,String cookie,HashMap<String,String> hdr) {
 		try {
 //			URLConnection connection=url.openConnection();
@@ -129,7 +119,7 @@ public class ChannelUtil {
 				Channels.debug("auth "+auth.method+" authstr "+auth.authStr);
 				if(auth.method==ChannelLogin.STD)
 					connection.setRequestProperty("Authorization", auth.authStr);
-				else if(auth.method==ChannelLogin.COOKIE) 
+				else if(auth.method==ChannelLogin.COOKIE)
 					cookie=append(cookie,"; ",auth.authStr);
 				else if(auth.method==ChannelLogin.APIKEY) {
 					url=new URL(url.toString()+auth.authStr);
@@ -147,10 +137,10 @@ public class ChannelUtil {
 			if(!empty(cookie))
 				connection.setRequestProperty("Cookie",cookie);
 			if(hdr!=null&&hdr.size()!=0) {
-				for(String key : hdr.keySet()) 
+				for(String key : hdr.keySet())
 					connection.setRequestProperty(key,hdr.get(key));
 			}
-		//	connection.setRequestProperty("Content-Length", "0"); 
+		//	connection.setRequestProperty("Content-Length", "0");
 			connection.setDoInput(true);
 			connection.setDoOutput(true);
 			BufferedReader in = new BufferedReader(new InputStreamReader(connection.getInputStream()));
@@ -171,7 +161,7 @@ public class ChannelUtil {
 			return "";
 		}
 	}
-	
+
 	public static boolean cookieContains(String cookie1,String cookie0) {
 		if(empty(cookie0))
 			return false;
@@ -187,7 +177,7 @@ public class ChannelUtil {
 		}
 		return false;
 	}
-	
+
 	public static boolean downloadText(InputStream in,File f) throws Exception {
 		String subcp=getCodePage();
 		OutputStreamWriter out=new OutputStreamWriter(new FileOutputStream(f),subcp);
@@ -205,11 +195,11 @@ public class ChannelUtil {
 		in.close();
 		return true;
 	}
-	
+
 	public static boolean downloadBin(String url,File f) {
 		return downloadBin(url,f,false);
 	}
-	
+
 	public static boolean downloadBin(String url,File f,boolean text) {
 		try {
 			URL u=new URL(url);
@@ -242,11 +232,11 @@ public class ChannelUtil {
 		}
 		return false;
 	}
-	
+
 	public static boolean empty(String s) {
 		return (s==null)||(s.length()==0);
 	}
-	
+
 	private static String findProperty(String[] props,String prop) {
 		if(props==null)
 			return null;
@@ -256,7 +246,7 @@ public class ChannelUtil {
 		}
 		return null;
 	}
-	
+
 	public static String getPropertyValue(String[] props,String prop) {
 		String s=findProperty(props,prop);
 		if(s==null)
@@ -266,11 +256,11 @@ public class ChannelUtil {
 			return null;
 		return ss[1];
 	}
-	
+
 	public static boolean getProperty(String[] props,String prop) {
 		return (findProperty(props,prop)!=null);
 	}
-	
+
 	public static ArrayList<String> gatherBlock(String[] lines,int start) {
 		ArrayList<String> res=new ArrayList<String>();
 		int curls=1;
@@ -289,7 +279,7 @@ public class ChannelUtil {
 		}
 		return res;
 	}
-	
+
 	public static ArrayList<String> gatherBlock(ArrayList<String> data,int start) {
 		ArrayList<String> res=new ArrayList<String>();
 		int curls=1;
@@ -308,7 +298,7 @@ public class ChannelUtil {
 		}
 		return res;
 	}
-	
+
 	public static String append(String res,String sep,String data) {
 		res=ChannelUtil.separatorToken(res);
 		data=ChannelUtil.separatorToken(data);
@@ -321,18 +311,18 @@ public class ChannelUtil {
 			return res+data;
 		return res+sep+data;
 	}
-	
+
 	public static ChannelMacro findMacro(ArrayList<ChannelMacro> macros,String macro) {
 		if(macros==null)
 			return null;
-		for(int i=0;i<macros.size();i++) { 	
+		for(int i=0;i<macros.size();i++) {
 			ChannelMacro m=macros.get(i);
 			if(m!=null&&macro.equals(m.getName()))
 				return m;
 		}
 		return null;
 	}
-	
+
 	public static String getThumb(String thumb,String pThumb,Channel ch) {
 		if(!empty(thumb))  // if the thumb we found is good use it
 			return thumb;
@@ -342,18 +332,18 @@ public class ChannelUtil {
 			return ch.getThumb();
 		return null;
 	}
-	
+
 	public static String pendData(String src,String[] props,String field,String sep) {
 		String p=getPropertyValue(props,"prepend_"+field);
 		String a=getPropertyValue(props,"append_"+field);
 		Channels.debug("prepend "+p+" append "+a+" src "+src+" f "+field);
 		return append(p,sep,append(src,sep,a));
 	}
-	
+
 	public static String pendData(String src,String[] props,String field) {
 		return pendData(src,props,field,null);
 	}
-	
+
 	public static String concatField(String conf,String matched,String[] props,String field) {
 		String cProp=getPropertyValue(props,"concat_"+field);
 		if(cProp==null)
@@ -366,7 +356,7 @@ public class ChannelUtil {
 			return append(matched,sep,conf);
 		return matched;
 	}
-	
+
 	public static String concatURL(String a,String b) {
 		if(empty(a))
 			return b;
@@ -380,13 +370,13 @@ public class ChannelUtil {
 			return a+"/"+b;*/
 		return a+b;
 	}
-	
+
 	public static boolean ignoreLine(String line) {
 		if(empty(line))
 			return true;
 		return (line.charAt(0)=='#');
 	}
-	
+
 	public static String parseASX(String url, int type) {
 		if(type==ChannelUtil.ASXTYPE_NONE)
 			return url;
@@ -408,11 +398,11 @@ public class ChannelUtil {
 			return url;
 		return page.substring(first+6,last);
 	}
-	
+
 	public static boolean isASX(String str) {
 		return (str!=null&&str.endsWith(".asx"));
 	}
-	
+
 	public static int calcCont(String[] props) {
 		String lim=ChannelUtil.getPropertyValue(props, "continue_limit");
 		int ret=Channels.DeafultContLim;
@@ -420,18 +410,18 @@ public class ChannelUtil {
 			try {
 				ret=Integer.parseInt(lim);
 			}
-			catch (Exception e) { 
+			catch (Exception e) {
 			}
 		}
 		if(ret<0)
 			ret=Channels.DeafultContLim;
 		return ret;
 	}
-	
+
 	public static String extension(String fileName) {
 		return extension(fileName,false);
 	}
-	
+
 	public static String extension(String fileName,boolean stripDot) {
 		if(ChannelUtil.empty(fileName))
 			return null;
@@ -440,7 +430,7 @@ public class ChannelUtil {
 			return fileName.substring(pos+(stripDot?1:0));
 		return null;
 	}
-	
+
 	public static String guessExt(String fileName,String url) {
 		if(!empty(extension(fileName)))
 			return fileName;
@@ -452,7 +442,7 @@ public class ChannelUtil {
 		// No extension, give up
 		return fileName;
 	}
-	
+
 	public static String unescape(String str) {
 		try {
 			return URLDecoder.decode(str,"UTF-8");
@@ -461,7 +451,7 @@ public class ChannelUtil {
 		}
 		return str;
 	}
-	
+
 	public static String escape(String str) {
 		try {
 			return URLEncoder.encode(str,"UTF-8");
@@ -470,11 +460,11 @@ public class ChannelUtil {
 		}
 		return str;
 	}
-	
+
 	public static boolean rtmpStream(String url) {
 		return streamType(url,"rtmp");
 	}
-	
+
 	public static boolean streamType(String url,String type) {
 		try {
 			URI u=new URI(url);
@@ -485,7 +475,7 @@ public class ChannelUtil {
 			return false;
 		}
 	}
-	
+
 	private static String addSubs(String rUrl,String sub,Channel ch,
 								  RendererConfiguration render) {
 		boolean braviaFix = false;
@@ -512,11 +502,11 @@ public class ChannelUtil {
 	  //  rUrl=append(rUrl,"&subdelay=","20000");
 		return rUrl;
 	}
-	
+
 	public static String badResource() {
 		return "resource://"+ChannelResource.redXUrl();
 	}
-	
+
 	public static String createMediaUrl(String url,int format,Channel ch,
 			RendererConfiguration render) {
 		//Channels.debug("create media url entry(str only) "+url);
@@ -524,7 +514,7 @@ public class ChannelUtil {
 		map.put("url", url);
 		return createMediaUrl(map,format,ch,render);
 	}
-	
+
 	public static String createMediaUrl(HashMap<String,String> vars,int format,
 										Channel ch,RendererConfiguration render) {
 		if(!empty(vars.get("bad"))) {
@@ -536,18 +526,18 @@ public class ChannelUtil {
 			return null;
 		rUrl=rUrl.replace("HTTP://", "http://"); // ffmpeg has problems with ucase HTTP
 		int rtmpMet=Channels.rtmpMethod();
-		String type=vars.get("__type__");			
+		String type=vars.get("__type__");
 		Channels.debug("create media url entry "+rUrl+" format "+format+" type "+type);
 		if(rUrl.startsWith("http")) {
 			if((format!=Format.VIDEO)||
-			   (rtmpMet==Channels.RTMP_MAGIC_TOKEN))    
+			   (rtmpMet==Channels.RTMP_MAGIC_TOKEN))
 				return rUrl;
 			//rUrl="navix://channel?url="+escape(rUrl);
 			rUrl="channel?url="+escape(rUrl);
 			String agent=vars.get("agent");
 			if(empty(agent))
 				agent=ChannelUtil.defAgentString;
-			rUrl=append(rUrl,"&agent=",escape(agent));	
+			rUrl=append(rUrl,"&agent=",escape(agent));
 			if(!empty(vars.get("referer")))
 				rUrl=append(rUrl,"&referer=",escape(vars.get("referer")));
 			String sub=vars.get("subtitle");
@@ -565,7 +555,7 @@ public class ChannelUtil {
 			Channels.debug("return media url "+rUrl);
 			return rUrl;
 		}
-		
+
 		if(!empty(type)&&type.equals("RTMPDUMP")) {
 			Channels.debug("rmtpdump spec "+rUrl);
 			String[] args=rUrl.split("!!!");
@@ -589,7 +579,7 @@ public class ChannelUtil {
 			Channels.debug("return media url rtmpdump spec "+rUrl);
 			return rUrl;
 		}
-		
+
 		String[] s=rUrl.split(" ");
 		if(s.length>1) {
 			// This is likely rtmp from navix
@@ -602,18 +592,18 @@ public class ChannelUtil {
 					vars.put(ss[0].toLowerCase(), ss[1]);
 			}
 		}
-		
+
 		if(!rtmpStream(rUrl)) // type is sopcast etc.
 			return rUrl;
 		if(rUrl.startsWith("rtmpdump://"))
 			return rUrl;
-		
+
 		switch(rtmpMet) {
 			case Channels.RTMP_MAGIC_TOKEN:
 				rUrl=ChannelUtil.append(rUrl, "!!!pms_ch_dash_y!!!", vars.get("playpath"));
 				rUrl=ChannelUtil.append(rUrl, "!!!pms_ch_dash_w!!!", vars.get("swfVfy"));
 				break;
-			
+
 			case Channels.RTMP_DUMP:
 				Channels.debug("rtmpdump method");
 				rUrl="rtmpdump://channel?-r="+escape(rUrl);
@@ -632,7 +622,7 @@ public class ChannelUtil {
 					rUrl=addSubs(rUrl,sub,ch,render);
 				}
 				break;
-				
+
 			default:
 				rUrl=vars.get("url");
 				break;
@@ -640,7 +630,7 @@ public class ChannelUtil {
 		Channels.debug("return media url "+rUrl);
 		return rUrl;
 	}
-	
+
 	public static String rtmpOp(String op) {
 		if(op.equals("-r"))
 			return "";
@@ -655,19 +645,19 @@ public class ChannelUtil {
 		if(op.equals("--swfVfy"))
 			return "swfVfy";
 		return op;
-			
+
 	}
-	
+
 	private static boolean backTrackCompensate(DLNAResource start) {
 		// if we are in a subslector skip that
-		if(start instanceof ChannelPMSSubSelector) 
+		if(start instanceof ChannelPMSSubSelector)
 			return true;
 		// Sub sites should be skipped to
 		if(start instanceof ChannelPMSSubSiteSelector)
 			return true;
 		return false;
 	}
-	
+
 	public static String backTrack(DLNAResource start,int stop) {
 		if(start==null)
 			return null;
@@ -693,7 +683,7 @@ public class ChannelUtil {
 			return curr.getName();
 		return null;
 	}
-	
+
 	public static String backTrack(DLNAResource start,int[] stops,String sep) {
 		if(empty(sep))
 			sep=" ";
@@ -705,13 +695,13 @@ public class ChannelUtil {
 		}
 		return res;
 	}
-	
-	
+
+
 	public static String backTrack(DLNAResource start,int[] stops) {
 		return backTrack(start,stops, " ");
 	}
-	
-	
+
+
 	public static int[] getNameIndex(String[] prop) {
 		try {
 			String x=ChannelUtil.getPropertyValue(prop, "name_index");
@@ -731,7 +721,7 @@ public class ChannelUtil {
 		}
 		return null;
 	}
-	
+
 	public static String mangle(String re,String str) {
 		if(empty(re))
 			return str;
@@ -743,7 +733,7 @@ public class ChannelUtil {
 			res=res+m.group(i);
 		return res;
 	}
-	
+
 	public static String format2str(int format) {
 		switch(format) {
 		case Format.AUDIO:
@@ -756,20 +746,20 @@ public class ChannelUtil {
 			return "Unknown";
 		}
 	}
-	
+
 	public static String execute(String script,String url,int format) {
 		return execute(script,url,format2str(format));
 	}
-	
+
 	public static String execute(String script,String url,String format) {
 		ProcessBuilder pb=new ProcessBuilder(script,"\""+url+"\"",format);
 		return execute(pb);
 	}
-	
+
 	public static String execute(ProcessBuilder pb) {
 		return execute(pb,false);
 	}
-	
+
 	public static String execute(ProcessBuilder pb,boolean verbose) {
 		try {
 			Channels.debug("about to execute "+pb.command());
@@ -807,13 +797,13 @@ public class ChannelUtil {
 		catch (Exception e) {
 		}
 	}
-	
+
 	public static Thread backgroundDownload(String name,String url,boolean cache) {
 		String fName=ChannelUtil.guessExt(Channels.fileName(name, cache),
 				url);
 		if(ChannelUtil.rtmpStream(url)) {
 			try {
-				//		URL u=new URL(url); 
+				//		URL u=new URL(url);
 				// rtmp stream special fix
 				if(empty(extension(fName))) // no extension. Rtmp is normally mp4
 					fName=fName+".mp4";
@@ -832,7 +822,7 @@ public class ChannelUtil {
 				return null;
 			}
 		}
-		
+
 		String subFile="";
 		if(url.startsWith("http")||
 		   url.startsWith("navix")||
@@ -878,7 +868,7 @@ public class ChannelUtil {
 							// ignore this
 							Channels.debug("Error moving subtitle file "+sFile);
 						}
-					}					
+					}
 					// download the actaul movie, subtitles are done
 					downloadBin(rUrl,f);
 				}
@@ -887,7 +877,7 @@ public class ChannelUtil {
 		}
 		return null;
 	}
-	
+
 	private static ProcessBuilder buildPid(String fName,String url) {
 			int rtmpMet=Channels.rtmpMethod();
 			if(rtmpMet==Channels.RTMP_MAGIC_TOKEN) {
@@ -911,11 +901,11 @@ public class ChannelUtil {
 			args.add("\""+fName+"\"");
 			return new ProcessBuilder(args);
 	}
-	
+
 	public static int getFormat(String type) {
 		return getFormat(type,-1);
 	}
-	
+
 	public static int getFormat(String type,int def) {
 		if(type.equalsIgnoreCase("image"))
 			return Format.IMAGE;
@@ -925,7 +915,7 @@ public class ChannelUtil {
 			return Format.AUDIO;
 		return def;
 	}
- 
+
 	public static Proxy proxy(ChannelAuth a) {
 		if(a==null)
 			return Proxy.NO_PROXY;
@@ -933,7 +923,7 @@ public class ChannelUtil {
 			return Proxy.NO_PROXY;
 		return a.proxy.getProxy();
 	}
-	
+
 	public static String separatorToken(String str) {
 		if(str==null)
 			return null;
@@ -943,20 +933,20 @@ public class ChannelUtil {
 			return "\r\n";
 		return str;
 	}
-	
+
 	public static boolean cookieMethod(int method) {
 		return (method==ChannelLogin.COOKIE)||(method==ChannelLogin.SIMPLE_COOKIE);
 	}
-	
+
 	public static void list2file(StringBuilder sb,String[] list) {
 		for(int i=0;i<list.length;i++) {
 			sb.append(list[i]);
 			sb.append(",");
 		}
 	}
-	
-	public final static String FAV_BAR="\n############################\n"; 
-	
+
+	public final static String FAV_BAR="\n############################\n";
+
 	public static void addToFavFile(String data,String name,String owner) {
 		File f=Channels.workFavFile();
 		try {
@@ -966,7 +956,7 @@ public class ChannelUtil {
 				str=str+"## Auto generated favorite file,Edit with care\n\n\n";
 			}
 			else
-				str = FileUtils.readFileToString(f);	
+				str = FileUtils.readFileToString(f);
 			Channels.debug("adding to fav file "+name);
 			String n="## Name: "+name+",Owner: "+owner;
 			int pos = str.indexOf(n);
@@ -983,7 +973,7 @@ public class ChannelUtil {
 		catch (Exception e) {
 		}
 	}
-	
+
 	public static void RemoveFromFavFile(String name, String url) {
 		File f=Channels.workFavFile();
 		try {
@@ -1004,7 +994,7 @@ public class ChannelUtil {
 		catch (Exception e) {
 		}
 	}
-			
+
 	public static String type2str(int type) {
 		switch(type) {
 		case ChannelFolder.TYPE_ATZ:
@@ -1027,7 +1017,7 @@ public class ChannelUtil {
 			return "normal";
 		}
 	}
-	
+
 	public static String stripExt(String str,int cnt,String strip) {
 		if(cnt==0)
 			cnt=-1;
@@ -1039,29 +1029,29 @@ public class ChannelUtil {
 			cnt--;
 		}
 		return str;
-	} 
-	
+	}
+
 	public static void sleep(String time) {
 		try {
 			sleep(Long.parseLong(time));
 		}
-		catch (Exception e) { 
+		catch (Exception e) {
 		}
 	}
-	
+
 	public static void sleep(long time) {
 		try {
 			Thread.sleep(time);
 		}
 		catch (Exception e){}
 	}
-	
+
 	public static String ensureDot(String str) {
 		if(str.charAt(0)!='.')
 			return "."+str;
 		return str;
 	}
-	
+
 	public static List<String> addStreamVars(List<String> args,ChannelStreamVars streamVars,
 				OutputParams params) {
 		ArrayList<String> res=new ArrayList<String>();
@@ -1083,14 +1073,14 @@ public class ChannelUtil {
 		}
 		return res;
 	}
-	
+
 	public static String ensureImdbtt(String imdb) {
 		/*if(empty(imdb))
 			return imdb;
 		return (imdb.startsWith("tt")?imdb:"tt"+imdb);*/
 		return imdb;
 	}
-	
+
 	public static String trimURL(String url) {
 		String u1=url.replace("http://", "").replace("https://", "");
 		int p=u1.indexOf("/");
@@ -1101,7 +1091,7 @@ public class ChannelUtil {
 			u1=u1.substring(p+1);
 		return u1;
 	}
-	
+
 	public static void killThread(Thread t) {
 		if(t!=null) {
 			t.interrupt();
@@ -1111,10 +1101,10 @@ public class ChannelUtil {
 			}
 		}
 	}
-	
+
 	public static final String REL_HOST = "host";
 	public static final String REL_PATH = "path";
-	
+
 	public static String relativeURL(String rUrl,String pUrl,String relType) {
 		if(empty(relType)||
 		   empty(rUrl)||
@@ -1140,18 +1130,18 @@ public class ChannelUtil {
 		}
 		return rUrl;
 	}
-	
+
 	public static void appendVarLine(StringBuffer sb,String var,String val) {
 		sb.append(var);
 		sb.append("=");
 		sb.append(val.trim());
 		sb.append("\n");
 	}
-		
+
 	public static Thread newBackgroundDownload(final String name,String url) {
 		if(ChannelUtil.rtmpStream(url)) {
 			try {
-				//		URL u=new URL(url); 
+				//		URL u=new URL(url);
 				// rtmp stream special fix
 				final ProcessBuilder pb=buildPid(name,url);
 				if(pb==null)
@@ -1210,7 +1200,7 @@ public class ChannelUtil {
 							// ignore this
 							Channels.debug("Error moving subtitle file "+sFile);
 						}
-					}					
+					}
 					// download the actaul movie, subtitles are done
 					Channels.debug("rUrl "+rUrl);
 					if(rUrl.contains(".m3u8")) {
@@ -1242,11 +1232,11 @@ public class ChannelUtil {
 		}
 		return null;
 	}
-	
+
 	public static boolean filterInternals(DLNAResource r) {
 		return ((r instanceof VirtualVideoAction)||(r instanceof ChannelPMSAllPlay));
 	}
-	
+
 	public static String searchInPath(DLNAResource res) {
 		while(res!=null) {
 			if((res instanceof Search)) {
@@ -1258,7 +1248,7 @@ public class ChannelUtil {
 		}
 		return "";
 	}
-	
+
 	public static int convInt(String str,int def) {
 		try {
 			Integer i=Integer.valueOf(str);
@@ -1275,5 +1265,5 @@ public class ChannelUtil {
 			return "utf-8";
 		return cp;
 	}
-	
+
 }

@@ -4,27 +4,27 @@ import java.net.MalformedURLException;
 import java.net.Proxy;
 import java.net.URL;
 import java.util.ArrayList;
-
-import net.pms.PMS;
+import org.slf4j.LoggerFactory;
 import net.pms.dlna.DLNAResource;
 
 public class ChannelItem implements ChannelProps{
-	
+
+	private static org.slf4j.Logger LOGGER = LoggerFactory.getLogger(ChannelItem.class);
 	public boolean Ok;
-	
+
 	private Channel parent;
 	private ChannelFolder parentFolder;
-	
+
 	private ChannelMatcher matcher;
-	
+
 	private String url;
 	private String name;
 	private String[] prop;
-	
+
 	private String thumbURL;
-	
+
 	private ArrayList<ChannelMedia> mediaURL;
-	
+
 	public ChannelItem(ArrayList<String> data,Channel parent,ChannelFolder pf) {
 		Ok=false;
 		this.parent=parent;
@@ -35,7 +35,7 @@ public class ChannelItem implements ChannelProps{
 		parse(data);
 		Ok=true;
 	}
-	
+
 	public void parse(ArrayList<String> data) {
 		for(int i=0;i<data.size();i++) {
 			String line=data.get(i).trim();
@@ -55,13 +55,13 @@ public class ChannelItem implements ChannelProps{
 				if(m!=null)
 					parse(m.getMacro());
 				else
-					PMS.debug("unknown macro "+keyval[1]);
-			}	
+					LOGGER.debug("{Channel} Unknown macro {}", keyval[1]);
+			}
 			if(keyval[0].equalsIgnoreCase("name"))
 				name=keyval[1];
-			if(keyval[0].equalsIgnoreCase("url"))	
+			if(keyval[0].equalsIgnoreCase("url"))
 				url=keyval[1];
-			if(keyval[0].equalsIgnoreCase("prop"))	
+			if(keyval[0].equalsIgnoreCase("prop"))
 				prop=keyval[1].trim().split(",");
 			if(keyval[0].equalsIgnoreCase("matcher")) {
 				if(matcher==null)
@@ -81,19 +81,19 @@ public class ChannelItem implements ChannelProps{
 		if(matcher!=null)
 			matcher.processProps(prop);
 	}
-	
+
 	public boolean autoMedia() {
 		return ChannelUtil.getProperty(prop, "auto_media");
 	}
-	
+
 	public ChannelMatcher getMatcher() {
 		return matcher;
 	}
-	
+
 	public void match(DLNAResource res) throws MalformedURLException {
 		match(res,"","","",null);
 	}
-	
+
 	public void match(DLNAResource res,String filter,String urlEnd,String backupName,
 			String pThumb) throws MalformedURLException {
 		String u=ChannelUtil.concatURL(url,urlEnd);
@@ -142,22 +142,22 @@ public class ChannelItem implements ChannelProps{
 	    	}
 	    }
 	}
-	
+
 	public String separator(String base) {
 		return ChannelUtil.getPropertyValue(prop, base+"_separator");
 	}
-	
+
 	public boolean onlyFirst() {
 		return ChannelUtil.getProperty(prop, "only_first");
 	}
-	
+
 	public String append(String base) {
 		return ChannelUtil.getPropertyValue(prop,"append_"+base);
 	}
 	public String prepend(String base) {
 		return ChannelUtil.getPropertyValue(prop,"prepend_"+base);
 	}
-	
+
 	public String rawEntry() {
 		StringBuilder sb=new StringBuilder();
 		sb.append("item {");
@@ -192,11 +192,11 @@ public class ChannelItem implements ChannelProps{
 		sb.append("\n}\n");
 		return sb.toString();
 	}
-	
+
 	public String getProp(String p) {
 		return ChannelUtil.getPropertyValue(prop, p);
 	}
-	
+
 	@Override
 	public boolean escape(String base) {
 		return ChannelUtil.getProperty(prop, base+"_escape");
@@ -207,7 +207,7 @@ public class ChannelItem implements ChannelProps{
 	public boolean unescape(String base) {
 		return ChannelUtil.getProperty(prop, base+"_unescape");
 	}
-	
+
 	public String mangle(String base) {
 		return ChannelUtil.getPropertyValue(prop, base+"_mangle");
 	}

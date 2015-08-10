@@ -2,37 +2,34 @@ package com.sharkhunter.channel;
 
 import java.io.IOException;
 import java.io.InputStream;
-import java.util.List;
-
 import org.apache.commons.lang.StringEscapeUtils;
 
-import net.pms.dlna.DLNAResource;
 import net.pms.dlna.virtual.VirtualFolder;
 import net.pms.dlna.virtual.VirtualVideoAction;
 
 public class ChannelPMSFolder extends VirtualFolder implements ChannelFilter{
-	
+
 		private ChannelFolder cf;
 		private String filter;
 		private String url;
 		private String imdb;
 		private String embSubs;
-		
+
 		private boolean thumbScriptRun;
 		private boolean favorized;
-		
+
 		public ChannelPMSFolder(ChannelFolder cf,char ch) {
 			this(cf,String.valueOf(ch),String.valueOf(ch),"",cf.getThumb());
 		}
-		
+
 		public ChannelPMSFolder(ChannelFolder cf,String name) {
 			this(cf,name,null,"",cf.getThumb());
 		}
-		
+
 		public ChannelPMSFolder(ChannelFolder cf,char ch,String url) {
 			this(cf,String.valueOf(ch),String.valueOf(ch),url,cf.getThumb());
 		}
-		
+
 		public ChannelPMSFolder(ChannelFolder cf,String name,String filter,String url,String thumb) {
 			super(name==null?"":StringEscapeUtils.unescapeHtml(name),thumb);
 			this.cf=cf;
@@ -42,15 +39,15 @@ public class ChannelPMSFolder extends VirtualFolder implements ChannelFilter{
 			thumbScriptRun=false;
 			embSubs="";
 		}
-		
+
 		public void setImdb(String imdb) {
 			this.imdb=imdb;
 		}
-		
+
 		public void setEmbSubs(String s) {
 			embSubs=s;
 		}
-		
+
 		public void discoverChildren() {
 			try {
 				if(!thumbScriptRun) {
@@ -88,20 +85,20 @@ public class ChannelPMSFolder extends VirtualFolder implements ChannelFilter{
 			} catch (Exception e) {
 			}
 		}
-		
+
 		public String getURL() {
 			return url;
 		}
-		
+
 		public void resolve() {
-			this.discovered=false;
+			this.setDiscovered(false);
 			this.getChildren().clear();
 		}
-		
+
 		public boolean isTranscodeFolderAvailable() {
 			return false;
 		}
-		
+
 		public boolean filter(String str) {
 			if(ChannelUtil.empty(filter))
 				return true;
@@ -110,15 +107,15 @@ public class ChannelPMSFolder extends VirtualFolder implements ChannelFilter{
 			}
 			return str.startsWith(filter);
 		}
-		
+
 		public String getThumb() {
 			return (thumbnailIcon);
 		}
-		
+
 		public ChannelFolder getFolder() {
 			return cf;
 		}
-		
+
 		public InputStream getThumbnailInputStream() {
 			try {
 				//thumbnailIcon=ChannelNaviXProc.simple(thumbnailIcon, cf.thumbScript());
@@ -130,13 +127,13 @@ public class ChannelPMSFolder extends VirtualFolder implements ChannelFilter{
 				return super.getThumbnailInputStream();
 			}
 		}
-		
+
 		private boolean monitor() {
 			return cf.getProperty("monitor");
 		}
-		
+
 		public void bookmark() {
-			if(cf.ignoreFav()||favorized) 
+			if(cf.ignoreFav()||favorized)
 				return;
 			favorized=true;
 			if(cf.isFavorized(name))
@@ -151,12 +148,12 @@ public class ChannelPMSFolder extends VirtualFolder implements ChannelFilter{
 				}
 			}
 		}
-		
+
 		public void unbookmark() {
 			ChannelUtil.RemoveFromFavFile(name,cf.getURL());
 			cf.remove();
 		}
-		
+
 		public boolean lastThumb() {
 			return (cf.getProp("last_thumb")!=null);
 		}
