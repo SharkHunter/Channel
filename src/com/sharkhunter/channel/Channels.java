@@ -807,8 +807,14 @@ public class Channels extends VirtualFolder implements FileListener {
 
 	public static boolean readCookieFile(String file,HashMap<String,ArrayList<ChannelAuth>> map) {
 		boolean skipped=false;
+		File cookieFile = new File(file);
+		if (!cookieFile.exists()) {
+			LOGGER.debug("{Channel} Cookie file \"{}\" not found - skipping", file);
+			return true;
+		}
 		try {
-			BufferedReader in=new BufferedReader(new FileReader(file));
+
+			BufferedReader in=new BufferedReader(new FileReader(cookieFile));
 			try {
 				String str;
 		    	while ((str = in.readLine()) != null) {
@@ -874,6 +880,7 @@ public class Channels extends VirtualFolder implements FileListener {
 			out.close();
 		}
 		catch (Exception e) {
+			LOGGER.warn("{Channel} Error writing cookie file \"{}\": {}", file, e);
 			debug("Error writing cookie file "+e);
 		}
 	}
